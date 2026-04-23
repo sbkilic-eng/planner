@@ -15,6 +15,8 @@
     --accent: #5C9E78;
     --accent-light: #253630;
     --accent2: #E07B54;
+    --accent-warning: #D9A05B;
+    --accent-danger: #D95B5B;
     --tab-active: #DFE4EC;
     --shadow: 0 2px 12px rgba(0,0,0,0.25);
   }
@@ -172,6 +174,7 @@
     font-size: 17px;
     font-weight: 600;
     margin-bottom: 3px;
+    padding-right: 80px; /* Butonlar için alan */
   }
   .card-meta {
     font-size: 14px;
@@ -189,7 +192,7 @@
     top: 12px;
     right: 12px;
     display: flex;
-    gap: 6px;
+    gap: 8px;
   }
   .btn-icon {
     background: none;
@@ -202,21 +205,29 @@
     transition: color 0.15s;
   }
   .btn-icon:hover { color: var(--accent2); }
+  .btn-icon.edit:hover { color: var(--accent); }
 
-  /* UPCOMING BADGE */
+  /* DYNAMIC BADGES */
   .badge {
     display: inline-block;
     font-size: 11px;
     font-weight: 600;
-    padding: 2px 7px;
+    padding: 3px 8px;
     border-radius: 20px;
     margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.4px;
   }
-  .badge-today { background: #3D2820; color: var(--accent2); }
-  .badge-soon { background: var(--accent-light); color: var(--accent); }
   .badge-past { background: var(--border); color: var(--muted); }
+  .badge-safe { background: var(--accent-light); color: var(--accent); }
+  .badge-warning { background: rgba(217, 160, 91, 0.15); color: var(--accent-warning); }
+  .badge-danger { background: rgba(217, 91, 91, 0.15); color: var(--accent-danger); animation: pulse 2s infinite; }
+  
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+  }
 
   /* ADD FORM */
   .add-form {
@@ -239,7 +250,7 @@
     letter-spacing: 0.5px;
     margin-bottom: 4px;
   }
-  input[type="text"], input[type="date"], input[type="time"], textarea, select {
+  input[type="text"], input[type="number"], input[type="date"], input[type="time"], textarea, select {
     width: 100%;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -269,6 +280,8 @@
   .btn:active { transform: scale(0.97); }
   .btn-primary { background: var(--accent); color: #fff; }
   .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-danger-outline { background: transparent; color: var(--accent-danger); border: 1px solid var(--accent-danger); margin-top: 10px; width: 100%; }
+  
   .btn-add {
     display: flex;
     align-items: center;
@@ -309,27 +322,7 @@
   }
 
   /* LISTS TAB */
-  .list-group {
-    margin-bottom: 20px;
-  }
-  .list-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
-  .list-name {
-    font-size: 18px;
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
-  }
-  .list-count {
-    font-size: 12px;
-    color: var(--muted);
-    background: var(--border);
-    padding: 2px 8px;
-    border-radius: 10px;
-  }
+  .list-group { margin-bottom: 20px; }
   .list-item {
     display: flex;
     align-items: flex-start;
@@ -364,7 +357,6 @@
   .list-check-mark { display: none; color: white; font-size: 10px; }
   .list-item.done .list-check-mark { display: block; }
   .item-text { font-size: 15px; flex: 1; line-height: 1.4; font-weight: 500; }
-  .item-sub { font-size: 13px; color: var(--muted); font-weight: 400; }
   .item-del {
     background: none;
     border: none;
@@ -382,11 +374,7 @@
     gap: 8px;
     margin-top: 6px;
   }
-  .quick-add input {
-    flex: 1;
-    padding: 10px 12px;
-    font-size: 15px;
-  }
+  .quick-add input { flex: 1; padding: 10px 12px; font-size: 15px; }
   .quick-add button {
     padding: 10px 16px;
     background: var(--accent);
@@ -399,13 +387,14 @@
     font-family: 'DM Sans', sans-serif;
   }
 
-  /* TRAVEL */
+  /* TRAVEL & EXPANDABLE CARDS */
   .travel-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
     margin-bottom: 12px;
     overflow: hidden;
+    position: relative;
   }
   .travel-header {
     padding: 14px 16px;
@@ -447,11 +436,7 @@
     gap: 6px;
     margin-top: 10px;
   }
-  .travel-add input {
-    flex: 1;
-    padding: 9px 12px;
-    font-size: 14px;
-  }
+  .travel-add input { flex: 1; padding: 9px 12px; font-size: 14px; }
   .travel-add button {
     padding: 9px 14px;
     background: var(--accent);
@@ -477,11 +462,7 @@
     transition: border-color 0.15s;
   }
   .note-card:hover { border-color: var(--accent); }
-  .note-card-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
+  .note-card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
   .note-card-preview {
     font-size: 14px;
     color: var(--muted);
@@ -532,11 +513,7 @@
     font-family: 'DM Sans', sans-serif;
     color: var(--text);
   }
-  .note-editor-body {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-  }
+  .note-editor-body { flex: 1; padding: 20px; overflow-y: auto; }
   .note-editor-area {
     width: 100%;
     min-height: 400px;
@@ -575,11 +552,7 @@
     from { transform: translateY(30px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
-  .modal-title {
-    font-family: 'Instrument Serif', serif;
-    font-size: 22px;
-    margin-bottom: 16px;
-  }
+  .modal-title { font-family: 'Instrument Serif', serif; font-size: 22px; margin-bottom: 16px; }
 
   /* DIVIDER */
   .divider { height: 1px; background: var(--border); margin: 16px 0; }
@@ -607,11 +580,7 @@
     font-family: 'DM Sans', sans-serif;
     transition: all 0.15s;
   }
-  .cat-tab.active {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-  }
+  .cat-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
   /* TODO */
   .todo-item {
@@ -644,32 +613,14 @@
     padding: 14px 16px;
     margin-bottom: 10px;
   }
-  .habit-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
+  .habit-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
   .habit-name { font-size: 16px; font-weight: 600; }
   .habit-streak { font-size: 12px; color: var(--accent); font-weight: 600; }
-  .habit-days {
-    display: flex;
-    gap: 6px;
-  }
+  .habit-days { display: flex; gap: 6px; }
   .habit-day {
-    flex: 1;
-    aspect-ratio: 1;
-    border-radius: 6px;
-    border: 1.5px solid var(--border);
-    background: var(--bg);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    transition: background 0.15s, border-color 0.15s;
-    min-width: 32px;
+    flex: 1; aspect-ratio: 1; border-radius: 6px; border: 1.5px solid var(--border);
+    background: var(--bg); cursor: pointer; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px; transition: background 0.15s, border-color 0.15s; min-width: 32px;
   }
   .habit-day.checked { background: var(--accent); border-color: var(--accent); }
   .habit-day.today { border-color: var(--accent2); }
@@ -677,25 +628,9 @@
   .habit-day.checked .habit-day-label { color: rgba(255,255,255,0.7); }
   .habit-day-num { font-size: 12px; font-weight: 600; color: var(--text); }
   .habit-day.checked .habit-day-num { color: #fff; }
-  .habit-progress {
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .habit-bar-bg {
-    flex: 1;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .habit-bar-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.3s;
-  }
+  .habit-progress { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+  .habit-bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .habit-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
   .habit-target-text { font-size: 12px; color: var(--muted); white-space: nowrap; }
   .habit-del { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 14px; transition: color 0.15s; }
   .habit-del:hover { color: var(--accent2); }
@@ -705,37 +640,27 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 14px 16px;
     margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .bday-header {
+    padding: 14px 16px;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 14px;
-    position: relative;
+    justify-content: space-between;
   }
   .bday-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: var(--accent-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-family: 'Instrument Serif', serif;
-    color: var(--accent);
-    flex-shrink: 0;
-    font-weight: 600;
+    width: 42px; height: 42px; border-radius: 50%; background: var(--accent-light);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+    font-family: 'Instrument Serif', serif; color: var(--accent); flex-shrink: 0; font-weight: 600;
   }
   .bday-name { font-size: 16px; font-weight: 600; }
   .bday-date { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .bday-badge { margin-top: 4px; }
-
-
+  
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-
 </style>
 </head>
 <body>
@@ -784,14 +709,13 @@
 
 <div class="content">
 
-  <!-- ========== RANDEVULAR ========== -->
   <div class="section active" id="sec-appointments">
-    <button class="btn-add" onclick="toggleForm('appt-form')">
+    <button class="btn-add" onclick="openApptForm()">
       <span>+</span> Yeni randevu ekle
     </button>
 
     <div class="add-form" id="appt-form">
-      <div class="modal-title" style="font-size:17px;margin-bottom:14px;">Yeni Randevu</div>
+      <div class="modal-title" style="font-size:17px;margin-bottom:14px;" id="appt-form-title">Yeni Randevu</div>
       <div class="form-row">
         <label>Başlık</label>
         <input type="text" id="appt-title" placeholder="Doktor, toplantı...">
@@ -819,27 +743,24 @@
     <div id="appt-list"></div>
   </div>
 
-  <!-- ========== SEYAHAT ========== -->
   <div class="section" id="sec-travel">
-    <button class="btn-add" onclick="openModal('travel-modal')">
+    <button class="btn-add" onclick="openTravelForm()">
       <span>+</span> Yeni destinasyon ekle
     </button>
     <div id="travel-list"></div>
   </div>
 
-  <!-- ========== LİSTELER ========== -->
   <div class="section" id="sec-lists">
     <div class="cat-tabs" id="cat-tabs"></div>
     <div id="list-content"></div>
   </div>
 
-  <!-- ========== YAPILACAKLAR ========== -->
   <div class="section" id="sec-todo">
-    <button class="btn-add" onclick="toggleForm('todo-form')">
+    <button class="btn-add" onclick="openTodoForm()">
       <span>+</span> Yeni görev ekle
     </button>
     <div class="add-form" id="todo-form">
-      <div class="modal-title" style="font-size:17px;margin-bottom:14px;">Yeni Görev</div>
+      <div class="modal-title" style="font-size:17px;margin-bottom:14px;" id="todo-form-title">Yeni Görev</div>
       <div class="form-row">
         <label>Görev</label>
         <input type="text" id="todo-title" placeholder="Ne yapılacak?">
@@ -868,7 +789,6 @@
     <div id="todo-list"></div>
   </div>
 
-  <!-- ========== ALIŞKANLIKLAR ========== -->
   <div class="section" id="sec-habits">
     <button class="btn-add" onclick="openModal('habit-modal')">
       <span>+</span> Yeni alışkanlık ekle
@@ -876,13 +796,12 @@
     <div id="habits-list"></div>
   </div>
 
-  <!-- ========== DOĞUM GÜNLERİ ========== -->
   <div class="section" id="sec-birthdays">
-    <button class="btn-add" onclick="toggleForm('bday-form')">
+    <button class="btn-add" onclick="openBdayForm()">
       <span>+</span> Doğum günü ekle
     </button>
     <div class="add-form" id="bday-form">
-      <div class="modal-title" style="font-size:17px;margin-bottom:14px;">Doğum Günü</div>
+      <div class="modal-title" style="font-size:17px;margin-bottom:14px;" id="bday-form-title">Doğum Günü</div>
       <div class="form-row">
         <label>İsim</label>
         <input type="text" id="bday-name" placeholder="Ad Soyad">
@@ -904,10 +823,6 @@
           <input type="number" id="bday-day" min="1" max="31" placeholder="15">
         </div>
       </div>
-      <div class="form-row">
-        <label>Not (isteğe bağlı)</label>
-        <input type="text" id="bday-note" placeholder="Hediye fikri, hatırlatma...">
-      </div>
       <div class="form-btns">
         <button class="btn btn-primary" onclick="saveBirthday()">Kaydet</button>
         <button class="btn btn-ghost" onclick="toggleForm('bday-form')">İptal</button>
@@ -916,7 +831,6 @@
     <div id="birthdays-list"></div>
   </div>
 
-  
   <div class="section" id="sec-notes">
     <button class="btn-add" onclick="openNote(null)">
       <span>+</span> Yeni not
@@ -926,22 +840,20 @@
 
 </div>
 
-<!-- NOTE EDITOR -->
 <div class="note-editor" id="note-editor">
   <div class="note-editor-header">
     <button class="note-back" onclick="closeNote()">&#8592;</button>
     <input class="note-editor-title" id="note-title-input" placeholder="Başlık...">
-    <button class="btn-icon" onclick="deleteCurrentNote()" style="color:var(--accent2);font-size:18px;">&#10005;</button>
+    <button class="btn-icon" onclick="deleteCurrentNote()" style="color:var(--accent-danger);font-size:18px;">&#10005;</button>
   </div>
   <div class="note-editor-body">
     <textarea class="note-editor-area" id="note-body-input" placeholder="Yazmaya başla..."></textarea>
   </div>
 </div>
 
-<!-- TRAVEL MODAL -->
 <div class="modal-overlay" id="travel-modal">
   <div class="modal">
-    <div class="modal-title">Yeni Destinasyon</div>
+    <div class="modal-title" id="travel-modal-title">Yeni Destinasyon</div>
     <div class="form-row">
       <label>Şehir / Ülke</label>
       <input type="text" id="travel-dest" placeholder="İstanbul, Paris...">
@@ -957,8 +869,8 @@
       </div>
     </div>
     <div class="form-row">
-      <label>Notlar</label>
-      <textarea id="travel-note" placeholder="Otel, aktiviteler, hatırlatmalar..."></textarea>
+      <label>Genel Not</label>
+      <textarea id="travel-note" placeholder="Otel, ulaşım vs..."></textarea>
     </div>
     <div class="form-btns">
       <button class="btn btn-primary" onclick="saveTravel()">Kaydet</button>
@@ -967,7 +879,6 @@
   </div>
 </div>
 
-<!-- HABIT MODAL -->
 <div class="modal-overlay" id="habit-modal">
   <div class="modal">
     <div class="modal-title">Yeni Alışkanlık</div>
@@ -992,7 +903,6 @@
   </div>
 </div>
 
-
 <div class="modal-overlay" id="newlist-modal">
   <div class="modal">
     <div class="modal-title">Yeni Liste</div>
@@ -1008,6 +918,9 @@
 </div>
 
 <script>
+// ==================== GLOBAL STATE ====================
+let currentEditId = null;
+
 // ==================== DATA ====================
 const DB = {
   get: (k) => JSON.parse(localStorage.getItem('planner_' + k) || 'null'),
@@ -1028,19 +941,71 @@ function formatDate(d) {
   return `${parts[2]}.${parts[1]}.${parts[0]}`;
 }
 
-function getDayDiff(dateStr) {
-  if (!dateStr) return null;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const d = new Date(dateStr); d.setHours(0,0,0,0);
-  return Math.round((d - today) / 86400000);
+// ICS Calendar Generator
+function downloadICS(title, dateStr, timeStr, desc) {
+  if(!dateStr) return;
+  const start = new Date(dateStr + (timeStr ? 'T' + timeStr : 'T00:00'));
+  let end = new Date(start.getTime() + (timeStr ? 60*60*1000 : 24*60*60*1000)); // Default 1 hour or all day
+  
+  const fmt = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  
+  const ics = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${title}
+DTSTART:${fmt(start)}
+DTEND:${fmt(end)}
+DESCRIPTION:${desc || ''}
+END:VEVENT
+END:VCALENDAR`;
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const link = document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.setAttribute('download', `${title.replace(/ /g,'_')}.ics`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
-function setBadge(diff) {
-  if (diff === null) return '';
-  if (diff < 0) return '<span class="badge badge-past">Geçti</span>';
-  if (diff === 0) return '<span class="badge badge-today">Bugün</span>';
-  if (diff <= 3) return `<span class="badge badge-soon">${diff} gün sonra</span>`;
-  return `<span class="badge badge-past">${formatDate(new Date(Date.now() + diff*86400000).toISOString().split('T')[0])}</span>`;
+// PRECISE COUNTDOWN LOGIC (Days, Hours, Minutes)
+function getPreciseCountdown(dateStr, timeStr) {
+  if (!dateStr) return null;
+  const target = new Date(dateStr + (timeStr ? 'T' + timeStr : 'T23:59:59'));
+  const now = new Date();
+  const diffMs = target - now;
+
+  if (diffMs < 0) return { text: 'Geçti', class: 'badge-past' };
+
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffDays > 0) {
+    if (diffDays > 7) return { text: `${diffDays} gün kaldı`, class: 'badge-safe' };
+    return { text: `${diffDays} gün kaldı`, class: 'badge-warning' };
+  }
+  if (diffHours > 0) {
+    return { text: `${diffHours} saat kaldı`, class: 'badge-danger' };
+  }
+  return { text: `${diffMins} dk kaldı`, class: 'badge-danger' };
+}
+
+function getBirthdayCountdown(month, day) {
+  const today = new Date();
+  const thisYear = today.getFullYear();
+  let next = new Date(thisYear, month - 1, day, 23, 59, 59);
+  
+  if (next < today) {
+    next = new Date(thisYear + 1, month - 1, day, 23, 59, 59);
+  }
+  
+  const diffMs = next - today;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return { text: 'Bugün!', class: 'badge-danger' };
+  if (diffDays <= 7) return { text: `${diffDays} gün kaldı`, class: 'badge-warning' };
+  return { text: `${diffDays} gün kaldı`, class: 'badge-safe' };
 }
 
 // ==================== TABS ====================
@@ -1050,6 +1015,7 @@ function switchTab(name) {
   document.getElementById('sec-' + name).classList.add('active');
   const tabs = ['appointments','travel','lists','todo','habits','birthdays','notes'];
   document.querySelectorAll('.nav-item')[tabs.indexOf(name)].classList.add('active');
+  
   if (name === 'appointments') renderAppointments();
   if (name === 'travel') renderTravel();
   if (name === 'lists') renderLists();
@@ -1059,47 +1025,78 @@ function switchTab(name) {
   if (name === 'notes') renderNotes();
 }
 
-function toggleForm(id) {
-  const f = document.getElementById(id);
-  f.classList.toggle('open');
+function toggleForm(formId) {
+  const f = document.getElementById(formId);
+  if(f.classList.contains('open')) {
+    f.classList.remove('open');
+    currentEditId = null; // reset on close
+  } else {
+    f.classList.add('open');
+  }
 }
 
-// ==================== MODAL ====================
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
+function openModal(modalId) { document.getElementById(modalId).classList.add('open'); }
+function closeModal(modalId) { 
+  document.getElementById(modalId).classList.remove('open'); 
+  currentEditId = null;
 }
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
+
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('open');
+    if (e.target === this) closeModal(this.id);
   });
 });
 
 // ==================== APPOINTMENTS ====================
+function openApptForm(editId = null) {
+  currentEditId = editId;
+  const form = document.getElementById('appt-form');
+  document.getElementById('appt-form-title').innerText = editId ? "Randevu Düzenle" : "Yeni Randevu";
+  
+  if (editId) {
+    const appts = getData('appts', []);
+    const a = appts.find(x => x.id === editId);
+    document.getElementById('appt-title').value = a.title;
+    document.getElementById('appt-date').value = a.date;
+    document.getElementById('appt-time').value = a.time;
+    document.getElementById('appt-note').value = a.note;
+  } else {
+    document.getElementById('appt-title').value = '';
+    document.getElementById('appt-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('appt-time').value = '';
+    document.getElementById('appt-note').value = '';
+  }
+  form.classList.add('open');
+}
+
 function saveAppointment() {
   const title = document.getElementById('appt-title').value.trim();
   if (!title) return;
   const appts = getData('appts', []);
-  appts.push({
-    id: id(),
+  
+  const payload = {
+    id: currentEditId || id(),
     title,
     date: document.getElementById('appt-date').value,
     time: document.getElementById('appt-time').value,
     note: document.getElementById('appt-note').value.trim(),
-  });
+  };
+
+  if (currentEditId) {
+    const idx = appts.findIndex(x => x.id === currentEditId);
+    if(idx > -1) appts[idx] = payload;
+  } else {
+    appts.push(payload);
+  }
+
   appts.sort((a,b) => (a.date + a.time) < (b.date + b.time) ? -1 : 1);
   DB.set('appts', appts);
-  document.getElementById('appt-title').value = '';
-  document.getElementById('appt-date').value = '';
-  document.getElementById('appt-time').value = '';
-  document.getElementById('appt-note').value = '';
-  document.getElementById('appt-form').classList.remove('open');
+  toggleForm('appt-form');
   renderAppointments();
 }
 
 function deleteAppointment(aid) {
+  if(!confirm("Bu randevuyu silmek istediğinize emin misiniz?")) return;
   const appts = getData('appts', []).filter(a => a.id !== aid);
   DB.set('appts', appts);
   renderAppointments();
@@ -1113,44 +1110,76 @@ function renderAppointments() {
     return;
   }
   el.innerHTML = appts.map(a => {
-    const diff = getDayDiff(a.date);
-    const badge = diff !== null ? setBadge(diff) : '';
+    const cd = getPreciseCountdown(a.date, a.time);
+    const badge = cd ? `<span class="badge ${cd.class}">${cd.text}</span>` : '';
     const timeStr = a.time ? ` · ${a.time}` : '';
+    
     return `<div class="card">
       ${badge}
+      <div class="card-actions">
+        <button class="btn-icon edit" onclick="openApptForm('${a.id}')">&#9998;</button>
+        <button class="btn-icon" onclick="downloadICS('${a.title}', '${a.date}', '${a.time}', '${a.note}')">&#128197;</button>
+        <button class="btn-icon" onclick="deleteAppointment('${a.id}')">&#10005;</button>
+      </div>
       <div class="card-title">${esc(a.title)}</div>
       <div class="card-meta">${a.date ? formatDate(a.date) : ''}${timeStr}</div>
       ${a.note ? `<div class="card-note">${esc(a.note)}</div>` : ''}
-      <div class="card-actions">
-        <button class="btn-icon" onclick="deleteAppointment('${a.id}')">&#10005;</button>
-      </div>
     </div>`;
   }).join('');
 }
 
 // ==================== TRAVEL ====================
+function openTravelForm(editId = null) {
+  currentEditId = editId;
+  document.getElementById('travel-modal-title').innerText = editId ? "Destinasyon Düzenle" : "Yeni Destinasyon";
+  
+  if (editId) {
+    const travels = getData('travels', []);
+    const t = travels.find(x => x.id === editId);
+    document.getElementById('travel-dest').value = t.dest;
+    document.getElementById('travel-start').value = t.start;
+    document.getElementById('travel-end').value = t.end;
+    document.getElementById('travel-note').value = t.note;
+  } else {
+    document.getElementById('travel-dest').value = '';
+    document.getElementById('travel-start').value = '';
+    document.getElementById('travel-end').value = '';
+    document.getElementById('travel-note').value = '';
+  }
+  openModal('travel-modal');
+}
+
 function saveTravel() {
   const dest = document.getElementById('travel-dest').value.trim();
   if (!dest) return;
   const travels = getData('travels', []);
-  travels.push({
-    id: id(),
-    dest,
-    start: document.getElementById('travel-start').value,
-    end: document.getElementById('travel-end').value,
-    note: document.getElementById('travel-note').value.trim(),
-    items: [],
-  });
+  
+  if(currentEditId) {
+    const idx = travels.findIndex(x => x.id === currentEditId);
+    if(idx > -1) {
+      travels[idx].dest = dest;
+      travels[idx].start = document.getElementById('travel-start').value;
+      travels[idx].end = document.getElementById('travel-end').value;
+      travels[idx].note = document.getElementById('travel-note').value.trim();
+    }
+  } else {
+    travels.push({
+      id: id(),
+      dest,
+      start: document.getElementById('travel-start').value,
+      end: document.getElementById('travel-end').value,
+      note: document.getElementById('travel-note').value.trim(),
+      items: [],
+    });
+  }
+  
   DB.set('travels', travels);
-  document.getElementById('travel-dest').value = '';
-  document.getElementById('travel-start').value = '';
-  document.getElementById('travel-end').value = '';
-  document.getElementById('travel-note').value = '';
   closeModal('travel-modal');
   renderTravel();
 }
 
 function deleteTravel(tid) {
+  if(!confirm("Bu seyahati silmek istediğinize emin misiniz?")) return;
   DB.set('travels', getData('travels', []).filter(t => t.id !== tid));
   renderTravel();
 }
@@ -1172,12 +1201,9 @@ function addTravelItem(tid) {
   DB.set('travels', travels);
   inp.value = '';
   renderTravel();
-  // reopen
   setTimeout(() => {
-    const b = document.getElementById('tb-' + tid);
-    const c = document.getElementById('tc-' + tid);
-    if (b) b.classList.add('open');
-    if (c) c.classList.add('open');
+    document.getElementById('tb-' + tid).classList.add('open');
+    document.getElementById('tc-' + tid).classList.add('open');
   }, 10);
 }
 
@@ -1188,10 +1214,20 @@ function toggleTravelItem(tid, iid) {
   DB.set('travels', travels);
   renderTravel();
   setTimeout(() => {
-    const b = document.getElementById('tb-' + tid);
-    const c = document.getElementById('tc-' + tid);
-    if (b) b.classList.add('open');
-    if (c) c.classList.add('open');
+    document.getElementById('tb-' + tid).classList.add('open');
+    document.getElementById('tc-' + tid).classList.add('open');
+  }, 10);
+}
+
+function deleteTravelItem(tid, iid) {
+  const travels = getData('travels', []);
+  const t = travels.find(x => x.id === tid);
+  if (t) { t.items = t.items.filter(i => i.id !== iid); }
+  DB.set('travels', travels);
+  renderTravel();
+  setTimeout(() => {
+    document.getElementById('tb-' + tid).classList.add('open');
+    document.getElementById('tc-' + tid).classList.add('open');
   }, 10);
 }
 
@@ -1203,22 +1239,29 @@ function renderTravel() {
     return;
   }
   el.innerHTML = travels.map(t => {
+    const cd = getPreciseCountdown(t.start, null);
+    const badge = cd ? `<span class="badge ${cd.class}">${cd.text}</span>` : '';
     const dateRange = [t.start && formatDate(t.start), t.end && formatDate(t.end)].filter(Boolean).join(' – ');
+    
     const items = (t.items || []).map(i => `
       <div class="travel-item">
         <div class="list-check" onclick="toggleTravelItem('${t.id}','${i.id}')" style="${i.done ? 'background:var(--accent);border-color:var(--accent)' : ''}">
           ${i.done ? '<span class="list-check-mark" style="display:block">&#10003;</span>' : ''}
         </div>
-        <span style="${i.done ? 'text-decoration:line-through;opacity:0.5' : ''}">${esc(i.text)}</span>
+        <span style="flex:1; ${i.done ? 'text-decoration:line-through;opacity:0.5' : ''}">${esc(i.text)}</span>
+        <button class="item-del" onclick="deleteTravelItem('${t.id}', '${i.id}')">&#10005;</button>
       </div>`).join('');
+      
     return `<div class="travel-card">
       <div class="travel-header" onclick="toggleTravelBody('${t.id}')">
         <div>
+          ${badge}
           <div class="travel-dest">${esc(t.dest)}</div>
           <div class="travel-dates">${dateRange}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button class="btn-icon" onclick="event.stopPropagation();deleteTravel('${t.id}')">&#10005;</button>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn-icon" onclick="event.stopPropagation();downloadICS('Seyahat: ${t.dest}', '${t.start}', null, '${t.note}')">&#128197;</button>
+          <button class="btn-icon edit" onclick="event.stopPropagation();openTravelForm('${t.id}')">&#9998;</button>
           <span class="chevron" id="tc-${t.id}">&#9660;</span>
         </div>
       </div>
@@ -1226,24 +1269,20 @@ function renderTravel() {
         ${t.note ? `<div class="travel-note">${esc(t.note)}</div>` : ''}
         <div class="travel-items">${items}</div>
         <div class="travel-add">
-          <input type="text" id="ti-${t.id}" placeholder="Yapılacak, gezilecek yer..." onkeydown="if(event.key==='Enter')addTravelItem('${t.id}')">
+          <input type="text" id="ti-${t.id}" placeholder="Gezilecek yer, eşya..." onkeydown="if(event.key==='Enter')addTravelItem('${t.id}')">
           <button onclick="addTravelItem('${t.id}')">Ekle</button>
         </div>
+        <button class="btn btn-danger-outline" onclick="deleteTravel('${t.id}')">Seyahati Sil</button>
       </div>
     </div>`;
   }).join('');
 }
 
 // ==================== LISTS ====================
+// (List functions remain identical but updated with confirm dialog for safety if needed, skipped for brevity on list items but implemented below)
 const DEFAULT_LISTS = ['Kitaplar', 'Filmler', 'Alışveriş', 'Gezilecek Yerler'];
-
-function getListCategories() {
-  return getData('listcats', DEFAULT_LISTS);
-}
-
-function getActiveCat() {
-  return getData('activecat', getListCategories()[0]);
-}
+function getListCategories() { return getData('listcats', DEFAULT_LISTS); }
+function getActiveCat() { return getData('activecat', getListCategories()[0]); }
 
 function renderLists() {
   const cats = getListCategories();
@@ -1255,10 +1294,7 @@ function renderLists() {
   renderListItems(active);
 }
 
-function setCat(cat) {
-  DB.set('activecat', cat);
-  renderLists();
-}
+function setCat(cat) { DB.set('activecat', cat); renderLists(); }
 
 function saveNewList() {
   const name = document.getElementById('newlist-name').value.trim();
@@ -1267,7 +1303,6 @@ function saveNewList() {
   if (!cats.includes(name)) cats.push(name);
   DB.set('listcats', cats);
   DB.set('activecat', name);
-  document.getElementById('newlist-name').value = '';
   closeModal('newlist-modal');
   renderLists();
 }
@@ -1324,78 +1359,52 @@ function renderListItems(cat) {
   `;
 }
 
-// ==================== NOTES ====================
-let currentNoteId = null;
-
-function openNote(nid) {
-  currentNoteId = nid;
-  const notes = getData('notes', []);
-  const note = nid ? notes.find(n => n.id === nid) : null;
-  document.getElementById('note-title-input').value = note ? note.title : '';
-  document.getElementById('note-body-input').value = note ? note.body : '';
-  document.getElementById('note-editor').classList.add('open');
-  if (!nid) currentNoteId = id();
-}
-
-function closeNote() {
-  const title = document.getElementById('note-title-input').value.trim();
-  const body = document.getElementById('note-body-input').value.trim();
-  if (title || body) {
-    const notes = getData('notes', []);
-    const idx = notes.findIndex(n => n.id === currentNoteId);
-    const entry = { id: currentNoteId, title: title || 'Başlıksız', body, updated: new Date().toISOString() };
-    if (idx >= 0) notes[idx] = entry; else notes.unshift(entry);
-    DB.set('notes', notes);
-  }
-  document.getElementById('note-editor').classList.remove('open');
-  renderNotes();
-}
-
-function deleteCurrentNote() {
-  if (!currentNoteId) return;
-  DB.set('notes', getData('notes', []).filter(n => n.id !== currentNoteId));
-  document.getElementById('note-editor').classList.remove('open');
-  renderNotes();
-}
-
-function renderNotes() {
-  const notes = getData('notes', []);
-  const el = document.getElementById('notes-list');
-  if (!notes.length) {
-    el.innerHTML = '<div class="empty">Henüz not yok</div>';
-    return;
-  }
-  el.innerHTML = notes.map(n => {
-    const d = new Date(n.updated);
-    const dateStr = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`;
-    return `<div class="note-card" onclick="openNote('${n.id}')">
-      <div class="note-card-title">${esc(n.title)}</div>
-      <div class="note-card-preview">${esc(n.body)}</div>
-      <div class="note-card-date">${dateStr}</div>
-    </div>`;
-  }).join('');
-}
-
 // ==================== TO-DO ====================
+function openTodoForm(editId = null) {
+  currentEditId = editId;
+  const form = document.getElementById('todo-form');
+  document.getElementById('todo-form-title').innerText = editId ? "Görevi Düzenle" : "Yeni Görev";
+  
+  if(editId) {
+    const todos = getData('todos', []);
+    const t = todos.find(x => x.id === editId);
+    document.getElementById('todo-title').value = t.title;
+    document.getElementById('todo-priority').value = t.priority;
+    document.getElementById('todo-date').value = t.date || '';
+    document.getElementById('todo-note').value = t.note || '';
+  } else {
+    document.getElementById('todo-title').value = '';
+    document.getElementById('todo-priority').value = 'normal';
+    document.getElementById('todo-date').value = '';
+    document.getElementById('todo-note').value = '';
+  }
+  form.classList.add('open');
+}
+
 function saveTodo() {
   const title = document.getElementById('todo-title').value.trim();
   if (!title) return;
   const todos = getData('todos', []);
-  todos.push({
-    id: id(),
+  
+  const payload = {
+    id: currentEditId || id(),
     title,
     priority: document.getElementById('todo-priority').value,
     date: document.getElementById('todo-date').value,
     note: document.getElementById('todo-note').value.trim(),
     done: false,
     created: new Date().toISOString(),
-  });
+  };
+
+  if(currentEditId) {
+    const idx = todos.findIndex(x => x.id === currentEditId);
+    if(idx > -1) { payload.done = todos[idx].done; todos[idx] = payload; }
+  } else {
+    todos.push(payload);
+  }
+
   DB.set('todos', todos);
-  document.getElementById('todo-title').value = '';
-  document.getElementById('todo-priority').value = 'normal';
-  document.getElementById('todo-date').value = '';
-  document.getElementById('todo-note').value = '';
-  document.getElementById('todo-form').classList.remove('open');
+  toggleForm('todo-form');
   renderTodo();
 }
 
@@ -1408,6 +1417,7 @@ function toggleTodo(tid) {
 }
 
 function deleteTodo(tid) {
+  if(!confirm("Bu görevi silmek istediğinize emin misiniz?")) return;
   DB.set('todos', getData('todos', []).filter(t => t.id !== tid));
   renderTodo();
 }
@@ -1425,21 +1435,18 @@ function renderTodo() {
 
   const priorityLabel = { high: 'Yüksek', normal: 'Normal', low: 'Düşük' };
   const renderItem = (t) => {
-    const diff = t.date ? getDayDiff(t.date) : null;
-    let dateBadge = '';
-    if (diff !== null) {
-      if (diff < 0) dateBadge = `<span style="color:var(--accent2);font-size:12px;">Gecikti</span>`;
-      else if (diff === 0) dateBadge = `<span style="color:var(--accent2);font-size:12px;">Bugün</span>`;
-      else dateBadge = `<span style="color:var(--muted);font-size:12px;">${formatDate(t.date)}</span>`;
-    }
+    const cd = getPreciseCountdown(t.date, null);
+    const dateBadge = cd ? `<span style="color:var(--accent-warning);font-size:12px;">${cd.text}</span>` : '';
+    
     return `<div class="todo-item priority-${t.priority} ${t.done ? 'done' : ''}">
       <div class="list-check" onclick="toggleTodo('${t.id}')" style="${t.done ? 'background:var(--accent);border-color:var(--accent)' : ''}">
         <span class="list-check-mark" style="${t.done ? 'display:block' : ''}">&#10003;</span>
       </div>
       <div style="flex:1;min-width:0;">
         <div class="todo-text">${esc(t.title)}</div>
-        <div class="todo-sub">${priorityLabel[t.priority]}${dateBadge ? ' · ' + dateBadge : ''}${t.note ? ' · ' + esc(t.note) : ''}</div>
+        <div class="todo-sub">${priorityLabel[t.priority]}${t.date ? ' · ' + formatDate(t.date) : ''}${dateBadge ? ' ('+dateBadge+')' : ''}${t.note ? ' · ' + esc(t.note) : ''}</div>
       </div>
+      <button class="btn-icon edit" onclick="openTodoForm('${t.id}')">&#9998;</button>
       <button class="todo-del" onclick="deleteTodo('${t.id}')">&#10005;</button>
     </div>`;
   };
@@ -1449,33 +1456,185 @@ function renderTodo() {
     (done.length ? `<div class="divider"></div><div class="section-label">Tamamlananlar (${done.length})</div>${done.map(renderItem).join('')}` : '');
 }
 
-// ==================== HABITS ====================
-function getWeekDays() {
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-  const days = [];
-  const labels = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    days.push({ date: d.toISOString().split('T')[0], label: labels[i], num: d.getDate(), isToday: d.toDateString() === today.toDateString() });
+// ==================== BIRTHDAYS (EXPANDABLE) ====================
+const MONTHS_TR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function openBdayForm(editId = null) {
+  currentEditId = editId;
+  const form = document.getElementById('bday-form');
+  document.getElementById('bday-form-title').innerText = editId ? "Kişiyi Düzenle" : "Doğum Günü Ekle";
+  
+  if(editId) {
+    const bdays = getData('birthdays', []);
+    const b = bdays.find(x => x.id === editId);
+    document.getElementById('bday-name').value = b.name;
+    document.getElementById('bday-month').value = b.month;
+    document.getElementById('bday-day').value = b.day;
+  } else {
+    document.getElementById('bday-name').value = '';
+    document.getElementById('bday-month').value = '1';
+    document.getElementById('bday-day').value = '';
   }
-  return days;
+  form.classList.add('open');
 }
 
+function saveBirthday() {
+  const name = document.getElementById('bday-name').value.trim();
+  const day = parseInt(document.getElementById('bday-day').value);
+  const month = parseInt(document.getElementById('bday-month').value);
+  if (!name || !day || !month) return;
+  const bdays = getData('birthdays', []);
+  
+  if(currentEditId) {
+    const idx = bdays.findIndex(x => x.id === currentEditId);
+    if(idx > -1) {
+      bdays[idx].name = name;
+      bdays[idx].day = day;
+      bdays[idx].month = month;
+    }
+  } else {
+    bdays.push({ id: id(), name, day, month, items: [] });
+  }
+  
+  bdays.sort((a,b) => a.month !== b.month ? a.month - b.month : a.day - b.day);
+  DB.set('birthdays', bdays);
+  toggleForm('bday-form');
+  renderBirthdays();
+}
+
+function deleteBirthday(bid) {
+  if(!confirm("Bu kaydı silmek istediğinize emin misiniz?")) return;
+  DB.set('birthdays', getData('birthdays', []).filter(b => b.id !== bid));
+  renderBirthdays();
+}
+
+function toggleBdayBody(bid) {
+  const b = document.getElementById('bb-' + bid);
+  const c = document.getElementById('bc-' + bid);
+  b.classList.toggle('open');
+  c.classList.toggle('open');
+}
+
+function addBdayItem(bid) {
+  const inp = document.getElementById('bi-' + bid);
+  const val = inp.value.trim();
+  if (!val) return;
+  const bdays = getData('birthdays', []);
+  const b = bdays.find(x => x.id === bid);
+  if (b) { b.items = b.items || []; b.items.push({ id: id(), text: val, done: false }); }
+  DB.set('birthdays', bdays);
+  inp.value = '';
+  renderBirthdays();
+  setTimeout(() => {
+    document.getElementById('bb-' + bid).classList.add('open');
+    document.getElementById('bc-' + bid).classList.add('open');
+  }, 10);
+}
+
+function toggleBdayItem(bid, iid) {
+  const bdays = getData('birthdays', []);
+  const b = bdays.find(x => x.id === bid);
+  if (b) { const item = b.items.find(i => i.id === iid); if (item) item.done = !item.done; }
+  DB.set('birthdays', bdays);
+  renderBirthdays();
+  setTimeout(() => {
+    document.getElementById('bb-' + bid).classList.add('open');
+    document.getElementById('bc-' + bid).classList.add('open');
+  }, 10);
+}
+
+function deleteBdayItem(bid, iid) {
+  const bdays = getData('birthdays', []);
+  const b = bdays.find(x => x.id === bid);
+  if (b) { b.items = b.items.filter(i => i.id !== iid); }
+  DB.set('birthdays', bdays);
+  renderBirthdays();
+  setTimeout(() => {
+    document.getElementById('bb-' + bid).classList.add('open');
+    document.getElementById('bc-' + bid).classList.add('open');
+  }, 10);
+}
+
+function renderBirthdays() {
+  const bdays = getData('birthdays', []);
+  const el = document.getElementById('birthdays-list');
+  if (!bdays.length) {
+    el.innerHTML = '<div class="empty">Henüz doğum günü yok</div>';
+    return;
+  }
+
+  // Next birthday calculation for sorting
+  const today = new Date();
+  const ty = today.getFullYear();
+  bdays.forEach(b => {
+    let next = new Date(ty, b.month - 1, b.day);
+    if(next < today) next = new Date(ty + 1, b.month - 1, b.day);
+    b._next = next.getTime();
+  });
+  const sorted = [...bdays].sort((a,b) => a._next - b._next);
+
+  el.innerHTML = sorted.map(b => {
+    const cd = getBirthdayCountdown(b.month, b.day);
+    const initial = b.name.charAt(0).toUpperCase();
+    
+    // Yılın tarihini takvim formatı için ayarla (Sıradaki doğum günü yılı)
+    const nextBdayYear = new Date(b._next).getFullYear();
+    const dateStr = `${nextBdayYear}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`;
+    
+    const items = (b.items || []).map(i => `
+      <div class="travel-item">
+        <div class="list-check" onclick="toggleBdayItem('${b.id}','${i.id}')" style="${i.done ? 'background:var(--accent);border-color:var(--accent)' : ''}">
+          ${i.done ? '<span class="list-check-mark" style="display:block">&#10003;</span>' : ''}
+        </div>
+        <span style="flex:1; ${i.done ? 'text-decoration:line-through;opacity:0.5' : ''}">${esc(i.text)}</span>
+        <button class="item-del" onclick="deleteBdayItem('${b.id}', '${i.id}')">&#10005;</button>
+      </div>`).join('');
+
+    return `<div class="bday-card">
+      <div class="bday-header" onclick="toggleBdayBody('${b.id}')">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="bday-avatar">${initial}</div>
+          <div>
+            <div class="bday-name">${esc(b.name)}</div>
+            <div class="bday-date">${b.day} ${MONTHS_TR[b.month]}</div>
+            <div style="margin-top:4px;"><span class="badge ${cd.class}">${cd.text}</span></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn-icon" onclick="event.stopPropagation();downloadICS('${b.name} Doğum Günü', '${dateStr}', null, 'Hediye/Kutlama')">&#128197;</button>
+          <button class="btn-icon edit" onclick="event.stopPropagation();openBdayForm('${b.id}')">&#9998;</button>
+          <span class="chevron" id="bc-${b.id}">&#9660;</span>
+        </div>
+      </div>
+      <div class="travel-body" id="bb-${b.id}">
+        <div class="travel-items">${items}</div>
+        <div class="travel-add">
+          <input type="text" id="bi-${b.id}" placeholder="Hediye fikri, parti planı..." onkeydown="if(event.key==='Enter')addBdayItem('${b.id}')">
+          <button onclick="addBdayItem('${b.id}')">Ekle</button>
+        </div>
+        <button class="btn btn-danger-outline" onclick="deleteBirthday('${b.id}')">Kişiyi Sil</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ==================== HABITS & NOTES ====================
+// (Habits and Notes logic remained largely same, added confirm for delete actions)
 function saveHabit() {
   const name = document.getElementById('habit-name').value.trim();
   if (!name) return;
   const habits = getData('habits', []);
   habits.push({ id: id(), name, target: parseInt(document.getElementById('habit-target').value), checks: {} });
   DB.set('habits', habits);
-  document.getElementById('habit-name').value = '';
   closeModal('habit-modal');
   renderHabits();
 }
-
+function deleteHabit(hid) {
+  if(!confirm("Alışkanlığı silmek istiyor musunuz?")) return;
+  DB.set('habits', getData('habits', []).filter(h => h.id !== hid));
+  renderHabits();
+}
 function toggleHabitDay(hid, dateStr) {
   const habits = getData('habits', []);
   const h = habits.find(x => x.id === hid);
@@ -1483,21 +1642,21 @@ function toggleHabitDay(hid, dateStr) {
   DB.set('habits', habits);
   renderHabits();
 }
-
-function deleteHabit(hid) {
-  DB.set('habits', getData('habits', []).filter(h => h.id !== hid));
-  renderHabits();
-}
-
-function renderHabits() {
+function renderHabits() { /* Existing renderHabits code */ 
   const habits = getData('habits', []);
   const el = document.getElementById('habits-list');
-  const weekDays = getWeekDays();
+  const weekDays = (() => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const monday = new Date(today); monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    const days = []; const labels = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      days.push({ date: d.toISOString().split('T')[0], label: labels[i], num: d.getDate(), isToday: d.toDateString() === today.toDateString() });
+    }
+    return days;
+  })();
 
-  if (!habits.length) {
-    el.innerHTML = '<div class="empty">Henüz alışkanlık yok</div>';
-    return;
-  }
+  if (!habits.length) { el.innerHTML = '<div class="empty">Henüz alışkanlık yok</div>'; return; }
 
   el.innerHTML = habits.map(h => {
     const checks = h.checks || {};
@@ -1512,10 +1671,7 @@ function renderHabits() {
 
     return `<div class="habit-card">
       <div class="habit-header">
-        <div>
-          <div class="habit-name">${esc(h.name)}</div>
-          <div class="habit-streak">${doneThisWeek}/${h.target} bu hafta</div>
-        </div>
+        <div><div class="habit-name">${esc(h.name)}</div><div class="habit-streak">${doneThisWeek}/${h.target} bu hafta</div></div>
         <button class="habit-del" onclick="deleteHabit('${h.id}')">&#10005;</button>
       </div>
       <div class="habit-days">${dayDots}</div>
@@ -1527,71 +1683,52 @@ function renderHabits() {
   }).join('');
 }
 
-// ==================== BIRTHDAYS ====================
-const MONTHS_TR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-
-function saveBirthday() {
-  const name = document.getElementById('bday-name').value.trim();
-  const day = parseInt(document.getElementById('bday-day').value);
-  const month = parseInt(document.getElementById('bday-month').value);
-  if (!name || !day || !month) return;
-  const bdays = getData('birthdays', []);
-  bdays.push({ id: id(), name, day, month, note: document.getElementById('bday-note').value.trim() });
-  bdays.sort((a,b) => a.month !== b.month ? a.month - b.month : a.day - b.day);
-  DB.set('birthdays', bdays);
-  document.getElementById('bday-name').value = '';
-  document.getElementById('bday-day').value = '';
-  document.getElementById('bday-note').value = '';
-  document.getElementById('bday-form').classList.remove('open');
-  renderBirthdays();
+let currentNoteId = null;
+function openNote(nid) {
+  currentNoteId = nid;
+  const notes = getData('notes', []);
+  const note = nid ? notes.find(n => n.id === nid) : null;
+  document.getElementById('note-title-input').value = note ? note.title : '';
+  document.getElementById('note-body-input').value = note ? note.body : '';
+  document.getElementById('note-editor').classList.add('open');
+  if (!nid) currentNoteId = id();
 }
-
-function deleteBirthday(bid) {
-  DB.set('birthdays', getData('birthdays', []).filter(b => b.id !== bid));
-  renderBirthdays();
-}
-
-function getDaysUntilBirthday(month, day) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const thisYear = today.getFullYear();
-  let next = new Date(thisYear, month - 1, day);
-  if (next < today) next = new Date(thisYear + 1, month - 1, day);
-  return Math.round((next - today) / 86400000);
-}
-
-function renderBirthdays() {
-  const bdays = getData('birthdays', []);
-  const el = document.getElementById('birthdays-list');
-  if (!bdays.length) {
-    el.innerHTML = '<div class="empty">Henüz doğum günü yok</div>';
-    return;
+function closeNote() {
+  const title = document.getElementById('note-title-input').value.trim();
+  const body = document.getElementById('note-body-input').value.trim();
+  if (title || body) {
+    const notes = getData('notes', []);
+    const idx = notes.findIndex(n => n.id === currentNoteId);
+    const entry = { id: currentNoteId, title: title || 'Başlıksız', body, updated: new Date().toISOString() };
+    if (idx >= 0) notes[idx] = entry; else notes.unshift(entry);
+    DB.set('notes', notes);
   }
-  // Sort by upcoming
-  const sorted = [...bdays].sort((a,b) => getDaysUntilBirthday(a.month, a.day) - getDaysUntilBirthday(b.month, b.day));
-
-  el.innerHTML = sorted.map(b => {
-    const diff = getDaysUntilBirthday(b.month, b.day);
-    let badge = '';
-    if (diff === 0) badge = '<span class="badge badge-today">Bugün!</span>';
-    else if (diff <= 7) badge = `<span class="badge badge-soon">${diff} gün kaldı</span>`;
-    else badge = `<span class="badge badge-past">${diff} gün kaldı</span>`;
-    const initial = b.name.charAt(0).toUpperCase();
-    return `<div class="bday-card">
-      <div class="bday-avatar">${initial}</div>
-      <div style="flex:1;">
-        <div class="bday-name">${esc(b.name)}</div>
-        <div class="bday-date">${b.day} ${MONTHS_TR[b.month]}${b.note ? ' · ' + esc(b.note) : ''}</div>
-        <div class="bday-badge">${badge}</div>
-      </div>
-      <button class="btn-icon" onclick="deleteBirthday('${b.id}')">&#10005;</button>
+  document.getElementById('note-editor').classList.remove('open');
+  renderNotes();
+}
+function deleteCurrentNote() {
+  if(!confirm("Notu silmek istediğinize emin misiniz?")) return;
+  if (!currentNoteId) return;
+  DB.set('notes', getData('notes', []).filter(n => n.id !== currentNoteId));
+  document.getElementById('note-editor').classList.remove('open');
+  renderNotes();
+}
+function renderNotes() {
+  const notes = getData('notes', []);
+  const el = document.getElementById('notes-list');
+  if (!notes.length) { el.innerHTML = '<div class="empty">Henüz not yok</div>'; return; }
+  el.innerHTML = notes.map(n => {
+    const d = new Date(n.updated); const dateStr = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`;
+    return `<div class="note-card" onclick="openNote('${n.id}')">
+      <div class="note-card-title">${esc(n.title)}</div>
+      <div class="note-card-preview">${esc(n.body)}</div>
+      <div class="note-card-date">${dateStr}</div>
     </div>`;
   }).join('');
 }
 
 
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // ==================== INIT ====================
 function init() {
@@ -1600,15 +1737,18 @@ function init() {
   const months = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
   document.getElementById('headerDate').textContent =
     `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
-  // set today as default date
   const today = now.toISOString().split('T')[0];
   document.getElementById('appt-date').value = today;
   renderAppointments();
+
+  // Her dakikada bir süreleri güncelle (Uygulama açık kalırsa)
+  setInterval(() => {
+    if(document.getElementById('sec-appointments').classList.contains('active')) renderAppointments();
+    if(document.getElementById('sec-travel').classList.contains('active')) renderTravel();
+  }, 60000);
 }
 
 init();
 </script>
-</div><!-- /main-area -->
-</div><!-- /app-shell -->
-</body>
+</div></div></body>
 </html>
