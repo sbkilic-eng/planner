@@ -53,20 +53,30 @@
     font-weight: 400;
   }
 
+  /* APP SHELL */
+  .app-shell {
+    display: flex;
+    max-width: 680px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+  }
+
   /* LEFT SIDEBAR */
   .sidebar {
     width: 72px;
+    flex-shrink: 0;
     background: var(--surface);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     padding: 12px 0;
-    position: fixed;
+    position: sticky;
     top: 0;
     height: 100vh;
     z-index: 50;
     gap: 2px;
-    left: max(0px, calc(50vw - 340px));
+    align-self: flex-start;
   }
   .nav-item {
     display: flex;
@@ -103,9 +113,9 @@
 
   /* MAIN AREA */
   .main-area {
-    margin-left: 72px;
     flex: 1;
     min-width: 0;
+    overflow-y: auto;
   }
 
   /* CONTENT */
@@ -457,7 +467,6 @@
     flex-direction: column;
     max-width: 680px;
     margin: 0 auto;
-    left: 72px;
   }
   .note-editor.open { display: flex; }
   .note-editor-header {
