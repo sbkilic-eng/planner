@@ -15,10 +15,10 @@
     --accent: #5C9E78;
     --accent-light: #253630;
     --accent2: #E07B54;
-    --accent-warning: #D8A56D; /* Pastel Turuncu */
-    --accent-danger: #D86D6D;  /* Pastel Kırmızı */
+    --accent-warning: #D8A56D; 
+    --accent-danger: #D86D6D;  
     --tab-active: #DFE4EC;
-    --shadow: 0 4px 20px rgba(0,0,0,0.15); /* Daha yumuşak gölge */
+    --shadow: 0 4px 20px rgba(0,0,0,0.15);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; margin: 0; }
@@ -137,8 +137,8 @@
   .cat-tab { padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
   .cat-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-  .list-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; transition: opacity 0.2s; }
-  .list-wrapper.done { opacity: 0.5; }
+  .list-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; transition: opacity 0.2s; box-shadow: var(--shadow); }
+  .list-wrapper.done { opacity: 0.5; box-shadow: none; }
   .list-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
   .list-wrapper.done .item-text { text-decoration: line-through; }
   .list-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
@@ -229,6 +229,14 @@
   .note-preview-area ul { margin-left: 20px; margin-bottom: 10px; }
   .note-preview-area h1, .note-preview-area h2, .note-preview-area h3 { font-family: 'Instrument Serif', serif; margin: 15px 0 10px; font-weight:normal;}
 
+  /* SUMMARY ITEMS */
+  .summary-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); transition: transform 0.15s; }
+  .summary-item:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .summary-icon { font-size: 20px; background: var(--bg); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); flex-shrink: 0; }
+  .summary-content { flex: 1; min-width: 0; }
+  .summary-title { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+  .summary-meta { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
   /* MODAL */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(28,26,22,0.6); z-index: 200; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); }
   .modal-overlay.open { display: flex; }
@@ -247,7 +255,8 @@
 
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-header"><div class="sidebar-logo">P</div></div>
-  <button class="nav-item active" onclick="switchTab('appointments')"><span class="nav-icon">&#128197;</span><span class="nav-label">Randevu</span></button>
+  <button class="nav-item active" onclick="switchTab('summary')"><span class="nav-icon">&#128197;</span><span class="nav-label">Özet</span></button>
+  <button class="nav-item" onclick="switchTab('appointments')"><span class="nav-icon">&#128336;</span><span class="nav-label">Randevu</span></button>
   <button class="nav-item" onclick="switchTab('travel')"><span class="nav-icon">&#9992;</span><span class="nav-label">Seyahat</span></button>
   <button class="nav-item" onclick="switchTab('lists')"><span class="nav-icon">&#128203;</span><span class="nav-label">Listeler</span></button>
   <button class="nav-item" onclick="switchTab('todo')"><span class="nav-icon">&#9989;</span><span class="nav-label">Görev</span></button>
@@ -270,7 +279,11 @@
 
 <div class="content">
 
-  <div class="section active" id="sec-appointments">
+  <div class="section active" id="sec-summary">
+    <div id="summary-list"></div>
+  </div>
+
+  <div class="section" id="sec-appointments">
     <button class="btn-add" onclick="openApptForm()"><span>+</span> Yeni randevu ekle</button>
     <div class="add-form" id="appt-form">
       <div class="modal-title" id="appt-form-title">Yeni Randevu</div>
@@ -294,20 +307,8 @@
   </div>
 
   <div class="section" id="sec-lists">
+    <div id="goal-container"></div>
     
-    <div class="goal-card" id="goal-tracker">
-      <div class="goal-header">
-        <div class="goal-title" id="goal-title-display">Hedefim</div>
-        <div class="goal-amounts"><strong id="goal-current-display">0 TL</strong> / <span id="goal-target-display">0 TL</span></div>
-      </div>
-      <div class="goal-bar-bg"><div class="goal-bar-fill" id="goal-bar"></div></div>
-      <div class="goal-actions">
-        <input type="number" id="goal-add-input" placeholder="Miktar ekle (TL)">
-        <button class="btn btn-primary" onclick="addGoalFunds()">Ekle</button>
-        <button class="btn btn-ghost" onclick="editGoal()" style="padding:8px;font-size:16px;">&#9998;</button>
-      </div>
-    </div>
-
     <div class="cat-tabs" id="cat-tabs"></div>
     <div id="list-content"></div>
   </div>
@@ -439,6 +440,7 @@
 <script>
 // ==================== GLOBAL STATE & DB ====================
 let currentEditId = null;
+const MONTHS_TR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
 const DB = {
   get: (k) => JSON.parse(localStorage.getItem('planner_' + k) || 'null'),
@@ -466,65 +468,43 @@ function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt
 function exportData() {
   const data = DB.getAll();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.href = window.URL.createObjectURL(blob);
-  const dateStr = new Date().toISOString().split('T')[0];
-  link.setAttribute('download', `planner_yedek_${dateStr}.json`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  const link = document.createElement('a'); link.href = window.URL.createObjectURL(blob);
+  link.setAttribute('download', `planner_yedek_${new Date().toISOString().split('T')[0]}.json`);
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
-
 function importData(event) {
-  const file = event.target.files[0];
-  if(!file) return;
+  const file = event.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       const data = JSON.parse(e.target.result);
-      if(confirm("Mevcut tüm verileriniz yüklenen dosya ile değiştirilecek. Onaylıyor musunuz?")) {
-        DB.import(data);
-        location.reload();
-      }
-    } catch(err) { alert("Geçersiz dosya formatı!"); }
+      if(confirm("Tüm verileriniz yüklenecek dosyayla değiştirilecek. Onaylıyor musunuz?")) { DB.import(data); location.reload(); }
+    } catch(err) { alert("Geçersiz format!"); }
   };
   reader.readAsText(file);
 }
 
-// ==================== ICS GENERATOR (ALL-DAY SUPPORT) ====================
+// ==================== ICS GENERATOR ====================
 function downloadICS(title, startDateStr, timeStr, desc, endDateStr = null) {
   if(!startDateStr) return;
   const fmt = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const fmtAllDay = (d) => d.toISOString().split('T')[0].replace(/-/g, '');
-  
   let ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDESCRIPTION:${desc || ''}\n`;
 
   if (endDateStr && !timeStr) {
-    // "Tüm Gün" etkinliği (All-Day). Bitiş tarihine +1 gün eklenmeli (ICS standardı)
-    const start = new Date(startDateStr);
-    const end = new Date(endDateStr);
-    if(end >= start) {
-      end.setDate(end.getDate() + 1);
-      ics += `DTSTART;VALUE=DATE:${fmtAllDay(start)}\nDTEND;VALUE=DATE:${fmtAllDay(end)}\n`;
-    } else {
-      ics += `DTSTART;VALUE=DATE:${fmtAllDay(start)}\nDTEND;VALUE=DATE:${fmtAllDay(start)}\n`;
-    }
+    const start = new Date(startDateStr); const end = new Date(endDateStr);
+    if(end >= start) { end.setDate(end.getDate() + 1); ics += `DTSTART;VALUE=DATE:${fmtAllDay(start)}\nDTEND;VALUE=DATE:${fmtAllDay(end)}\n`; }
+    else { ics += `DTSTART;VALUE=DATE:${fmtAllDay(start)}\nDTEND;VALUE=DATE:${fmtAllDay(start)}\n`; }
   } else {
-    // Saatli veya tek günlük etkinlik
     const start = new Date(startDateStr + (timeStr ? 'T' + timeStr : 'T00:00'));
     let end = new Date(start.getTime() + (timeStr ? 60*60*1000 : 24*60*60*1000));
     ics += `DTSTART:${fmt(start)}\nDTEND:${fmt(end)}\n`;
   }
-  
   ics += `END:VEVENT\nEND:VCALENDAR`;
-
   const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-  const link = document.createElement('a');
-  link.href = window.URL.createObjectURL(blob);
+  const link = document.createElement('a'); link.href = window.URL.createObjectURL(blob);
   link.setAttribute('download', `${title.replace(/ /g,'_')}.ics`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
 
 // ==================== TIME LOGIC ====================
@@ -548,9 +528,10 @@ function switchTab(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
   document.getElementById('sec-' + name).classList.add('active');
-  const tabs = ['appointments','travel','lists','todo','habits','birthdays','notes'];
+  const tabs = ['summary','appointments','travel','lists','todo','habits','birthdays','notes'];
   document.querySelectorAll('.nav-item')[tabs.indexOf(name)].classList.add('active');
   
+  if (name === 'summary') renderSummary();
   if (name === 'appointments') renderAppointments();
   if (name === 'travel') renderTravel();
   if (name === 'lists') { renderGoal(); renderLists(); }
@@ -569,312 +550,229 @@ function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); currentEditId = null; }
 document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); }));
 
+// ==================== SUMMARY (DASHBOARD) ====================
+function renderSummary() {
+  const el = document.getElementById('summary-list');
+  let events = [];
+  const now = new Date();
+  const todayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime(); 
+
+  // 1. Randevular
+  getData('appts', []).forEach(a => {
+    if(!a.date) return;
+    const d = new Date(a.date + 'T00:00').getTime();
+    if(d >= todayMs) events.push({ type: 'Randevu', icon: '🗓️', time: d, timeObj: new Date(a.date + (a.time ? 'T'+a.time : 'T23:59:59')), title: a.title, sub: formatDate(a.date) + (a.time ? ' · '+a.time : ''), tab: 'appointments' });
+  });
+
+  // 2. Seyahatler
+  getData('travels', []).forEach(t => {
+    if(!t.start) return;
+    const ds = new Date(t.start + 'T00:00').getTime();
+    const de = t.end ? new Date(t.end + 'T00:00').getTime() : ds;
+    if(ds >= todayMs || de >= todayMs) {
+      events.push({ type: 'Seyahat', icon: '✈️', time: ds, timeObj: new Date(t.start + 'T23:59:59'), title: t.dest, sub: [formatDate(t.start), t.end && formatDate(t.end)].filter(Boolean).join(' - '), tab: 'travel' });
+    }
+  });
+
+  // 3. Görevler
+  getData('todos', []).forEach(t => {
+    if(!t.date || t.done) return;
+    const d = new Date(t.date + 'T00:00').getTime();
+    if(d >= todayMs - 86400000) { 
+      events.push({ type: 'Görev', icon: '📋', time: d, timeObj: new Date(t.date + 'T23:59:59'), title: t.title, sub: formatDate(t.date), tab: 'todo' });
+    }
+  });
+
+  // 4. Doğum Günleri
+  const ty = now.getFullYear();
+  getData('birthdays', []).forEach(b => {
+     let next = new Date(ty, b.month - 1, b.day);
+     if(next.getTime() < todayMs) next = new Date(ty + 1, b.month - 1, b.day);
+     events.push({ type: 'Doğum Günü', icon: '🎂', time: next.getTime(), timeObj: new Date(next.getFullYear(), b.month-1, b.day, 23, 59, 59), title: b.name, sub: `${b.day} ${MONTHS_TR[b.month]}`, tab: 'birthdays' });
+  });
+
+  events.sort((a,b) => a.time - b.time);
+
+  if(!events.length) {
+    el.innerHTML = '<div class="empty">Ajandanız tertemiz! Yaklaşan hiçbir plan yok.</div>';
+    return;
+  }
+
+  el.innerHTML = '<div class="section-label" style="margin-bottom:16px;">Önümüzdeki Planlar</div>' + events.map(e => {
+    const dateStr = e.timeObj.toISOString().split('T')[0];
+    const timeStr = e.timeObj.toISOString().split('T')[1].substring(0,5);
+    const cd = getPreciseCountdown(dateStr, timeStr === '23:59' ? null : timeStr);
+
+    return `
+    <div class="summary-item" onclick="switchTab('${e.tab}')" style="cursor:pointer;">
+       <div class="summary-icon">${e.icon}</div>
+       <div class="summary-content">
+         <div class="summary-title">${esc(e.title)}</div>
+         <div class="summary-meta">${e.type} · ${e.sub}</div>
+       </div>
+       ${cd ? `<div style="text-align:right;"><span class="badge ${cd.class}" style="margin:0;">${cd.text}</span></div>` : ''}
+    </div>`;
+  }).join('');
+}
 
 // ==================== GOAL TRACKER ====================
 function renderGoal() {
-  const goal = getData('goal', { title: 'Motosiklet & Ehliyet', current: 0, target: 100000 });
-  document.getElementById('goal-title-display').innerText = goal.title;
-  document.getElementById('goal-current-display').innerText = goal.current.toLocaleString('tr-TR') + ' TL';
-  document.getElementById('goal-target-display').innerText = goal.target.toLocaleString('tr-TR') + ' TL';
-  
+  const goal = getData('goal', null);
+  const container = document.getElementById('goal-container');
+  if (!goal) {
+    container.innerHTML = `<button class="btn-add" onclick="editGoal()"><span>+</span> Finansal Hedef Ekle</button>`;
+    return;
+  }
   let pct = (goal.target > 0) ? Math.min(100, Math.round((goal.current / goal.target) * 100)) : 0;
-  document.getElementById('goal-bar').style.width = pct + '%';
+  container.innerHTML = `
+    <div class="goal-card" id="goal-tracker">
+      <div class="goal-header">
+        <div class="goal-title">${esc(goal.title)}</div>
+        <div class="goal-amounts"><strong>${goal.current.toLocaleString('tr-TR')} TL</strong> / <span>${goal.target.toLocaleString('tr-TR')} TL</span></div>
+      </div>
+      <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${pct}%"></div></div>
+      <div class="goal-actions">
+        <input type="number" id="goal-add-input" placeholder="Miktar (TL)">
+        <button class="btn btn-primary" onclick="addGoalFunds()">Ekle</button>
+        <button class="btn btn-ghost" onclick="editGoal()" style="padding:8px;font-size:16px;">&#9998;</button>
+        <button class="btn btn-ghost" onclick="deleteGoal()" style="padding:8px;font-size:16px;color:var(--accent-danger);">&#10005;</button>
+      </div>
+    </div>
+  `;
 }
-
 function addGoalFunds() {
-  const inp = document.getElementById('goal-add-input');
-  const val = parseInt(inp.value);
-  if(!val || val <= 0) return;
-  const goal = getData('goal', { title: 'Motosiklet & Ehliyet', current: 0, target: 100000 });
-  goal.current += val;
-  DB.set('goal', goal);
-  inp.value = '';
-  renderGoal();
+  const val = parseInt(document.getElementById('goal-add-input').value); if(!val || val <= 0) return;
+  const goal = getData('goal', null);
+  if(goal) { goal.current += val; DB.set('goal', goal); renderGoal(); }
 }
-
 function editGoal() {
-  const goal = getData('goal', { title: 'Motosiklet & Ehliyet', current: 0, target: 100000 });
-  const newTitle = prompt("Hedefin Adı:", goal.title);
-  if(newTitle === null) return;
-  const newTarget = prompt("Hedef Miktar (TL):", goal.target);
-  if(newTarget === null) return;
-  const newCurrent = prompt("Şu Anki Birikim (TL):", goal.current);
-  if(newCurrent === null) return;
-  
-  goal.title = newTitle;
-  goal.target = parseInt(newTarget) || 0;
-  goal.current = parseInt(newCurrent) || 0;
-  DB.set('goal', goal);
-  renderGoal();
+  const goal = getData('goal', { title: 'Yeni Hedef', current: 0, target: 0 });
+  const t = prompt("Hedefin Adı:", goal.title); if(t === null) return;
+  const tg = prompt("Hedef Miktar (TL):", goal.target); if(tg === null) return;
+  const c = prompt("Şu Anki Birikim (TL):", goal.current); if(c === null) return;
+  DB.set('goal', { title: t, target: parseInt(tg) || 0, current: parseInt(c) || 0 }); renderGoal();
 }
-
+function deleteGoal() {
+  if(confirm("Hedefi silmek istediğinize emin misiniz?")) { DB.set('goal', null); renderGoal(); }
+}
 
 // ==================== APPOINTMENTS ====================
-function openApptForm(editId = null) {
-  currentEditId = editId;
-  document.getElementById('appt-form-title').innerText = editId ? "Düzenle" : "Yeni Randevu";
-  if (editId) {
-    const a = getData('appts', []).find(x => x.id === editId);
-    document.getElementById('appt-title').value = a.title;
-    document.getElementById('appt-date').value = a.date;
-    document.getElementById('appt-time').value = a.time;
-    document.getElementById('appt-note').value = a.note;
+function openApptForm(eId = null) {
+  currentEditId = eId; document.getElementById('appt-form-title').innerText = eId ? "Düzenle" : "Yeni Randevu";
+  if (eId) {
+    const a = getData('appts', []).find(x => x.id === eId);
+    document.getElementById('appt-title').value = a.title; document.getElementById('appt-date').value = a.date; document.getElementById('appt-time').value = a.time; document.getElementById('appt-note').value = a.note;
   } else {
-    document.getElementById('appt-title').value = '';
-    document.getElementById('appt-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('appt-time').value = '';
-    document.getElementById('appt-note').value = '';
+    document.getElementById('appt-title').value = ''; document.getElementById('appt-date').value = new Date().toISOString().split('T')[0]; document.getElementById('appt-time').value = ''; document.getElementById('appt-note').value = '';
   }
   document.getElementById('appt-form').classList.add('open');
 }
-
 function saveAppointment() {
-  const title = document.getElementById('appt-title').value.trim();
-  if (!title) return;
+  const title = document.getElementById('appt-title').value.trim(); if (!title) return;
   const appts = getData('appts', []);
-  const payload = { id: currentEditId || id(), title, date: document.getElementById('appt-date').value, time: document.getElementById('appt-time').value, note: document.getElementById('appt-note').value.trim() };
-  if (currentEditId) { const idx = appts.findIndex(x => x.id === currentEditId); if(idx > -1) appts[idx] = payload; } else { appts.push(payload); }
-  appts.sort((a,b) => (a.date + a.time) < (b.date + b.time) ? -1 : 1);
-  DB.set('appts', appts); toggleForm('appt-form'); renderAppointments();
+  const p = { id: currentEditId || id(), title, date: document.getElementById('appt-date').value, time: document.getElementById('appt-time').value, note: document.getElementById('appt-note').value.trim() };
+  if (currentEditId) { const idx = appts.findIndex(x => x.id === currentEditId); if(idx > -1) appts[idx] = p; } else { appts.push(p); }
+  appts.sort((a,b) => (a.date + a.time) < (b.date + b.time) ? -1 : 1); DB.set('appts', appts); toggleForm('appt-form'); renderAppointments();
 }
-
-function deleteAppointment(aid) {
-  if(!confirm("Bu randevuyu silmek istediğinize emin misiniz?")) return;
-  DB.set('appts', getData('appts', []).filter(a => a.id !== aid)); renderAppointments();
-}
-
+function deleteAppointment(aid) { if(!confirm("Silinsin mi?")) return; DB.set('appts', getData('appts', []).filter(a => a.id !== aid)); renderAppointments(); }
 function renderAppointments() {
-  const appts = getData('appts', []);
-  const el = document.getElementById('appt-list');
+  const appts = getData('appts', []); const el = document.getElementById('appt-list');
   if (!appts.length) { el.innerHTML = '<div class="empty">Henüz randevu yok</div>'; return; }
   el.innerHTML = appts.map(a => {
     const cd = getPreciseCountdown(a.date, a.time);
-    return `<div class="card">
-      ${cd ? `<span class="badge ${cd.class}">${cd.text}</span>` : ''}
-      <div class="card-actions">
-        <button class="btn-icon edit" onclick="openApptForm('${a.id}')">&#9998;</button>
-        <button class="btn-icon" onclick="downloadICS('${a.title}', '${a.date}', '${a.time}', '${a.note}')">&#128197;</button>
-        <button class="btn-icon" onclick="deleteAppointment('${a.id}')">&#10005;</button>
-      </div>
-      <div class="card-title">${esc(a.title)}</div>
-      <div class="card-meta">${a.date ? formatDate(a.date) : ''}${a.time ? ' · '+a.time : ''}</div>
-      ${a.note ? `<div class="card-note">${esc(a.note)}</div>` : ''}
-    </div>`;
+    return `<div class="card">${cd ? `<span class="badge ${cd.class}">${cd.text}</span>` : ''}<div class="card-actions"><button class="btn-icon edit" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}', '${a.date}', '${a.time}', '${a.note}')">&#128197;</button><button class="btn-icon" onclick="deleteAppointment('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${a.date ? formatDate(a.date) : ''}${a.time ? ' · '+a.time : ''}</div>${a.note ? `<div class="card-note">${esc(a.note)}</div>` : ''}</div>`;
   }).join('');
 }
 
 // ==================== TRAVEL ====================
-function openTravelForm(editId = null) {
-  currentEditId = editId;
-  document.getElementById('travel-modal-title').innerText = editId ? "Düzenle" : "Yeni Destinasyon";
-  if (editId) {
-    const t = getData('travels', []).find(x => x.id === editId);
+function openTravelForm(eId = null) {
+  currentEditId = eId; document.getElementById('travel-modal-title').innerText = eId ? "Düzenle" : "Yeni Destinasyon";
+  if (eId) {
+    const t = getData('travels', []).find(x => x.id === eId);
     document.getElementById('travel-dest').value = t.dest; document.getElementById('travel-start').value = t.start; document.getElementById('travel-end').value = t.end; document.getElementById('travel-note').value = t.note;
-  } else {
-    document.getElementById('travel-dest').value = ''; document.getElementById('travel-start').value = ''; document.getElementById('travel-end').value = ''; document.getElementById('travel-note').value = '';
-  }
+  } else { document.getElementById('travel-dest').value = ''; document.getElementById('travel-start').value = ''; document.getElementById('travel-end').value = ''; document.getElementById('travel-note').value = ''; }
   openModal('travel-modal');
 }
-
 function saveTravel() {
   const dest = document.getElementById('travel-dest').value.trim(); if (!dest) return;
   const travels = getData('travels', []);
-  if(currentEditId) {
-    const t = travels.find(x => x.id === currentEditId);
-    if(t) { t.dest = dest; t.start = document.getElementById('travel-start').value; t.end = document.getElementById('travel-end').value; t.note = document.getElementById('travel-note').value.trim(); }
-  } else {
-    travels.push({ id: id(), dest, start: document.getElementById('travel-start').value, end: document.getElementById('travel-end').value, note: document.getElementById('travel-note').value.trim(), items: [] });
-  }
+  if(currentEditId) { const t = travels.find(x => x.id === currentEditId); if(t) { t.dest = dest; t.start = document.getElementById('travel-start').value; t.end = document.getElementById('travel-end').value; t.note = document.getElementById('travel-note').value.trim(); } } 
+  else { travels.push({ id: id(), dest, start: document.getElementById('travel-start').value, end: document.getElementById('travel-end').value, note: document.getElementById('travel-note').value.trim(), items: [] }); }
   DB.set('travels', travels); closeModal('travel-modal'); renderTravel();
 }
-
 function toggleTravelBody(tid) { document.getElementById('tb-'+tid).classList.toggle('open'); document.getElementById('tc-'+tid).classList.toggle('open'); }
-function deleteTravel(tid) { if(confirm("Seyahati silmek istiyor musunuz?")) { DB.set('travels', getData('travels', []).filter(t => t.id !== tid)); renderTravel(); } }
-
-function addTravelItem(tid) {
-  const val = document.getElementById('ti-'+tid).value.trim(); if (!val) return;
-  const travels = getData('travels', []); const t = travels.find(x => x.id === tid);
-  if (t) { t.items.push({ id: id(), text: val, done: false }); DB.set('travels', travels); renderTravel(); setTimeout(()=>toggleTravelBody(tid), 10); }
-}
-function toggleTravelItem(tid, iid) {
-  const travels = getData('travels', []); const t = travels.find(x => x.id === tid);
-  if (t) { const item = t.items.find(i => i.id === iid); if (item) item.done = !item.done; DB.set('travels', travels); renderTravel(); setTimeout(()=>toggleTravelBody(tid), 10); }
-}
-function deleteTravelItem(tid, iid) {
-  const travels = getData('travels', []); const t = travels.find(x => x.id === tid);
-  if (t) { t.items = t.items.filter(i => i.id !== iid); DB.set('travels', travels); renderTravel(); setTimeout(()=>toggleTravelBody(tid), 10); }
-}
-
+function deleteTravel(tid) { if(confirm("Silinsin mi?")) { DB.set('travels', getData('travels', []).filter(t => t.id !== tid)); renderTravel(); } }
+function addTravelItem(tid) { const val = document.getElementById('ti-'+tid).value.trim(); if (!val) return; const t = getData('travels', []); const o = t.find(x => x.id === tid); if (o) { o.items.push({ id: id(), text: val, done: false }); DB.set('travels', t); renderTravel(); setTimeout(()=>toggleTravelBody(tid), 10); } }
+function toggleTravelItem(tid, iid) { const t = getData('travels', []); const o = t.find(x => x.id === tid); if (o) { const i = o.items.find(x => x.id === iid); if (i) i.done = !i.done; DB.set('travels', t); renderTravel(); setTimeout(()=>toggleTravelBody(tid), 10); } }
+function deleteTravelItem(tid, iid) { const t = getData('travels', []); const o = t.find(x => x.id === tid); if (o) { o.items = o.items.filter(x => x.id !== iid); DB.set('travels', t); renderTravel(); setTimeout(()=>toggleTravelBody(tid), 10); } }
 function renderTravel() {
   const travels = getData('travels', []); const el = document.getElementById('travel-list');
   if (!travels.length) { el.innerHTML = '<div class="empty">Henüz destinasyon yok</div>'; return; }
   el.innerHTML = travels.map(t => {
-    const cd = getPreciseCountdown(t.start, null);
-    const dateRange = [t.start && formatDate(t.start), t.end && formatDate(t.end)].filter(Boolean).join(' – ');
+    const cd = getPreciseCountdown(t.start, null); const dr = [t.start && formatDate(t.start), t.end && formatDate(t.end)].filter(Boolean).join(' – ');
     const items = (t.items || []).map(i => `<div class="travel-item"><div class="list-check" onclick="toggleTravelItem('${t.id}','${i.id}')" style="${i.done?'background:var(--accent);border-color:var(--accent)':''}">${i.done?'<span class="list-check-mark" style="display:block">&#10003;</span>':''}</div><span style="flex:1; ${i.done?'text-decoration:line-through;opacity:0.5':''}">${esc(i.text)}</span><button class="btn-icon" onclick="deleteTravelItem('${t.id}', '${i.id}')">&#10005;</button></div>`).join('');
-    
-    return `<div class="travel-card">
-      <div class="travel-header" onclick="toggleTravelBody('${t.id}')">
-        <div>${cd ? `<span class="badge ${cd.class}">${cd.text}</span>` : ''}<div class="travel-dest">${esc(t.dest)}</div><div class="travel-dates">${dateRange}</div></div>
-        <div style="display:flex;gap:12px;align-items:center;">
-          <button class="btn-icon" onclick="event.stopPropagation();downloadICS('Seyahat: ${t.dest}', '${t.start}', null, '${t.note}', '${t.end}')" title="Takvime Ekle">&#128197;</button>
-          <button class="btn-icon edit" onclick="event.stopPropagation();openTravelForm('${t.id}')">&#9998;</button>
-          <span class="chevron" id="tc-${t.id}">&#9660;</span>
-        </div>
-      </div>
-      <div class="travel-body" id="tb-${t.id}">
-        ${t.note ? `<div class="travel-note">${esc(t.note)}</div>` : ''}
-        <div>${items}</div>
-        <div style="display:flex;gap:8px;margin-top:12px;"><input type="text" id="ti-${t.id}" style="padding:10px;font-size:14px;border-radius:6px;" placeholder="Gezilecek yer ekle..." onkeydown="if(event.key==='Enter')addTravelItem('${t.id}')"><button class="btn btn-primary" style="padding:8px 14px;" onclick="addTravelItem('${t.id}')">Ekle</button></div>
-        <button class="btn btn-danger-outline" onclick="deleteTravel('${t.id}')">Seyahati Sil</button>
-      </div>
-    </div>`;
+    return `<div class="travel-card"><div class="travel-header" onclick="toggleTravelBody('${t.id}')"><div>${cd ? `<span class="badge ${cd.class}">${cd.text}</span>` : ''}<div class="travel-dest">${esc(t.dest)}</div><div class="travel-dates">${dr}</div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('Seyahat: ${t.dest}', '${t.start}', null, '${t.note}', '${t.end}')">&#128197;</button><button class="btn-icon edit" onclick="event.stopPropagation();openTravelForm('${t.id}')">&#9998;</button><span class="chevron" id="tc-${t.id}">&#9660;</span></div></div><div class="travel-body" id="tb-${t.id}">${t.note ? `<div class="travel-note">${esc(t.note)}</div>` : ''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:12px;"><input type="text" id="ti-${t.id}" style="padding:10px;font-size:14px;border-radius:6px;" placeholder="Gezilecek yer ekle..." onkeydown="if(event.key==='Enter')addTravelItem('${t.id}')"><button class="btn btn-primary" style="padding:8px 14px;" onclick="addTravelItem('${t.id}')">Ekle</button></div><button class="btn btn-danger-outline" onclick="deleteTravel('${t.id}')">Seyahati Sil</button></div></div>`;
   }).join('');
 }
 
-
-// ==================== LISTS (WITH ACCORDION) ====================
+// ==================== LISTS ====================
 function getListCats() { return getData('listcats', ['Kitaplar', 'Diziler/Filmler', 'Alışveriş']); }
 function getActiveCat() { return getData('activecat', getListCats()[0]); }
 function safeid(s) { return s.replace(/[^a-zA-Z0-9]/g, '_'); }
-
 function renderLists() {
-  const cats = getListCats(); const active = getActiveCat();
-  document.getElementById('cat-tabs').innerHTML = cats.map(c => `<button class="cat-tab ${c === active ? 'active' : ''}" onclick="setCat('${esc(c)}')">${esc(c)}</button>`).join('') + `<button class="cat-tab" onclick="openModal('newlist-modal')" style="border-style:dashed">+ Yeni</button>`;
-  renderListItems(active);
+  const cats = getListCats(); const a = getActiveCat();
+  document.getElementById('cat-tabs').innerHTML = cats.map(c => `<button class="cat-tab ${c === a ? 'active' : ''}" onclick="setCat('${esc(c)}')">${esc(c)}</button>`).join('') + `<button class="cat-tab" onclick="openModal('newlist-modal')" style="border-style:dashed">+ Yeni</button>`;
+  renderListItems(a);
 }
 function setCat(cat) { DB.set('activecat', cat); renderLists(); }
-function saveNewList() {
-  const n = document.getElementById('newlist-name').value.trim(); if(!n) return;
-  const cats = getListCats(); if(!cats.includes(n)) cats.push(n);
-  DB.set('listcats', cats); DB.set('activecat', n); closeModal('newlist-modal'); renderLists();
-}
-
-function addListItem(cat) {
-  const val = document.getElementById('quick-input-'+safeid(cat)).value.trim(); if(!val) return;
-  const items = getData('list_'+cat, []); items.push({ id: id(), text: val, done: false, prog: '', note: '' });
-  DB.set('list_'+cat, items); document.getElementById('quick-input-'+safeid(cat)).value = ''; renderLists();
-}
-function toggleListItem(cat, iid) {
-  const items = getData('list_'+cat, []); const i = items.find(x => x.id === iid);
-  if(i) { i.done = !i.done; DB.set('list_'+cat, items); renderLists(); }
-}
+function saveNewList() { const n = document.getElementById('newlist-name').value.trim(); if(!n) return; const c = getListCats(); if(!c.includes(n)) c.push(n); DB.set('listcats', c); DB.set('activecat', n); closeModal('newlist-modal'); renderLists(); }
+function addListItem(cat) { const val = document.getElementById('quick-input-'+safeid(cat)).value.trim(); if(!val) return; const i = getData('list_'+cat, []); i.push({ id: id(), text: val, done: false, prog: '', note: '' }); DB.set('list_'+cat, i); document.getElementById('quick-input-'+safeid(cat)).value = ''; renderLists(); }
+function toggleListItem(cat, iid) { const i = getData('list_'+cat, []); const o = i.find(x => x.id === iid); if(o) { o.done = !o.done; DB.set('list_'+cat, i); renderLists(); } }
 function deleteListItem(cat, iid) { DB.set('list_'+cat, getData('list_'+cat, []).filter(i => i.id !== iid)); renderLists(); }
-
-// List Accordion Logic
-function toggleListBody(iid) { 
-  const b = document.getElementById('lb-'+iid); const c = document.getElementById('lc-'+iid);
-  b.classList.toggle('open'); c.classList.toggle('open');
-}
-function updateListDetails(cat, iid) {
-  const items = getData('list_'+cat, []); const i = items.find(x => x.id === iid);
-  if(i) {
-    i.prog = document.getElementById('lp-'+iid).value.trim();
-    i.note = document.getElementById('ln-'+iid).value.trim();
-    DB.set('list_'+cat, items);
-    // Don't re-render immediately to keep focus, visual update on next render
-  }
-}
-
+function toggleListBody(iid) { document.getElementById('lb-'+iid).classList.toggle('open'); document.getElementById('lc-'+iid).classList.toggle('open'); }
+function updateListDetails(cat, iid) { const i = getData('list_'+cat, []); const o = i.find(x => x.id === iid); if(o) { o.prog = document.getElementById('lp-'+iid).value.trim(); o.note = document.getElementById('ln-'+iid).value.trim(); DB.set('list_'+cat, i); } }
 function renderListItems(cat) {
-  const el = document.getElementById('list-content');
-  const items = getData('list_'+cat, []);
-  const renderItem = (i) => `
-    <div class="list-wrapper ${i.done ? 'done' : ''}">
-      <div class="list-header" onclick="toggleListBody('${i.id}')">
-        <div class="list-check" onclick="event.stopPropagation();toggleListItem('${esc(cat)}','${i.id}')"><span class="list-check-mark">&#10003;</span></div>
-        <span class="item-text">${esc(i.text)}</span>
-        ${i.prog && !i.done ? `<span class="item-prog-badge">${esc(i.prog)}</span>` : ''}
-        <span class="chevron" id="lc-${i.id}" style="margin-left:auto;">&#9660;</span>
-      </div>
-      <div class="list-body" id="lb-${i.id}">
-        <input type="text" id="lp-${i.id}" value="${esc(i.prog||'')}" placeholder="Örn: Sayfa 3 / Bölüm 4" onchange="updateListDetails('${esc(cat)}','${i.id}')" style="margin-bottom:8px; padding:8px; font-size:13px; border-radius:6px;">
-        <textarea id="ln-${i.id}" placeholder="Link, not veya inceleme..." onchange="updateListDetails('${esc(cat)}','${i.id}')" style="min-height:50px; padding:8px; font-size:13px; border-radius:6px;">${esc(i.note||'')}</textarea>
-        <div style="text-align:right; margin-top:8px;"><button class="btn-icon" onclick="deleteListItem('${esc(cat)}','${i.id}')" style="color:var(--accent-danger)">Sil</button></div>
-      </div>
-    </div>`;
-
+  const el = document.getElementById('list-content'); const items = getData('list_'+cat, []);
+  const renderItem = (i) => `<div class="list-wrapper ${i.done ? 'done' : ''}"><div class="list-header" onclick="toggleListBody('${i.id}')"><div class="list-check" onclick="event.stopPropagation();toggleListItem('${esc(cat)}','${i.id}')"><span class="list-check-mark">&#10003;</span></div><span class="item-text">${esc(i.text)}</span>${i.prog && !i.done ? `<span class="item-prog-badge">${esc(i.prog)}</span>` : ''}<span class="chevron" id="lc-${i.id}" style="margin-left:auto;">&#9660;</span></div><div class="list-body" id="lb-${i.id}"><input type="text" id="lp-${i.id}" value="${esc(i.prog||'')}" placeholder="Örn: Sayfa 3 / Bölüm 4" onchange="updateListDetails('${esc(cat)}','${i.id}')" style="margin-bottom:8px; padding:8px; font-size:13px; border-radius:6px;"><textarea id="ln-${i.id}" placeholder="Link, not veya inceleme..." onchange="updateListDetails('${esc(cat)}','${i.id}')" style="min-height:50px; padding:8px; font-size:13px; border-radius:6px;">${esc(i.note||'')}</textarea><div style="text-align:right; margin-top:8px;"><button class="btn-icon" onclick="deleteListItem('${esc(cat)}','${i.id}')" style="color:var(--accent-danger)">Sil</button></div></div></div>`;
   const done = items.filter(i => i.done); const undone = items.filter(i => !i.done);
-  el.innerHTML = `
-    <div class="quick-add"><input type="text" id="quick-input-${safeid(cat)}" placeholder="${esc(cat)} listesine ekle..." onkeydown="if(event.key==='Enter')addListItem('${esc(cat)}')"><button class="btn btn-primary" onclick="addListItem('${esc(cat)}')">Ekle</button></div>
-    ${undone.length ? undone.map(renderItem).join('') : '<div class="empty">Liste boş</div>'}
-    ${done.length ? `<div class="divider"></div><div class="section-label">Tamamlananlar</div>${done.map(renderItem).join('')}` : ''}
-  `;
+  el.innerHTML = `<div class="quick-add"><input type="text" id="quick-input-${safeid(cat)}" placeholder="${esc(cat)} ekle..." onkeydown="if(event.key==='Enter')addListItem('${esc(cat)}')"><button class="btn btn-primary" onclick="addListItem('${esc(cat)}')">Ekle</button></div>${undone.length ? undone.map(renderItem).join('') : '<div class="empty">Liste boş</div>'}${done.length ? `<div class="divider"></div><div class="section-label">Tamamlananlar</div>${done.map(renderItem).join('')}` : ''}`;
 }
 
-
-// ==================== TO-DO (WITH RECURRING) ====================
-function openTodoForm(editId = null) {
-  currentEditId = editId; document.getElementById('todo-form-title').innerText = editId ? "Düzenle" : "Yeni Görev";
-  if(editId) {
-    const t = getData('todos', []).find(x => x.id === editId);
-    document.getElementById('todo-title').value = t.title; document.getElementById('todo-priority').value = t.priority; document.getElementById('todo-recur').value = t.recur || ''; document.getElementById('todo-date').value = t.date || ''; document.getElementById('todo-note').value = t.note || '';
-  } else {
-    document.getElementById('todo-title').value = ''; document.getElementById('todo-priority').value = 'normal'; document.getElementById('todo-recur').value = ''; document.getElementById('todo-date').value = new Date().toISOString().split('T')[0]; document.getElementById('todo-note').value = '';
-  }
+// ==================== TO-DO ====================
+function openTodoForm(eId = null) {
+  currentEditId = eId; document.getElementById('todo-form-title').innerText = eId ? "Düzenle" : "Yeni Görev";
+  if(eId) { const t = getData('todos', []).find(x => x.id === eId); document.getElementById('todo-title').value = t.title; document.getElementById('todo-priority').value = t.priority; document.getElementById('todo-recur').value = t.recur || ''; document.getElementById('todo-date').value = t.date || ''; document.getElementById('todo-note').value = t.note || ''; } 
+  else { document.getElementById('todo-title').value = ''; document.getElementById('todo-priority').value = 'normal'; document.getElementById('todo-recur').value = ''; document.getElementById('todo-date').value = new Date().toISOString().split('T')[0]; document.getElementById('todo-note').value = ''; }
   document.getElementById('todo-form').classList.add('open');
 }
-
 function saveTodo() {
-  const title = document.getElementById('todo-title').value.trim(); if (!title) return;
-  const todos = getData('todos', []);
-  const payload = { id: currentEditId || id(), title, priority: document.getElementById('todo-priority').value, recur: parseInt(document.getElementById('todo-recur').value) || null, date: document.getElementById('todo-date').value, note: document.getElementById('todo-note').value.trim(), done: false };
-  if(currentEditId) { const idx = todos.findIndex(x => x.id === currentEditId); if(idx > -1) { payload.done = todos[idx].done; todos[idx] = payload; } } else { todos.push(payload); }
+  const title = document.getElementById('todo-title').value.trim(); if (!title) return; const todos = getData('todos', []);
+  const p = { id: currentEditId || id(), title, priority: document.getElementById('todo-priority').value, recur: parseInt(document.getElementById('todo-recur').value) || null, date: document.getElementById('todo-date').value, note: document.getElementById('todo-note').value.trim(), done: false };
+  if(currentEditId) { const idx = todos.findIndex(x => x.id === currentEditId); if(idx > -1) { p.done = todos[idx].done; todos[idx] = p; } } else { todos.push(p); }
   DB.set('todos', todos); toggleForm('todo-form'); renderTodo();
 }
-
 function toggleTodo(tid) {
-  const todos = getData('todos', []); const t = todos.find(x => x.id === tid);
-  if (t) {
-    if (!t.done && t.recur && t.date) {
-      // Eğer rutin ve bitiriliyorsa, tarihi ileri atıp tamamlanmamış bırak
-      let d = new Date(t.date); d.setDate(d.getDate() + t.recur);
-      t.date = d.toISOString().split('T')[0];
-    } else {
-      t.done = !t.done;
-    }
-  }
-  DB.set('todos', todos); renderTodo();
+  const t = getData('todos', []); const o = t.find(x => x.id === tid);
+  if (o) { if (!o.done && o.recur && o.date) { let d = new Date(o.date); d.setDate(d.getDate() + o.recur); o.date = d.toISOString().split('T')[0]; } else { o.done = !o.done; } }
+  DB.set('todos', t); renderTodo();
 }
-
-function deleteTodo(tid) { if(confirm("Görevi silmek istiyor musunuz?")) { DB.set('todos', getData('todos', []).filter(t => t.id !== tid)); renderTodo(); } }
-
+function deleteTodo(tid) { if(confirm("Silinsin mi?")) { DB.set('todos', getData('todos', []).filter(t => t.id !== tid)); renderTodo(); } }
 function renderTodo() {
   const todos = getData('todos', []); const el = document.getElementById('todo-list');
   if (!todos.length) { el.innerHTML = '<div class="empty">Yapılacak bir şey yok</div>'; return; }
   const pOrder = { high: 0, normal: 1, low: 2 };
-  const undone = todos.filter(t => !t.done).sort((a,b) => pOrder[a.priority] - pOrder[b.priority] || (a.date > b.date ? 1 : -1));
-  const done = todos.filter(t => t.done);
-
+  const undone = todos.filter(t => !t.done).sort((a,b) => pOrder[a.priority] - pOrder[b.priority] || (a.date > b.date ? 1 : -1)); const done = todos.filter(t => t.done);
   const renderItem = (t) => {
-    const cd = getPreciseCountdown(t.date, null);
-    const dateBadge = cd && !t.done ? `<span style="color:var(--accent-danger);">${cd.text}</span>` : (t.date ? formatDate(t.date) : '');
-    const recurLabel = t.recur === 1 ? 'Günlük' : t.recur === 7 ? 'Haftalık' : t.recur === 30 ? 'Aylık' : '';
-    
-    return `<div class="todo-item priority-${t.priority} ${t.done ? 'done' : ''}">
-      <div class="list-check" onclick="toggleTodo('${t.id}')" style="${t.done?'background:var(--accent);border-color:var(--accent)':''}"><span class="list-check-mark" style="${t.done?'display:block':''}">&#10003;</span></div>
-      <div style="flex:1;min-width:0;">
-        <div class="todo-text">${esc(t.title)}</div>
-        <div class="todo-sub">
-          ${recurLabel ? `<span class="recur-badge">&#10227; ${recurLabel}</span>` : ''}
-          ${dateBadge ? `<span>${dateBadge}</span>` : ''}
-          ${t.note ? `<span style="opacity:0.7">· ${esc(t.note)}</span>` : ''}
-        </div>
-      </div>
-      <button class="btn-icon edit" onclick="openTodoForm('${t.id}')">&#9998;</button>
-      <button class="btn-icon" onclick="deleteTodo('${t.id}')">&#10005;</button>
-    </div>`;
+    const cd = getPreciseCountdown(t.date, null); const db = cd && !t.done ? `<span style="color:var(--accent-danger);">${cd.text}</span>` : (t.date ? formatDate(t.date) : '');
+    const rl = t.recur === 1 ? 'Günlük' : t.recur === 7 ? 'Haftalık' : t.recur === 30 ? 'Aylık' : '';
+    return `<div class="todo-item priority-${t.priority} ${t.done ? 'done' : ''}"><div class="list-check" onclick="toggleTodo('${t.id}')" style="${t.done?'background:var(--accent);border-color:var(--accent)':''}"><span class="list-check-mark" style="${t.done?'display:block':''}">&#10003;</span></div><div style="flex:1;min-width:0;"><div class="todo-text">${esc(t.title)}</div><div class="todo-sub">${rl ? `<span class="recur-badge">&#10227; ${rl}</span>` : ''}${db ? `<span>${db}</span>` : ''}${t.note ? `<span style="opacity:0.7">· ${esc(t.note)}</span>` : ''}</div></div><button class="btn-icon edit" onclick="openTodoForm('${t.id}')">&#9998;</button><button class="btn-icon" onclick="deleteTodo('${t.id}')">&#10005;</button></div>`;
   };
-
-  el.innerHTML = (undone.length ? undone.map(renderItem).join('') : '<div class="empty">Tüm görevler tamam!</div>') +
-    (done.length ? `<div class="divider"></div><div class="section-label">Tamamlananlar (${done.length})</div>${done.map(renderItem).join('')}` : '');
+  el.innerHTML = (undone.length ? undone.map(renderItem).join('') : '<div class="empty">Tüm görevler tamam!</div>') + (done.length ? `<div class="divider"></div><div class="section-label">Tamamlananlar (${done.length})</div>${done.map(renderItem).join('')}` : '');
 }
 
-
-// ==================== HABITS & BIRTHDAYS (Kept minimal as requested) ====================
-// Functions abbreviated structurally, functionality fully intact.
+// ==================== HABITS & BIRTHDAYS ====================
 function saveHabit() { const n = document.getElementById('habit-name').value.trim(); if(!n) return; const h = getData('habits', []); h.push({ id: id(), name: n, target: parseInt(document.getElementById('habit-target').value), checks: {} }); DB.set('habits', h); closeModal('habit-modal'); renderHabits(); }
-function toggleHabitDay(hid, dStr) { const h = getData('habits', []); const obj = h.find(x => x.id === hid); if(obj) { obj.checks[dStr] = !obj.checks[dStr]; DB.set('habits', h); renderHabits(); } }
+function toggleHabitDay(hid, dStr) { const h = getData('habits', []); const o = h.find(x => x.id === hid); if(o) { o.checks[dStr] = !o.checks[dStr]; DB.set('habits', h); renderHabits(); } }
 function deleteHabit(hid) { if(confirm("Silinsin mi?")) { DB.set('habits', getData('habits', []).filter(x => x.id !== hid)); renderHabits(); } }
 function renderHabits() {
   const habits = getData('habits', []); const el = document.getElementById('habits-list');
@@ -887,94 +785,36 @@ function renderHabits() {
   }).join('');
 }
 
-const MONTHS_TR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 function openBdayForm(eId=null) { currentEditId=eId; document.getElementById('bday-form-title').innerText = eId?"Düzenle":"Doğum Günü"; if(eId) { const b=getData('birthdays',[]).find(x=>x.id===eId); document.getElementById('bday-name').value=b.name; document.getElementById('bday-month').value=b.month; document.getElementById('bday-day').value=b.day; } else { document.getElementById('bday-name').value=''; document.getElementById('bday-month').value='1'; document.getElementById('bday-day').value=''; } document.getElementById('bday-form').classList.add('open'); }
 function saveBirthday() { const n=document.getElementById('bday-name').value.trim(); const d=parseInt(document.getElementById('bday-day').value); const m=parseInt(document.getElementById('bday-month').value); if(!n||!d||!m)return; const b=getData('birthdays',[]); if(currentEditId){ const idx=b.findIndex(x=>x.id===currentEditId); if(idx>-1){ b[idx].name=n; b[idx].day=d; b[idx].month=m; } } else { b.push({id:id(),name:n,day:d,month:m,items:[]}); } DB.set('birthdays',b); toggleForm('bday-form'); renderBirthdays(); }
 function deleteBirthday(bid) { if(confirm("Silinsin mi?")){ DB.set('birthdays',getData('birthdays',[]).filter(b=>b.id!==bid)); renderBirthdays(); } }
-function getBdayCD(m,d) { const t=new Date(); const ty=t.getFullYear(); let n=new Date(ty,m-1,d,23,59,59); if(n<t)n=new Date(ty+1,m-1,d,23,59,59); const diff=Math.floor((n-t)/(86400000)); if(diff===0)return{text:'Bugün!',c:'badge-danger'}; if(diff<=7)return{text:`${diff} gün`,c:'badge-warning'}; return{text:`${diff} gün`,c:'badge-safe'}; }
 function renderBirthdays() {
   const b=getData('birthdays',[]); const el=document.getElementById('birthdays-list'); if(!b.length){ el.innerHTML='<div class="empty">Yok</div>'; return; }
-  const ty=new Date().getFullYear(); b.forEach(x=>{ let n=new Date(ty,x.month-1,x.day); if(n<new Date())n=new Date(ty+1,x.month-1,x.day); x._n=n.getTime(); });
-  b.sort((x,y)=>x._n-y._n);
+  const ty=new Date().getFullYear(); b.forEach(x=>{ let n=new Date(ty,x.month-1,x.day); if(n.getTime() < new Date().getTime())n=new Date(ty+1,x.month-1,x.day); x._n=n.getTime(); }); b.sort((x,y)=>x._n-y._n);
   el.innerHTML=b.map(x=>{
-    const cd=getBdayCD(x.month,x.day); const dateStr=`${new Date(x._n).getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;
-    return `<div class="bday-card"><div class="bday-header"><div style="display:flex;align-items:center;gap:12px;"><div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div><div><div class="bday-name">${esc(x.name)}</div><div class="bday-date">${x.day} ${MONTHS_TR[x.month]}</div><div style="margin-top:4px"><span class="badge ${cd.c}">${cd.text}</span></div></div></div><div style="display:flex;gap:8px;"><button class="btn-icon" onclick="downloadICS('${x.name} Doğum Günü', '${dateStr}', null, 'Kutlama')">&#128197;</button><button class="btn-icon edit" onclick="openBdayForm('${x.id}')">&#9998;</button><button class="btn-icon" onclick="deleteBirthday('${x.id}')">&#10005;</button></div></div></div>`;
+    const nDate = new Date(x._n); const cd=getPreciseCountdown(nDate.toISOString().split('T')[0], null); const dateStr=`${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;
+    return `<div class="bday-card"><div class="bday-header"><div style="display:flex;align-items:center;gap:12px;"><div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div><div><div class="bday-name">${esc(x.name)}</div><div class="bday-date">${x.day} ${MONTHS_TR[x.month]}</div><div style="margin-top:4px"><span class="badge ${cd.class}">${cd.text}</span></div></div></div><div style="display:flex;gap:8px;"><button class="btn-icon" onclick="downloadICS('${x.name} Doğum Günü', '${dateStr}', null, 'Kutlama')">&#128197;</button><button class="btn-icon edit" onclick="openBdayForm('${x.id}')">&#9998;</button><button class="btn-icon" onclick="deleteBirthday('${x.id}')">&#10005;</button></div></div></div>`;
   }).join('');
 }
 
-
-// ==================== NOTES & MARKDOWN ====================
+// ==================== NOTES ====================
+function parseMD(text) { return esc(text).replace(/^### (.*$)/gim, '<h3>$1</h3>').replace(/^## (.*$)/gim, '<h2>$1</h2>').replace(/^# (.*$)/gim, '<h1>$1</h1>').replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>').replace(/\*(.*?)\*/gim, '<em>$1</em>').replace(/^\- (.*$)/gim, '<ul><li>$1</li></ul>').replace(/<\/ul>\n<ul>/gim, '').replace(/\n/gim, '<br>'); }
 let currentNoteId = null;
-
-// Basic Markdown Parser (bold, italic, list items, headings)
-function parseMD(text) {
-  let html = esc(text);
-  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>')
-             .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-             .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-             .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-             .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-             .replace(/^\- (.*$)/gim, '<ul><li>$1</li></ul>')
-             .replace(/<\/ul>\n<ul>/gim, '') // merge lists
-             .replace(/\n/gim, '<br>');
-  return html;
-}
-
-function openNote(nid) {
-  currentNoteId = nid; const notes = getData('notes', []); const n = nid ? notes.find(x => x.id === nid) : null;
-  document.getElementById('note-title-input').value = n ? n.title : '';
-  document.getElementById('note-body-input').value = n ? n.body : '';
-  switchNoteMode('write');
-  document.getElementById('note-editor').classList.add('open');
-  if (!nid) currentNoteId = id();
-}
-
-function switchNoteMode(mode) {
-  document.getElementById('tab-write').classList.remove('active');
-  document.getElementById('tab-preview').classList.remove('active');
-  document.getElementById('note-body-input').classList.remove('active');
-  document.getElementById('note-preview-div').classList.remove('active');
-  
-  if(mode === 'write') {
-    document.getElementById('tab-write').classList.add('active');
-    document.getElementById('note-body-input').classList.add('active');
-  } else {
-    document.getElementById('tab-preview').classList.add('active');
-    const md = document.getElementById('note-body-input').value;
-    document.getElementById('note-preview-div').innerHTML = md ? parseMD(md) : '<div style="color:var(--muted);font-style:italic">Önizleme yok...</div>';
-    document.getElementById('note-preview-div').classList.add('active');
-  }
-}
-
-function closeNote() {
-  const title = document.getElementById('note-title-input').value.trim(); const body = document.getElementById('note-body-input').value.trim();
-  if (title || body) {
-    const notes = getData('notes', []); const idx = notes.findIndex(n => n.id === currentNoteId);
-    const entry = { id: currentNoteId, title: title || 'Başlıksız', body, updated: new Date().toISOString() };
-    if (idx >= 0) notes[idx] = entry; else notes.unshift(entry); DB.set('notes', notes);
-  }
-  document.getElementById('note-editor').classList.remove('open'); renderNotes();
-}
-function deleteCurrentNote() { if(!confirm("Notu silmek istiyor musunuz?")) return; DB.set('notes', getData('notes', []).filter(n => n.id !== currentNoteId)); document.getElementById('note-editor').classList.remove('open'); renderNotes(); }
-
-function renderNotes() {
-  const notes = getData('notes', []); const el = document.getElementById('notes-list');
-  if (!notes.length) { el.innerHTML = '<div class="empty">Henüz not yok</div>'; return; }
-  el.innerHTML = notes.map(n => `<div class="note-card" onclick="openNote('${n.id}')"><div class="note-card-title">${esc(n.title)}</div><div class="note-card-preview">${esc(n.body)}</div></div>`).join('');
-}
-
+function openNote(nid) { currentNoteId = nid; const n = nid ? getData('notes', []).find(x => x.id === nid) : null; document.getElementById('note-title-input').value = n ? n.title : ''; document.getElementById('note-body-input').value = n ? n.body : ''; switchNoteMode('write'); document.getElementById('note-editor').classList.add('open'); if (!nid) currentNoteId = id(); }
+function switchNoteMode(mode) { document.getElementById('tab-write').classList.remove('active'); document.getElementById('tab-preview').classList.remove('active'); document.getElementById('note-body-input').classList.remove('active'); document.getElementById('note-preview-div').classList.remove('active'); if(mode === 'write') { document.getElementById('tab-write').classList.add('active'); document.getElementById('note-body-input').classList.add('active'); } else { document.getElementById('tab-preview').classList.add('active'); const md = document.getElementById('note-body-input').value; document.getElementById('note-preview-div').innerHTML = md ? parseMD(md) : '<div style="color:var(--muted);font-style:italic">Önizleme yok...</div>'; document.getElementById('note-preview-div').classList.add('active'); } }
+function closeNote() { const title = document.getElementById('note-title-input').value.trim(); const body = document.getElementById('note-body-input').value.trim(); if (title || body) { const notes = getData('notes', []); const idx = notes.findIndex(n => n.id === currentNoteId); const e = { id: currentNoteId, title: title || 'Başlıksız', body, updated: new Date().toISOString() }; if (idx >= 0) notes[idx] = e; else notes.unshift(e); DB.set('notes', notes); } document.getElementById('note-editor').classList.remove('open'); renderNotes(); }
+function deleteCurrentNote() { if(!confirm("Silinsin mi?")) return; DB.set('notes', getData('notes', []).filter(n => n.id !== currentNoteId)); document.getElementById('note-editor').classList.remove('open'); renderNotes(); }
+function renderNotes() { const notes = getData('notes', []); const el = document.getElementById('notes-list'); if (!notes.length) { el.innerHTML = '<div class="empty">Henüz not yok</div>'; return; } el.innerHTML = notes.map(n => `<div class="note-card" onclick="openNote('${n.id}')"><div class="note-card-title">${esc(n.title)}</div><div class="note-card-preview">${esc(n.body)}</div></div>`).join(''); }
 
 // ==================== INIT ====================
 function init() {
   const now = new Date(); const days = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi']; const months = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
   document.getElementById('headerDate').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
   const today = now.toISOString().split('T')[0]; document.getElementById('appt-date').value = today; document.getElementById('todo-date').value = today;
-  renderAppointments();
   
-  // Her dakikada süreleri güncelle
+  switchTab('summary');
   setInterval(() => {
-    if(document.getElementById('sec-appointments').classList.contains('active')) renderAppointments();
-    if(document.getElementById('sec-travel').classList.contains('active')) renderTravel();
+    if(document.getElementById('sec-summary').classList.contains('active')) renderSummary();
   }, 60000);
 }
 init();
