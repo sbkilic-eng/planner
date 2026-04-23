@@ -24,13 +24,19 @@
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    margin: 0;
+  }
+  .app-shell {
     max-width: 680px;
     margin: 0 auto;
+    position: relative;
+    display: flex;
+    min-height: 100vh;
   }
 
   /* HEADER */
   header {
-    padding: 24px 20px 0;
+    padding: 20px 20px 0;
     display: flex;
     align-items: baseline;
     gap: 10px;
@@ -47,32 +53,59 @@
     font-weight: 400;
   }
 
-  /* TABS */
-  .tabs {
+  /* LEFT SIDEBAR */
+  .sidebar {
+    width: 72px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
     display: flex;
-    gap: 4px;
-    padding: 16px 20px 0;
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-    scrollbar-width: none;
+    flex-direction: column;
+    padding: 12px 0;
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    z-index: 50;
+    gap: 2px;
+    left: max(0px, calc(50vw - 340px));
   }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    padding: 8px 14px 10px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--muted);
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 6px;
     cursor: pointer;
-    border-bottom: 2px solid transparent;
-    white-space: nowrap;
-    transition: color 0.15s, border-color 0.15s;
     background: none;
-    border-top: none; border-left: none; border-right: none;
+    border: none;
     font-family: 'DM Sans', sans-serif;
+    color: var(--muted);
+    transition: color 0.15s, background 0.15s;
+    gap: 4px;
+    border-radius: 10px;
+    margin: 0 6px;
   }
-  .tab.active {
-    color: var(--tab-active);
-    border-bottom-color: var(--accent);
+  .nav-item:hover { background: var(--border); }
+  .nav-item.active { color: var(--accent); background: var(--accent-light); }
+  .nav-icon { font-size: 20px; line-height: 1; }
+  .nav-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+  .sidebar-header {
+    padding: 10px 6px 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 6px;
+  }
+  .sidebar-logo {
+    font-family: 'Instrument Serif', serif;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+
+  /* MAIN AREA */
+  .main-area {
+    margin-left: 72px;
+    flex: 1;
+    min-width: 0;
   }
 
   /* CONTENT */
@@ -424,6 +457,7 @@
     flex-direction: column;
     max-width: 680px;
     margin: 0 auto;
+    left: 72px;
   }
   .note-editor.open { display: flex; }
   .note-editor-header {
@@ -534,32 +568,177 @@
     border-color: var(--accent);
   }
 
-  /* SCROLLBAR */
+  /* TODO */
+  .todo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: opacity 0.2s;
+    border-left: 3px solid var(--border);
+  }
+  .todo-item.priority-high { border-left-color: var(--accent2); }
+  .todo-item.priority-normal { border-left-color: var(--accent); }
+  .todo-item.priority-low { border-left-color: var(--muted); }
+  .todo-item.done { opacity: 0.4; }
+  .todo-item.done .todo-text { text-decoration: line-through; }
+  .todo-text { font-size: 15px; font-weight: 500; flex: 1; line-height: 1.4; }
+  .todo-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .todo-del { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 15px; padding: 0 2px; transition: color 0.15s; flex-shrink: 0; }
+  .todo-del:hover { color: var(--accent2); }
+
+  /* HABIT */
+  .habit-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .habit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .habit-name { font-size: 16px; font-weight: 600; }
+  .habit-streak { font-size: 12px; color: var(--accent); font-weight: 600; }
+  .habit-days {
+    display: flex;
+    gap: 6px;
+  }
+  .habit-day {
+    flex: 1;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    transition: background 0.15s, border-color 0.15s;
+    min-width: 32px;
+  }
+  .habit-day.checked { background: var(--accent); border-color: var(--accent); }
+  .habit-day.today { border-color: var(--accent2); }
+  .habit-day-label { font-size: 9px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+  .habit-day.checked .habit-day-label { color: rgba(255,255,255,0.7); }
+  .habit-day-num { font-size: 12px; font-weight: 600; color: var(--text); }
+  .habit-day.checked .habit-day-num { color: #fff; }
+  .habit-progress {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .habit-bar-bg {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .habit-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+  .habit-target-text { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .habit-del { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 14px; transition: color 0.15s; }
+  .habit-del:hover { color: var(--accent2); }
+
+  /* BIRTHDAY */
+  .bday-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+  }
+  .bday-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-family: 'Instrument Serif', serif;
+    color: var(--accent);
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+  .bday-name { font-size: 16px; font-weight: 600; }
+  .bday-date { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .bday-badge { margin-top: 4px; }
+
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
   @media (min-width: 481px) {
-    body { padding-top: 0; }
     header { padding: 28px 24px 0; }
-    .tabs { padding: 16px 24px 0; }
     .content { padding: 24px; }
   }
 </style>
 </head>
 <body>
 
+<div class="app-shell">
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">P</div>
+  </div>
+  <button class="nav-item active" onclick="switchTab('appointments')">
+    <span class="nav-icon">&#128197;</span>
+    <span class="nav-label">Randevu</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('travel')">
+    <span class="nav-icon">&#9992;</span>
+    <span class="nav-label">Seyahat</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('lists')">
+    <span class="nav-icon">&#128203;</span>
+    <span class="nav-label">Listeler</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('todo')">
+    <span class="nav-icon">&#9989;</span>
+    <span class="nav-label">Yapılacak</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('habits')">
+    <span class="nav-icon">&#128293;</span>
+    <span class="nav-label">Alışkanlık</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('birthdays')">
+    <span class="nav-icon">&#127874;</span>
+    <span class="nav-label">D.Günü</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('notes')">
+    <span class="nav-icon">&#128221;</span>
+    <span class="nav-label">Notlar</span>
+  </button>
+</nav>
+
+<div class="main-area">
 <header>
   <span class="app-title">Planner</span>
   <span class="app-date" id="headerDate"></span>
 </header>
-
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('appointments')">Randevular</button>
-  <button class="tab" onclick="switchTab('travel')">Seyahat</button>
-  <button class="tab" onclick="switchTab('lists')">Listeler</button>
-  <button class="tab" onclick="switchTab('notes')">Notlar</button>
-</div>
 
 <div class="content">
 
@@ -612,7 +791,90 @@
     <div id="list-content"></div>
   </div>
 
-  <!-- ========== NOTLAR ========== -->
+  <!-- ========== YAPILACAKLAR ========== -->
+  <div class="section" id="sec-todo">
+    <button class="btn-add" onclick="toggleForm('todo-form')">
+      <span>+</span> Yeni görev ekle
+    </button>
+    <div class="add-form" id="todo-form">
+      <div class="modal-title" style="font-size:17px;margin-bottom:14px;">Yeni Görev</div>
+      <div class="form-row">
+        <label>Görev</label>
+        <input type="text" id="todo-title" placeholder="Ne yapılacak?">
+      </div>
+      <div class="form-row">
+        <label>Öncelik</label>
+        <select id="todo-priority">
+          <option value="normal">Normal</option>
+          <option value="high">Yüksek</option>
+          <option value="low">Düşük</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Son tarih (isteğe bağlı)</label>
+        <input type="date" id="todo-date">
+      </div>
+      <div class="form-row">
+        <label>Not (isteğe bağlı)</label>
+        <textarea id="todo-note" placeholder="Detay..."></textarea>
+      </div>
+      <div class="form-btns">
+        <button class="btn btn-primary" onclick="saveTodo()">Kaydet</button>
+        <button class="btn btn-ghost" onclick="toggleForm('todo-form')">İptal</button>
+      </div>
+    </div>
+    <div id="todo-list"></div>
+  </div>
+
+  <!-- ========== ALIŞKANLIKLAR ========== -->
+  <div class="section" id="sec-habits">
+    <button class="btn-add" onclick="openModal('habit-modal')">
+      <span>+</span> Yeni alışkanlık ekle
+    </button>
+    <div id="habits-list"></div>
+  </div>
+
+  <!-- ========== DOĞUM GÜNLERİ ========== -->
+  <div class="section" id="sec-birthdays">
+    <button class="btn-add" onclick="toggleForm('bday-form')">
+      <span>+</span> Doğum günü ekle
+    </button>
+    <div class="add-form" id="bday-form">
+      <div class="modal-title" style="font-size:17px;margin-bottom:14px;">Doğum Günü</div>
+      <div class="form-row">
+        <label>İsim</label>
+        <input type="text" id="bday-name" placeholder="Ad Soyad">
+      </div>
+      <div class="form-row form-row-2">
+        <div>
+          <label>Ay</label>
+          <select id="bday-month">
+            <option value="1">Ocak</option><option value="2">Şubat</option>
+            <option value="3">Mart</option><option value="4">Nisan</option>
+            <option value="5">Mayıs</option><option value="6">Haziran</option>
+            <option value="7">Temmuz</option><option value="8">Ağustos</option>
+            <option value="9">Eylül</option><option value="10">Ekim</option>
+            <option value="11">Kasım</option><option value="12">Aralık</option>
+          </select>
+        </div>
+        <div>
+          <label>Gün</label>
+          <input type="number" id="bday-day" min="1" max="31" placeholder="15">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Not (isteğe bağlı)</label>
+        <input type="text" id="bday-note" placeholder="Hediye fikri, hatırlatma...">
+      </div>
+      <div class="form-btns">
+        <button class="btn btn-primary" onclick="saveBirthday()">Kaydet</button>
+        <button class="btn btn-ghost" onclick="toggleForm('bday-form')">İptal</button>
+      </div>
+    </div>
+    <div id="birthdays-list"></div>
+  </div>
+
+  
   <div class="section" id="sec-notes">
     <button class="btn-add" onclick="openNote(null)">
       <span>+</span> Yeni not
@@ -663,7 +925,32 @@
   </div>
 </div>
 
-<!-- NEW LIST MODAL -->
+<!-- HABIT MODAL -->
+<div class="modal-overlay" id="habit-modal">
+  <div class="modal">
+    <div class="modal-title">Yeni Alışkanlık</div>
+    <div class="form-row">
+      <label>Alışkanlık adı</label>
+      <input type="text" id="habit-name" placeholder="Spor, kitap okuma, su iç...">
+    </div>
+    <div class="form-row">
+      <label>Hedef (haftada kaç gün)</label>
+      <select id="habit-target">
+        <option value="7">Her gün (7)</option>
+        <option value="5">Hafta içi (5)</option>
+        <option value="3">Haftada 3</option>
+        <option value="2">Haftada 2</option>
+        <option value="1">Haftada 1</option>
+      </select>
+    </div>
+    <div class="form-btns">
+      <button class="btn btn-primary" onclick="saveHabit()">Kaydet</button>
+      <button class="btn btn-ghost" onclick="closeModal('habit-modal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="modal-overlay" id="newlist-modal">
   <div class="modal">
     <div class="modal-title">Yeni Liste</div>
@@ -717,13 +1004,16 @@ function setBadge(diff) {
 // ==================== TABS ====================
 function switchTab(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
   document.getElementById('sec-' + name).classList.add('active');
-  const tabs = ['appointments','travel','lists','notes'];
-  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+  const tabs = ['appointments','travel','lists','todo','habits','birthdays','notes'];
+  document.querySelectorAll('.nav-item')[tabs.indexOf(name)].classList.add('active');
   if (name === 'appointments') renderAppointments();
   if (name === 'travel') renderTravel();
   if (name === 'lists') renderLists();
+  if (name === 'todo') renderTodo();
+  if (name === 'habits') renderHabits();
+  if (name === 'birthdays') renderBirthdays();
   if (name === 'notes') renderNotes();
 }
 
@@ -1044,7 +1334,219 @@ function renderNotes() {
   }).join('');
 }
 
-// ==================== ESCAPE ====================
+// ==================== TO-DO ====================
+function saveTodo() {
+  const title = document.getElementById('todo-title').value.trim();
+  if (!title) return;
+  const todos = getData('todos', []);
+  todos.push({
+    id: id(),
+    title,
+    priority: document.getElementById('todo-priority').value,
+    date: document.getElementById('todo-date').value,
+    note: document.getElementById('todo-note').value.trim(),
+    done: false,
+    created: new Date().toISOString(),
+  });
+  DB.set('todos', todos);
+  document.getElementById('todo-title').value = '';
+  document.getElementById('todo-priority').value = 'normal';
+  document.getElementById('todo-date').value = '';
+  document.getElementById('todo-note').value = '';
+  document.getElementById('todo-form').classList.remove('open');
+  renderTodo();
+}
+
+function toggleTodo(tid) {
+  const todos = getData('todos', []);
+  const t = todos.find(x => x.id === tid);
+  if (t) t.done = !t.done;
+  DB.set('todos', todos);
+  renderTodo();
+}
+
+function deleteTodo(tid) {
+  DB.set('todos', getData('todos', []).filter(t => t.id !== tid));
+  renderTodo();
+}
+
+function renderTodo() {
+  const todos = getData('todos', []);
+  const el = document.getElementById('todo-list');
+  if (!todos.length) {
+    el.innerHTML = '<div class="empty">Yapılacak bir şey yok</div>';
+    return;
+  }
+  const priorityOrder = { high: 0, normal: 1, low: 2 };
+  const undone = todos.filter(t => !t.done).sort((a,b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+  const done = todos.filter(t => t.done);
+
+  const priorityLabel = { high: 'Yüksek', normal: 'Normal', low: 'Düşük' };
+  const renderItem = (t) => {
+    const diff = t.date ? getDayDiff(t.date) : null;
+    let dateBadge = '';
+    if (diff !== null) {
+      if (diff < 0) dateBadge = `<span style="color:var(--accent2);font-size:12px;">Gecikti</span>`;
+      else if (diff === 0) dateBadge = `<span style="color:var(--accent2);font-size:12px;">Bugün</span>`;
+      else dateBadge = `<span style="color:var(--muted);font-size:12px;">${formatDate(t.date)}</span>`;
+    }
+    return `<div class="todo-item priority-${t.priority} ${t.done ? 'done' : ''}">
+      <div class="list-check" onclick="toggleTodo('${t.id}')" style="${t.done ? 'background:var(--accent);border-color:var(--accent)' : ''}">
+        <span class="list-check-mark" style="${t.done ? 'display:block' : ''}">&#10003;</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="todo-text">${esc(t.title)}</div>
+        <div class="todo-sub">${priorityLabel[t.priority]}${dateBadge ? ' · ' + dateBadge : ''}${t.note ? ' · ' + esc(t.note) : ''}</div>
+      </div>
+      <button class="todo-del" onclick="deleteTodo('${t.id}')">&#10005;</button>
+    </div>`;
+  };
+
+  el.innerHTML =
+    (undone.length ? undone.map(renderItem).join('') : '<div class="empty" style="padding:16px 0">Hepsi tamamlandı!</div>') +
+    (done.length ? `<div class="divider"></div><div class="section-label">Tamamlananlar (${done.length})</div>${done.map(renderItem).join('')}` : '');
+}
+
+// ==================== HABITS ====================
+function getWeekDays() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+  const days = [];
+  const labels = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push({ date: d.toISOString().split('T')[0], label: labels[i], num: d.getDate(), isToday: d.toDateString() === today.toDateString() });
+  }
+  return days;
+}
+
+function saveHabit() {
+  const name = document.getElementById('habit-name').value.trim();
+  if (!name) return;
+  const habits = getData('habits', []);
+  habits.push({ id: id(), name, target: parseInt(document.getElementById('habit-target').value), checks: {} });
+  DB.set('habits', habits);
+  document.getElementById('habit-name').value = '';
+  closeModal('habit-modal');
+  renderHabits();
+}
+
+function toggleHabitDay(hid, dateStr) {
+  const habits = getData('habits', []);
+  const h = habits.find(x => x.id === hid);
+  if (h) { h.checks = h.checks || {}; h.checks[dateStr] = !h.checks[dateStr]; }
+  DB.set('habits', habits);
+  renderHabits();
+}
+
+function deleteHabit(hid) {
+  DB.set('habits', getData('habits', []).filter(h => h.id !== hid));
+  renderHabits();
+}
+
+function renderHabits() {
+  const habits = getData('habits', []);
+  const el = document.getElementById('habits-list');
+  const weekDays = getWeekDays();
+
+  if (!habits.length) {
+    el.innerHTML = '<div class="empty">Henüz alışkanlık yok</div>';
+    return;
+  }
+
+  el.innerHTML = habits.map(h => {
+    const checks = h.checks || {};
+    const doneThisWeek = weekDays.filter(d => checks[d.date]).length;
+    const pct = Math.round((doneThisWeek / h.target) * 100);
+
+    const dayDots = weekDays.map(d => `
+      <div class="habit-day ${checks[d.date] ? 'checked' : ''} ${d.isToday ? 'today' : ''}" onclick="toggleHabitDay('${h.id}','${d.date}')">
+        <span class="habit-day-label">${d.label}</span>
+        <span class="habit-day-num">${d.num}</span>
+      </div>`).join('');
+
+    return `<div class="habit-card">
+      <div class="habit-header">
+        <div>
+          <div class="habit-name">${esc(h.name)}</div>
+          <div class="habit-streak">${doneThisWeek}/${h.target} bu hafta</div>
+        </div>
+        <button class="habit-del" onclick="deleteHabit('${h.id}')">&#10005;</button>
+      </div>
+      <div class="habit-days">${dayDots}</div>
+      <div class="habit-progress">
+        <div class="habit-bar-bg"><div class="habit-bar-fill" style="width:${Math.min(pct,100)}%"></div></div>
+        <span class="habit-target-text">%${Math.min(pct,100)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ==================== BIRTHDAYS ====================
+const MONTHS_TR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function saveBirthday() {
+  const name = document.getElementById('bday-name').value.trim();
+  const day = parseInt(document.getElementById('bday-day').value);
+  const month = parseInt(document.getElementById('bday-month').value);
+  if (!name || !day || !month) return;
+  const bdays = getData('birthdays', []);
+  bdays.push({ id: id(), name, day, month, note: document.getElementById('bday-note').value.trim() });
+  bdays.sort((a,b) => a.month !== b.month ? a.month - b.month : a.day - b.day);
+  DB.set('birthdays', bdays);
+  document.getElementById('bday-name').value = '';
+  document.getElementById('bday-day').value = '';
+  document.getElementById('bday-note').value = '';
+  document.getElementById('bday-form').classList.remove('open');
+  renderBirthdays();
+}
+
+function deleteBirthday(bid) {
+  DB.set('birthdays', getData('birthdays', []).filter(b => b.id !== bid));
+  renderBirthdays();
+}
+
+function getDaysUntilBirthday(month, day) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const thisYear = today.getFullYear();
+  let next = new Date(thisYear, month - 1, day);
+  if (next < today) next = new Date(thisYear + 1, month - 1, day);
+  return Math.round((next - today) / 86400000);
+}
+
+function renderBirthdays() {
+  const bdays = getData('birthdays', []);
+  const el = document.getElementById('birthdays-list');
+  if (!bdays.length) {
+    el.innerHTML = '<div class="empty">Henüz doğum günü yok</div>';
+    return;
+  }
+  // Sort by upcoming
+  const sorted = [...bdays].sort((a,b) => getDaysUntilBirthday(a.month, a.day) - getDaysUntilBirthday(b.month, b.day));
+
+  el.innerHTML = sorted.map(b => {
+    const diff = getDaysUntilBirthday(b.month, b.day);
+    let badge = '';
+    if (diff === 0) badge = '<span class="badge badge-today">Bugün!</span>';
+    else if (diff <= 7) badge = `<span class="badge badge-soon">${diff} gün kaldı</span>`;
+    else badge = `<span class="badge badge-past">${diff} gün kaldı</span>`;
+    const initial = b.name.charAt(0).toUpperCase();
+    return `<div class="bday-card">
+      <div class="bday-avatar">${initial}</div>
+      <div style="flex:1;">
+        <div class="bday-name">${esc(b.name)}</div>
+        <div class="bday-date">${b.day} ${MONTHS_TR[b.month]}${b.note ? ' · ' + esc(b.note) : ''}</div>
+        <div class="bday-badge">${badge}</div>
+      </div>
+      <button class="btn-icon" onclick="deleteBirthday('${b.id}')">&#10005;</button>
+    </div>`;
+  }).join('');
+}
+
+
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -1064,5 +1566,7 @@ function init() {
 
 init();
 </script>
+</div><!-- /main-area -->
+</div><!-- /app-shell -->
 </body>
 </html>
