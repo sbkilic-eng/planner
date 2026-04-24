@@ -38,12 +38,13 @@
   /* ================= GENEL YAPI ================= */
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.3s, color 0.3s; }
-  .app-shell { display: flex; min-height: 100vh; width: 100%; }
+  .app-shell { display: flex; min-height: 100vh; width: 100%; position: relative; }
 
-  /* YAN MENÜ */
-  .sidebar { width: 230px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 100; }
-  .sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  /* ================= YAN MENÜ (SIDEBAR) ================= */
+  .sidebar { width: 240px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 0 0 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 100; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+  .sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
   .sidebar-logo { font-family: 'Instrument Serif', serif; font-size: 28px; color: var(--accent); letter-spacing: -1px; }
+  .mobile-close-btn { display: none; font-size: 24px; color: var(--muted); }
   
   .nav-group-title { padding: 14px 20px 8px; font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
   .nav-group-content { display: none; } .nav-group-content.open { display: block; }
@@ -54,12 +55,13 @@
   .nav-item.active-work { border-right-color: var(--accent-work); background: var(--accent-work-light); }
   .nav-icon { font-size: 16px; opacity: 0.8; }
 
-  /* ANA ALAN */
+  /* ================= ANA ALAN ================= */
   .main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   header { padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; background: var(--bg); position: sticky; top: 0; z-index: 90; }
-  .header-left { display: flex; align-items: baseline; gap: 12px; }
-  .app-title { font-family: 'Instrument Serif', serif; font-size: 34px; letter-spacing: -1px; }
-  .app-date { font-size: 14px; color: var(--muted); font-weight: 500; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .hamburger { display: none; font-size: 24px; color: var(--text); background: none; border: none; cursor: pointer; padding: 4px; }
+  .app-title { font-family: 'Instrument Serif', serif; font-size: 32px; letter-spacing: -1px; }
+  .app-date { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 8px; }
   .btn-settings { background: var(--surface); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 20px; }
   .btn-settings:hover { color: var(--text); border-color: var(--muted); transform: rotate(45deg); }
 
@@ -69,6 +71,22 @@
 
   .section-main-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
   .context-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+
+  /* ================= MOBİL (HAMBURGER MENÜ) ================= */
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(2px); }
+  
+  @media (max-width: 768px) {
+    .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); width: 280px; box-shadow: var(--shadow); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .hamburger { display: block; }
+    .mobile-close-btn { display: block; }
+    
+    header { padding: 16px 20px; }
+    .app-title { font-size: 26px; }
+    .app-date { display: none; /* Mobilde yer kazanmak için tarihi gizle */ }
+    .content { padding: 0 20px 40px; }
+  }
 
   /* ================= ORTAK BİLEŞENLER ================= */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; position: relative; box-shadow: var(--shadow); }
@@ -103,40 +121,30 @@
   .section-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; margin-top: 8px; }
 
   /* ================= MODÜL SPESİFİK TASARIMLAR ================= */
-  
-  /* SUMMARY */
   .summary-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; cursor: pointer; box-shadow: var(--shadow); transition: transform 0.2s; }
   .summary-item:hover { transform: translateX(6px); border-color: var(--muted); }
   .sum-icon { font-size: 22px; width: 44px; height: 44px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); flex-shrink: 0; }
 
-  /* TODO */
   .todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; transition: opacity 0.2s; border-left: 4px solid var(--border); box-shadow: var(--shadow); }
   .todo-item.priority-high { border-left-color: var(--accent-danger); }
-  .todo-item.priority-normal { border-left-color: var(--accent); }
   .todo-item.done { opacity: 0.4; } .todo-item.done .todo-text { text-decoration: line-through; }
   .list-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
   .list-check.checked { background: var(--accent); border-color: var(--accent); }
-  .recur-badge { display:inline-flex; align-items:center; background:var(--bg); border:1px solid var(--border); padding:2px 6px; border-radius:4px; font-size:11px; color:var(--muted); }
 
-  /* TRAVEL & ACCORDIONS */
   .acc-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
   .acc-body { display: none; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--border); }
   .acc-body.open { display: block; animation: fadeIn 0.2s ease; }
   .chevron { transition: transform 0.2s; font-size: 12px; color: var(--muted); } .chevron.open { transform: rotate(180deg); }
-  .travel-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); } .travel-item:last-child { border-bottom: none; }
-
-  /* GOAL TRACKER */
+  
   .goal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
   .goal-bar-bg { width: 100%; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); margin: 12px 0; }
   .goal-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
   
-  /* HABITS */
   .habit-days { display: flex; gap: 8px; margin-top: 14px; }
   .habit-day { flex: 1; aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.15s; }
   .habit-day.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
   .habit-day.today { border-color: var(--accent-warning); }
 
-  /* BIRTHDAYS */
   .bday-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; font-family: 'Instrument Serif', serif; color: var(--accent); flex-shrink: 0; }
 
   /* NOTES EDITOR */
@@ -159,61 +167,65 @@
   .modal-overlay.open { display: flex; }
   .modal { background: var(--surface); width: 90%; max-width: 500px; border-radius: 20px; padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
   .modal-title { font-family: 'Instrument Serif', serif; font-size: 26px; margin-bottom: 20px; }
-
-  /* MOBİL UYUMLULUK */
-  @media (max-width: 768px) {
-    .sidebar { width: 72px; padding: 20px 0; }
-    .nav-label, .nav-group-title span, .nav-group-title .chevron { display: none; }
-    .nav-item { justify-content: center; padding: 18px 0; }
-    .sidebar-header { padding: 0 0 20px; text-align: center; }
-    .nav-group-content { display: block !important; }
-    .content { padding: 0 20px 40px; }
-    header { padding: 20px; }
-    .app-title { font-size: 28px; }
-  }
 </style>
 </head>
 <body data-theme="dark">
 
 <div class="app-shell">
-  <nav class="sidebar">
-    <div class="sidebar-header"><div class="sidebar-logo">Planner</div></div>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">Planner</div>
+      <button class="btn-icon mobile-close-btn" onclick="toggleSidebar()">✕</button>
+    </div>
     
-    <button class="nav-item active" onclick="switchModule('summary')">
-      <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Özet</span>
-    </button>
+    <div style="flex:1; overflow-y:auto;">
+      <button class="nav-item active" onclick="switchModule('summary')">
+        <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Özet</span>
+      </button>
 
-    <div class="nav-group">
-      <div class="nav-group-title" onclick="toggleNavGroup(this)">
-        <span data-i18n="nav_work">İŞ DÜNYASI</span><span class="chevron">▼</span>
+      <div class="nav-group">
+        <div class="nav-group-title" onclick="toggleNavGroup(this)">
+          <span data-i18n="nav_work">İŞ DÜNYASI</span><span class="chevron">▼</span>
+        </div>
+        <div class="nav-group-content open">
+          <button class="nav-item" onclick="switchModule('appointments', 'work')"><span class="nav-icon">🗓️</span><span class="nav-label" data-i18n="nav_work_cal">Toplantı & Takvim</span></button>
+          <button class="nav-item" onclick="switchModule('todos', 'work')"><span class="nav-icon">💼</span><span class="nav-label" data-i18n="nav_work_todo">İş Görevleri</span></button>
+          <button class="nav-item" onclick="switchModule('travels', 'work')"><span class="nav-icon">✈️</span><span class="nav-label" data-i18n="nav_work_travel">İş Seyahati</span></button>
+          <button class="nav-item" onclick="switchModule('notes', 'work')"><span class="nav-icon">📄</span><span class="nav-label" data-i18n="nav_work_notes">Şirket Notları</span></button>
+        </div>
       </div>
-      <div class="nav-group-content open">
-        <button class="nav-item" onclick="switchModule('appointments', 'work')"><span class="nav-icon">🗓️</span><span class="nav-label" data-i18n="nav_work_cal">Toplantı & Takvim</span></button>
-        <button class="nav-item" onclick="switchModule('todos', 'work')"><span class="nav-icon">💼</span><span class="nav-label" data-i18n="nav_work_todo">İş Görevleri</span></button>
-        <button class="nav-item" onclick="switchModule('travels', 'work')"><span class="nav-icon">✈️</span><span class="nav-label" data-i18n="nav_work_travel">İş Seyahati</span></button>
-        <button class="nav-item" onclick="switchModule('notes', 'work')"><span class="nav-icon">📄</span><span class="nav-label" data-i18n="nav_work_notes">Şirket Notları</span></button>
+
+      <div class="nav-group">
+        <div class="nav-group-title" onclick="toggleNavGroup(this)">
+          <span data-i18n="nav_personal">KİŞİSEL YAŞAM</span><span class="chevron">▼</span>
+        </div>
+        <div class="nav-group-content open">
+          <button class="nav-item" onclick="switchModule('appointments', 'pers')"><span class="nav-icon">📍</span><span class="nav-label" data-i18n="nav_pers_cal">Randevular</span></button>
+          <button class="nav-item" onclick="switchModule('todos', 'pers')"><span class="nav-icon">✅</span><span class="nav-label" data-i18n="nav_pers_todo">Görevler</span></button>
+          <button class="nav-item" onclick="switchModule('habits', 'pers')"><span class="nav-icon">⚡</span><span class="nav-label" data-i18n="nav_pers_habits">Gelişim & Rutin</span></button>
+          <button class="nav-item" onclick="switchModule('lists', 'pers')"><span class="nav-icon">📈</span><span class="nav-label" data-i18n="nav_pers_lists">Hedefler & Listeler</span></button>
+          <button class="nav-item" onclick="switchModule('travels', 'pers')"><span class="nav-icon">🎒</span><span class="nav-label" data-i18n="nav_pers_travel">Seyahat Planı</span></button>
+          <button class="nav-item" onclick="switchModule('birthdays', 'pers')"><span class="nav-icon">🎂</span><span class="nav-label" data-i18n="nav_pers_bday">Doğum Günleri</span></button>
+          <button class="nav-item" onclick="switchModule('notes', 'pers')"><span class="nav-icon">✍️</span><span class="nav-label" data-i18n="nav_pers_notes">Kişisel Notlar</span></button>
+        </div>
       </div>
     </div>
 
-    <div class="nav-group">
-      <div class="nav-group-title" onclick="toggleNavGroup(this)">
-        <span data-i18n="nav_personal">KİŞİSEL YAŞAM</span><span class="chevron">▼</span>
-      </div>
-      <div class="nav-group-content open">
-        <button class="nav-item" onclick="switchModule('appointments', 'pers')"><span class="nav-icon">📍</span><span class="nav-label" data-i18n="nav_pers_cal">Randevular</span></button>
-        <button class="nav-item" onclick="switchModule('todos', 'pers')"><span class="nav-icon">✅</span><span class="nav-label" data-i18n="nav_pers_todo">Görevler</span></button>
-        <button class="nav-item" onclick="switchModule('habits', 'pers')"><span class="nav-icon">⚡</span><span class="nav-label" data-i18n="nav_pers_habits">Gelişim & Rutin</span></button>
-        <button class="nav-item" onclick="switchModule('lists', 'pers')"><span class="nav-icon">📈</span><span class="nav-label" data-i18n="nav_pers_lists">Hedefler & Listeler</span></button>
-        <button class="nav-item" onclick="switchModule('travels', 'pers')"><span class="nav-icon">🎒</span><span class="nav-label" data-i18n="nav_pers_travel">Seyahat Planı</span></button>
-        <button class="nav-item" onclick="switchModule('birthdays', 'pers')"><span class="nav-icon">🎂</span><span class="nav-label" data-i18n="nav_pers_bday">Doğum Günleri</span></button>
-        <button class="nav-item" onclick="switchModule('notes', 'pers')"><span class="nav-icon">✍️</span><span class="nav-label" data-i18n="nav_pers_notes">Kişisel Notlar</span></button>
-      </div>
+    <div style="padding: 20px; border-top: 1px solid var(--border); display:flex; flex-direction:column; gap:10px; background:var(--surface);">
+      <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="exportData()">💾 <span data-i18n="export">Yedekle (TXT)</span></button>
+      <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="document.getElementById('imp').click()">📂 <span data-i18n="import">Veri Yükle</span></button>
+      <input type="file" id="imp" style="display:none" onchange="importData(event)">
     </div>
+
   </nav>
 
   <main class="main-area">
     <header>
       <div class="header-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
         <span class="app-title">Planner</span>
         <span class="app-date" id="headerDate"></span>
       </div>
@@ -286,16 +298,11 @@
         <button class="btn-ghost theme-btn" onclick="setTheme('midnight')" id="t-midnight">Gece</button>
       </div>
     </div>
-    <div class="form-row">
+    <div class="form-row" style="margin-top:20px;">
       <label data-i18n="language">Dil / Language</label>
       <select onchange="setLang(this.value)" id="lang-select">
         <option value="tr">Türkçe</option><option value="en">English</option>
       </select>
-    </div>
-    <div class="form-row-2" style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px;">
-      <button class="btn-primary" onclick="exportData()" data-i18n="export">Yedekle (TXT)</button>
-      <button class="btn-ghost" onclick="document.getElementById('imp').click()" data-i18n="import">Veri Yükle</button>
-      <input type="file" id="imp" style="display:none" onchange="importData(event)">
     </div>
   </div>
 </div>
@@ -418,10 +425,15 @@ function id() { return Date.now().toString(36) + Math.random().toString(36).slic
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function formatDate(d) { if (!d) return ''; const p = d.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; }
 
-// MODALS
+// MODALS & SIDEBAR (MOBILE)
 function openModal(mid) { document.getElementById(mid).classList.add('open'); }
 function closeModal(mid) { document.getElementById(mid).classList.remove('open'); currentEditId = null; }
 document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e) { if(e.target===this) closeModal(this.id); }));
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
 
 // THEME & LANG
 function setTheme(t) { currentTheme=t; document.body.setAttribute('data-theme', t); localStorage.setItem('planner_theme', t); document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active')); document.getElementById('t-'+t).classList.add('active'); updateThemeColors(); }
@@ -447,6 +459,12 @@ function switchModule(mod, ctx = '') {
   currentModule = mod; currentContext = ctx;
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + mod).classList.add('active');
+  
+  // Close sidebar on mobile after selection
+  if(window.innerWidth <= 768) {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('open');
+  }
   
   // Update sidebar active state
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active', 'active-work'));
@@ -578,7 +596,7 @@ function editGoal(){ const g=DB.get('pers_goal',{t:'Hedef',cr:0,tg:0}); const t=
 function getCatKeys() { return DB.get('pers_listcats', ['Alışveriş','İzlenecekler','Kitaplar']); }
 function getActiveCat() { return DB.get('pers_activecat', getCatKeys()[0]); }
 function safe(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
-function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer; font-size:13px; padding:8px 16px; margin:0; ${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer; font-size:13px; padding:8px 16px; margin:0; background:transparent; border:1px dashed var(--border); color:var(--text);" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); }
+function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer; font-size:13px; padding:8px 16px; margin:0; flex-shrink:0; ${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer; font-size:13px; padding:8px 16px; margin:0; background:transparent; border:1px dashed var(--border); color:var(--text); flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); }
 function saveNewListCat(){ const n=document.getElementById('m-newlist-name').value.trim(); if(!n)return; const c=getCatKeys(); if(!c.includes(n))c.push(n); DB.set('pers_listcats',c); DB.set('pers_activecat',n); closeModal('modal-newlist'); renderLists(); }
 function addLItem(cat){ const v=document.getElementById('li-'+safe(cat)).value.trim(); if(!v)return; const arr=DB.get('pers_list_'+cat,[]); arr.push({id:id(),t:v,d:false,p:'',n:''}); DB.set('pers_list_'+cat,arr); renderLists(); }
 function togLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.d=!o.d; DB.set('pers_list_'+cat,arr); renderLists();} }
