@@ -3,823 +3,620 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Planner</title>
+<title>Planner Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* ================= TEMALAR ================= */
   :root {
     --bg: #1E2228;
     --surface: #272C34;
     --border: #353B45;
     --text: #DFE4EC;
     --muted: #7E8899;
-    --accent: #5C9E78;
-    --accent-light: #253630;
+    --accent: #5C9E78; 
+    --accent-work: #5C8BB8; 
+    --accent-light: rgba(92, 158, 120, 0.15);
+    --accent-work-light: rgba(92, 139, 184, 0.15);
     --accent2: #E07B54;
     --accent-warning: #D8A56D; 
     --accent-danger: #D86D6D;  
-    --tab-active: #DFE4EC;
-    --shadow: 0 4px 20px rgba(0,0,0,0.15);
+    --shadow: 0 4px 20px rgba(0,0,0,0.2);
   }
+  [data-theme="light"] {
+    --bg: #F5F5F7; --surface: #FFFFFF; --border: #E5E5E7; --text: #1D1D1F; --muted: #86868B;
+    --shadow: 0 4px 15px rgba(0,0,0,0.05);
+  }
+  [data-theme="sepia"] {
+    --bg: #F4ECD8; --surface: #FCF5E5; --border: #E6D8B8; --text: #433422; --muted: #8B7E66;
+    --shadow: 0 4px 15px rgba(67, 52, 34, 0.08);
+  }
+  [data-theme="midnight"] {
+    --bg: #000000; --surface: #121212; --border: #1F1F1F; --text: #E1E1E1; --muted: #666666;
+    --shadow: none;
+  }
+
+  /* ================= GENEL YAPI ================= */
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; margin: 0; }
-  .app-shell { max-width: 680px; margin: 0 auto; position: relative; display: flex; min-height: 100vh; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.3s, color 0.3s; }
+  .app-shell { display: flex; min-height: 100vh; width: 100%; }
 
-  /* HEADER */
-  header { padding: 24px 24px 0; display: flex; align-items: baseline; gap: 10px; }
-  .app-title { font-family: 'Instrument Serif', serif; font-size: 32px; letter-spacing: -0.5px; color: var(--text); }
-  .app-date { font-size: 14px; color: var(--muted); font-weight: 400; }
-
-  /* ── SHARED NAV STYLES ── */
-  .nav-item { display: flex; align-items: center; justify-content: center; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; color: var(--muted); transition: color 0.15s, background 0.15s; }
-  .nav-item:hover { color: var(--text); }
-  .nav-item.active { color: var(--accent); }
-  .nav-icon { line-height: 1; }
-  .sidebar-logo { font-family: 'Instrument Serif', serif; color: var(--accent); }
-  .nav-bottom-group { margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 5px;}
-
-  /* ── MOBILE: left sidebar (< 600px) ── */
-  @media (max-width: 599px) {
-    body { max-width: 100vw; }
-    .app-shell { display: flex; min-height: 100vh; }
-    .sidebar { width: 68px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 12px 0; position: sticky; top: 0; height: 100vh; z-index: 50; gap: 4px; }
-    .sidebar-header { padding: 8px 4px 16px; text-align: center; margin-bottom: 4px; }
-    .sidebar-logo { font-size: 22px; }
-    .nav-item { flex-direction: column; padding: 10px 4px; gap: 4px; border-radius: 8px; margin: 0 6px; }
-    .nav-item.active { background: var(--accent-light); }
-    .nav-icon { font-size: 18px; }
-    .nav-label { font-size: 8.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; display: block; }
-    .main-area { flex: 1; min-width: 0; }
-    .content { padding: 16px; }
-    header { padding: 20px 16px 0; }
-  }
-
-  /* ── DESKTOP: top bar (≥ 600px) ── */
-  @media (min-width: 600px) {
-    body { max-width: 700px; margin: 0 auto; }
-    .app-shell { display: block; }
-    .sidebar { display: flex; flex-direction: row; align-items: center; width: 100%; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 12px; position: sticky; top: 0; z-index: 50; gap: 4px; }
-    .sidebar-header { padding: 12px 16px 12px 8px; border-right: 1px solid var(--border); margin-right: 8px; }
-    .sidebar-logo { font-size: 24px; letter-spacing: -0.5px; }
-    .nav-item { flex-direction: column; padding: 12px 14px 10px; gap: 4px; border-bottom: 2px solid transparent; border-radius: 0; margin: 0; }
-    .nav-item.active { background: none; border-bottom-color: var(--accent); }
-    .nav-icon { font-size: 18px; }
-    .nav-label { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; display: block; }
-    .nav-bottom-group { flex-direction: row; margin-top: 0; margin-left: auto; border-top: none; border-left: 1px dashed var(--border); padding-top: 0; padding-left: 10px; }
-    .main-area { width: 100%; }
-    .content { padding: 24px; }
-  }
-
-  .content { padding: 20px; }
-  .section { display: none; animation: fadeIn 0.2s ease; }
-  .section.active { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* CARDS */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; position: relative; box-shadow: var(--shadow); }
-  .card-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; padding-right: 80px; }
-  .card-meta { font-size: 14px; color: var(--muted); font-weight: 400; }
-  .card-note { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
-  .card-actions { position: absolute; top: 14px; right: 14px; display: flex; gap: 8px; }
+  /* YAN MENÜ */
+  .sidebar { width: 230px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 100; }
+  .sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  .sidebar-logo { font-family: 'Instrument Serif', serif; font-size: 28px; color: var(--accent); letter-spacing: -1px; }
   
-  .btn-icon { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 16px; padding: 2px 4px; line-height: 1; transition: color 0.15s; }
-  .btn-icon:hover { color: var(--accent2); }
-  .btn-icon.edit:hover { color: var(--accent); }
+  .nav-group-title { padding: 14px 20px 8px; font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .nav-group-content { display: none; } .nav-group-content.open { display: block; }
 
-  /* DYNAMIC BADGES */
-  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); border: none; background: none; width: 100%; text-align: left; transition: all 0.2s; }
+  .nav-item:hover { color: var(--text); background: rgba(126, 136, 153, 0.05); }
+  .nav-item.active { color: var(--text); font-weight: 700; border-right: 4px solid var(--accent); background: var(--accent-light); }
+  .nav-item.active-work { border-right-color: var(--accent-work); background: var(--accent-work-light); }
+  .nav-icon { font-size: 16px; opacity: 0.8; }
+
+  /* ANA ALAN */
+  .main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  header { padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; background: var(--bg); position: sticky; top: 0; z-index: 90; }
+  .header-left { display: flex; align-items: baseline; gap: 12px; }
+  .app-title { font-family: 'Instrument Serif', serif; font-size: 34px; letter-spacing: -1px; }
+  .app-date { font-size: 14px; color: var(--muted); font-weight: 500; }
+  .btn-settings { background: var(--surface); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 20px; }
+  .btn-settings:hover { color: var(--text); border-color: var(--muted); transform: rotate(45deg); }
+
+  .content { padding: 0 32px 60px; max-width: 800px; }
+  .section { display: none; animation: fadeIn 0.3s ease; } .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-main-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .context-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+
+  /* ================= ORTAK BİLEŞENLER ================= */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; position: relative; box-shadow: var(--shadow); }
+  .card-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; padding-right: 60px; }
+  .card-meta { font-size: 14px; color: var(--muted); }
+  .card-note { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.5; white-space: pre-wrap; }
+  .card-actions { position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; }
+  
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin-bottom: 8px; }
   .badge-past { background: var(--border); color: var(--muted); }
   .badge-safe { background: var(--accent-light); color: var(--accent); }
   .badge-warning { background: rgba(216, 165, 109, 0.15); color: var(--accent-warning); }
   .badge-danger { background: rgba(216, 109, 109, 0.15); color: var(--accent-danger); animation: pulse 2s infinite; }
-  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+  @keyframes pulse { 0% { opacity:1; } 50% { opacity:0.7; } 100% { opacity:1; } }
 
-  /* ADD FORM */
-  .add-form { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; display: none; box-shadow: var(--shadow); }
-  .add-form.open { display: block; animation: fadeIn 0.2s ease; }
+  .btn-add { display: flex; align-items: center; gap: 8px; width: 100%; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 14px 18px; color: var(--muted); cursor: pointer; font-weight: 600; font-size: 15px; margin-bottom: 16px; transition: all 0.2s; }
+  .btn-add:hover { border-color: var(--text); color: var(--text); }
+  .btn-primary { background: var(--accent); color: #fff; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-family: inherit; transition: transform 0.1s; font-size: 14px; }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-family: inherit; }
+  .btn-icon { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 16px; transition: color 0.2s; }
+  .btn-icon:hover { color: var(--accent2); }
+
   .form-row { margin-bottom: 12px; }
-  .form-row:last-child { margin-bottom: 0; }
-  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-  input[type="text"], input[type="number"], input[type="date"], input[type="time"], textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; transition: border-color 0.15s; }
-  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
-  textarea { resize: vertical; min-height: 80px; }
   .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-  /* BUTTONS */
-  .btn { padding: 12px 20px; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; border: none; transition: opacity 0.15s, transform 0.1s; }
-  .btn:active { transform: scale(0.97); }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-  .btn-danger-outline { background: transparent; color: var(--accent-danger); border: 1px solid var(--accent-danger); margin-top: 10px; width: 100%; }
+  label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  input, textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 15px; font-family: inherit; color: var(--text); outline: none; }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
   
-  .btn-add { display: flex; align-items: center; gap: 8px; width: 100%; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 14px 18px; font-size: 15px; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.15s; margin-bottom: 12px; }
-  .btn-add:hover { border-color: var(--accent); color: var(--accent); background: rgba(92, 158, 120, 0.05); }
-  .form-btns { display: flex; gap: 10px; margin-top: 16px; }
-
-  .section-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px; margin-top: 8px; }
-  .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 16px; font-style: italic; font-family: 'Instrument Serif', serif; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-family: 'Instrument Serif', serif; font-size: 20px; font-style: italic; }
   .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .section-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; margin-top: 8px; }
 
-  /* GOAL TRACKER */
-  .goal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; box-shadow: var(--shadow); }
-  .goal-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; }
-  .goal-title { font-size: 16px; font-weight: 600; }
-  .goal-amounts { font-size: 14px; color: var(--muted); }
-  .goal-amounts strong { color: var(--accent); font-size: 16px; }
-  .goal-bar-bg { width: 100%; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
-  .goal-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
-  .goal-actions { display: flex; gap: 8px; margin-top: 12px; }
-  .goal-actions input { flex: 1; padding: 8px 12px; font-size: 14px; }
-  .goal-actions button { padding: 8px 16px; font-size: 14px; }
-
-  /* TABS & LISTS */
-  .cat-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 16px; }
-  .cat-tabs::-webkit-scrollbar { display: none; }
-  .cat-tab { padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
-  .cat-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-  .list-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; transition: opacity 0.2s; box-shadow: var(--shadow); }
-  .list-wrapper.done { opacity: 0.5; box-shadow: none; }
-  .list-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
-  .list-wrapper.done .item-text { text-decoration: line-through; }
-  .list-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-  .list-wrapper.done .list-check { background: var(--accent); border-color: var(--accent); }
-  .list-check-mark { display: none; color: white; font-size: 12px; }
-  .list-wrapper.done .list-check-mark { display: block; }
-  .item-text { font-size: 15px; flex: 1; line-height: 1.4; font-weight: 500; }
-  .item-prog-badge { background: var(--bg); border: 1px solid var(--border); font-size: 11px; padding: 2px 6px; border-radius: 6px; color: var(--muted); }
-  .list-body { padding: 0 14px 14px 44px; display: none; border-top: 1px dashed var(--border); margin-top: 4px; padding-top: 12px; }
-  .list-body.open { display: block; animation: fadeIn 0.2s ease; }
+  /* ================= MODÜL SPESİFİK TASARIMLAR ================= */
   
-  .quick-add { display: flex; gap: 8px; margin-bottom: 16px; }
-  .quick-add input { flex: 1; }
-
-  /* TRAVEL & EXPANDABLE CARDS */
-  .travel-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; position: relative; box-shadow: var(--shadow); }
-  .travel-header { padding: 16px 18px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-  .travel-dest { font-family: 'Instrument Serif', serif; font-size: 22px; }
-  .travel-dates { font-size: 13px; color: var(--muted); margin-top: 4px; font-weight: 400; }
-  .travel-body { padding: 0 18px 16px; border-top: 1px solid var(--border); display: none; }
-  .travel-body.open { display: block; animation: fadeIn 0.2s ease; }
-  .travel-note { font-size: 14px; color: var(--muted); line-height: 1.6; padding: 14px 0 10px; white-space: pre-wrap; }
-  .travel-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 15px; border-bottom: 1px solid var(--border); }
-  .travel-item:last-child { border-bottom: none; }
-  .chevron { transition: transform 0.2s; font-size: 14px; color: var(--muted); }
-  .chevron.open { transform: rotate(180deg); }
+  /* SUMMARY */
+  .summary-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; cursor: pointer; box-shadow: var(--shadow); transition: transform 0.2s; }
+  .summary-item:hover { transform: translateX(6px); border-color: var(--muted); }
+  .sum-icon { font-size: 22px; width: 44px; height: 44px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); flex-shrink: 0; }
 
   /* TODO */
-  .todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; transition: opacity 0.2s; border-left: 4px solid var(--border); box-shadow: var(--shadow); }
+  .todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; transition: opacity 0.2s; border-left: 4px solid var(--border); box-shadow: var(--shadow); }
   .todo-item.priority-high { border-left-color: var(--accent-danger); }
   .todo-item.priority-normal { border-left-color: var(--accent); }
-  .todo-item.priority-low { border-left-color: var(--muted); }
-  .todo-item.done { opacity: 0.4; }
-  .todo-item.done .todo-text { text-decoration: line-through; }
-  .todo-text { font-size: 15px; font-weight: 500; flex: 1; line-height: 1.4; }
-  .todo-sub { font-size: 13px; color: var(--muted); margin-top: 4px; display:flex; gap: 6px; align-items:center; flex-wrap:wrap;}
+  .todo-item.done { opacity: 0.4; } .todo-item.done .todo-text { text-decoration: line-through; }
+  .list-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .list-check.checked { background: var(--accent); border-color: var(--accent); }
   .recur-badge { display:inline-flex; align-items:center; background:var(--bg); border:1px solid var(--border); padding:2px 6px; border-radius:4px; font-size:11px; color:var(--muted); }
 
-  /* HABIT */
-  .habit-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; box-shadow: var(--shadow); }
-  .habit-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .habit-name { font-size: 17px; font-weight: 600; }
-  .habit-streak { font-size: 13px; color: var(--accent); font-weight: 600; }
-  .habit-days { display: flex; gap: 8px; }
-  .habit-day { flex: 1; aspect-ratio: 1; border-radius: 8px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: all 0.15s; min-width: 32px; }
-  .habit-day.checked { background: var(--accent); border-color: var(--accent); }
-  .habit-day.today { border-color: var(--accent-warning); }
-  .habit-day-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
-  .habit-day.checked .habit-day-label { color: rgba(255,255,255,0.8); }
-  .habit-day-num { font-size: 13px; font-weight: 600; color: var(--text); }
-  .habit-day.checked .habit-day-num { color: #fff; }
-  .habit-progress { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
-  .habit-bar-bg { flex: 1; height: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
-  .habit-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
-  .habit-target-text { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  /* TRAVEL & ACCORDIONS */
+  .acc-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+  .acc-body { display: none; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--border); }
+  .acc-body.open { display: block; animation: fadeIn 0.2s ease; }
+  .chevron { transition: transform 0.2s; font-size: 12px; color: var(--muted); } .chevron.open { transform: rotate(180deg); }
+  .travel-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); } .travel-item:last-child { border-bottom: none; }
 
-  /* BIRTHDAY */
-  .bday-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; box-shadow: var(--shadow); }
-  .bday-header { padding: 14px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-  .bday-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; font-family: 'Instrument Serif', serif; color: var(--accent); flex-shrink: 0; font-weight: 600; }
-  .bday-name { font-size: 16px; font-weight: 600; }
-  .bday-date { font-size: 14px; color: var(--muted); margin-top: 4px; }
-
-  /* NOTES & EDITOR */
-  .note-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; cursor: pointer; transition: border-color 0.15s; box-shadow: var(--shadow); }
-  .note-card:hover { border-color: var(--accent); }
-  .note-card-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
-  .note-card-preview { font-size: 14px; color: var(--muted); line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* GOAL TRACKER */
+  .goal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .goal-bar-bg { width: 100%; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); margin: 12px 0; }
+  .goal-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
   
-  .note-editor { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 100; padding: 0; flex-direction: column; max-width: 680px; margin: 0 auto; }
-  .note-editor.open { display: flex; animation: fadeIn 0.2s ease; }
+  /* HABITS */
+  .habit-days { display: flex; gap: 8px; margin-top: 14px; }
+  .habit-day { flex: 1; aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.15s; }
+  .habit-day.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .habit-day.today { border-color: var(--accent-warning); }
+
+  /* BIRTHDAYS */
+  .bday-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; font-family: 'Instrument Serif', serif; color: var(--accent); flex-shrink: 0; }
+
+  /* NOTES EDITOR */
+  .note-editor { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; flex-direction: column; max-width: 800px; margin: 0 auto; }
+  .note-editor.open { display: flex; animation: fadeIn 0.2s; }
   .note-editor-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
-  .note-editor-title { flex: 1; font-size: 18px; font-weight: 600; background: none; border: none; outline: none; font-family: 'DM Sans', sans-serif; color: var(--text); }
-  .note-editor-body { flex: 1; position: relative; display: flex; flex-direction: column;}
+  .note-editor-title { flex: 1; font-size: 18px; font-weight: 700; background: none; border: none; color: var(--text); }
   .note-tabs { display:flex; border-bottom:1px solid var(--border); background:var(--surface); }
   .note-tab { flex:1; padding:12px; text-align:center; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); border-bottom: 2px solid transparent;}
   .note-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-  
-  .note-content-area { flex:1; padding:20px; overflow-y:auto; background:var(--bg); }
-  .note-editor-area { width: 100%; height:100%; background: none; border: none; outline: none; font-size: 16px; font-family: 'DM Sans', sans-serif; color: var(--text); line-height: 1.7; resize: none; display:none; }
-  .note-editor-area.active { display:block; }
-  .note-preview-area { width: 100%; height:100%; font-size: 16px; line-height: 1.7; display:none; color:var(--text); }
-  .note-preview-area.active { display:block; }
-  
-  /* Markdown Styles in Preview */
-  .note-preview-area strong { color: var(--accent-warning); }
-  .note-preview-area em { color: var(--muted); }
-  .note-preview-area ul { margin-left: 20px; margin-bottom: 10px; }
-  .note-preview-area h1, .note-preview-area h2, .note-preview-area h3 { font-family: 'Instrument Serif', serif; margin: 15px 0 10px; font-weight:normal;}
+  .note-area { flex:1; padding:20px; overflow-y:auto; background:var(--bg); }
+  .note-textarea { width: 100%; height:100%; background: none; border: none; color: var(--text); resize: none; display:none; line-height: 1.6; }
+  .note-preview { width: 100%; height:100%; display:none; line-height: 1.6; }
+  .note-textarea.active, .note-preview.active { display:block; }
+  .note-preview h1, .note-preview h2, .note-preview h3 { font-family: 'Instrument Serif', serif; margin: 15px 0 10px; font-weight:normal; }
+  .note-preview ul { margin-left: 20px; margin-bottom: 10px; }
 
-  /* SUMMARY ITEMS */
-  .summary-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); transition: transform 0.15s; }
-  .summary-item:hover { transform: translateY(-2px); border-color: var(--accent); }
-  .summary-icon { font-size: 20px; background: var(--bg); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); flex-shrink: 0; }
-  .summary-content { flex: 1; min-width: 0; }
-  .summary-title { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
-  .summary-meta { font-size: 13px; color: var(--muted); margin-top: 3px; }
-
-  /* MODAL */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(28,26,22,0.6); z-index: 200; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); }
+  /* MODALS */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
   .modal-overlay.open { display: flex; }
-  .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 680px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); border-top: 1px solid var(--border); }
-  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal { background: var(--surface); width: 90%; max-width: 500px; border-radius: 20px; padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
   .modal-title { font-family: 'Instrument Serif', serif; font-size: 26px; margin-bottom: 20px; }
 
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+  /* MOBİL UYUMLULUK */
+  @media (max-width: 768px) {
+    .sidebar { width: 72px; padding: 20px 0; }
+    .nav-label, .nav-group-title span, .nav-group-title .chevron { display: none; }
+    .nav-item { justify-content: center; padding: 18px 0; }
+    .sidebar-header { padding: 0 0 20px; text-align: center; }
+    .nav-group-content { display: block !important; }
+    .content { padding: 0 20px 40px; }
+    header { padding: 20px; }
+    .app-title { font-size: 28px; }
+  }
 </style>
 </head>
-<body>
+<body data-theme="dark">
 
 <div class="app-shell">
-
-<nav class="sidebar" id="sidebar">
-  <div class="sidebar-header"><div class="sidebar-logo">P</div></div>
-  <button class="nav-item active" onclick="switchTab('summary')"><span class="nav-icon">&#128197;</span><span class="nav-label">Özet</span></button>
-  <button class="nav-item" onclick="switchTab('appointments')"><span class="nav-icon">&#128336;</span><span class="nav-label">Randevu</span></button>
-  <button class="nav-item" onclick="switchTab('travel')"><span class="nav-icon">&#9992;</span><span class="nav-label">Seyahat</span></button>
-  <button class="nav-item" onclick="switchTab('lists')"><span class="nav-icon">&#128203;</span><span class="nav-label">Listeler</span></button>
-  <button class="nav-item" onclick="switchTab('todo')"><span class="nav-icon">&#9989;</span><span class="nav-label">Görev</span></button>
-  <button class="nav-item" onclick="switchTab('habits')"><span class="nav-icon">&#128293;</span><span class="nav-label">Rutin</span></button>
-  <button class="nav-item" onclick="switchTab('birthdays')"><span class="nav-icon">&#127874;</span><span class="nav-label">D.Günü</span></button>
-  <button class="nav-item" onclick="switchTab('notes')"><span class="nav-icon">&#128221;</span><span class="nav-label">Notlar</span></button>
-  
-  <div class="nav-bottom-group">
-    <button class="nav-item" onclick="exportData()" title="Verileri İndir"><span class="nav-icon">&#128190;</span></button>
-    <button class="nav-item" onclick="document.getElementById('importFile').click()" title="Verileri Yükle"><span class="nav-icon">&#128194;</span></button>
-    <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
-  </div>
-</nav>
-
-<div class="main-area">
-<header>
-  <span class="app-title">Planner</span>
-  <span class="app-date" id="headerDate"></span>
-</header>
-
-<div class="content">
-
-  <div class="section active" id="sec-summary">
-    <div id="summary-list"></div>
-  </div>
-
-  <div class="section" id="sec-appointments">
-    <button class="btn-add" onclick="openApptForm()"><span>+</span> Yeni randevu ekle</button>
-    <div class="add-form" id="appt-form">
-      <div class="modal-title" id="appt-form-title">Yeni Randevu</div>
-      <div class="form-row"><label>Başlık</label><input type="text" id="appt-title" placeholder="Doktor, şirket toplantısı..."></div>
-      <div class="form-row form-row-2">
-        <div><label>Tarih</label><input type="date" id="appt-date"></div>
-        <div><label>Saat</label><input type="time" id="appt-time"></div>
-      </div>
-      <div class="form-row"><label>Not</label><textarea id="appt-note" placeholder="Adres, evraklar..."></textarea></div>
-      <div class="form-btns">
-        <button class="btn btn-primary" onclick="saveAppointment()">Kaydet</button>
-        <button class="btn btn-ghost" onclick="toggleForm('appt-form')">İptal</button>
-      </div>
-    </div>
-    <div id="appt-list"></div>
-  </div>
-
-  <div class="section" id="sec-travel">
-    <button class="btn-add" onclick="openTravelForm()"><span>+</span> Yeni destinasyon ekle</button>
-    <div id="travel-list"></div>
-  </div>
-
-  <div class="section" id="sec-lists">
-    <div id="goal-container"></div>
+  <nav class="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo">Planner</div></div>
     
-    <div class="cat-tabs" id="cat-tabs"></div>
-    <div id="list-content"></div>
-  </div>
+    <button class="nav-item active" onclick="switchModule('summary')">
+      <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Özet</span>
+    </button>
 
-  <div class="section" id="sec-todo">
-    <button class="btn-add" onclick="openTodoForm()"><span>+</span> Yeni görev ekle</button>
-    <div class="add-form" id="todo-form">
-      <div class="modal-title" id="todo-form-title">Yeni Görev</div>
-      <div class="form-row"><label>Görev</label><input type="text" id="todo-title" placeholder="Örn: CS2 Aim Antrenmanı..."></div>
-      <div class="form-row form-row-2">
-        <div><label>Öncelik</label><select id="todo-priority"><option value="normal">Normal</option><option value="high">Yüksek</option><option value="low">Düşük</option></select></div>
-        <div><label>Tekrar</label>
-          <select id="todo-recur">
-            <option value="">Tekrarlama (Tek Sefer)</option>
-            <option value="1">Her Gün</option>
-            <option value="7">Her Hafta</option>
-            <option value="30">Her Ay</option>
-          </select>
-        </div>
+    <div class="nav-group">
+      <div class="nav-group-title" onclick="toggleNavGroup(this)">
+        <span data-i18n="nav_work">İŞ DÜNYASI</span><span class="chevron">▼</span>
       </div>
-      <div class="form-row"><label>Tarih</label><input type="date" id="todo-date"></div>
-      <div class="form-row"><label>Not</label><textarea id="todo-note" placeholder="Detay..."></textarea></div>
-      <div class="form-btns">
-        <button class="btn btn-primary" onclick="saveTodo()">Kaydet</button>
-        <button class="btn btn-ghost" onclick="toggleForm('todo-form')">İptal</button>
+      <div class="nav-group-content open">
+        <button class="nav-item" onclick="switchModule('appointments', 'work')"><span class="nav-icon">🗓️</span><span class="nav-label" data-i18n="nav_work_cal">Toplantı & Takvim</span></button>
+        <button class="nav-item" onclick="switchModule('todos', 'work')"><span class="nav-icon">💼</span><span class="nav-label" data-i18n="nav_work_todo">İş Görevleri</span></button>
+        <button class="nav-item" onclick="switchModule('travels', 'work')"><span class="nav-icon">✈️</span><span class="nav-label" data-i18n="nav_work_travel">İş Seyahati</span></button>
+        <button class="nav-item" onclick="switchModule('notes', 'work')"><span class="nav-icon">📄</span><span class="nav-label" data-i18n="nav_work_notes">Şirket Notları</span></button>
       </div>
     </div>
-    <div id="todo-list"></div>
-  </div>
 
-  <div class="section" id="sec-habits">
-    <button class="btn-add" onclick="openModal('habit-modal')"><span>+</span> Yeni alışkanlık ekle</button>
-    <div id="habits-list"></div>
-  </div>
-
-  <div class="section" id="sec-birthdays">
-    <button class="btn-add" onclick="openBdayForm()"><span>+</span> Doğum günü ekle</button>
-    <div class="add-form" id="bday-form">
-      <div class="modal-title" id="bday-form-title">Doğum Günü</div>
-      <div class="form-row"><label>İsim</label><input type="text" id="bday-name" placeholder="Ad Soyad"></div>
-      <div class="form-row form-row-2">
-        <div>
-          <label>Ay</label>
-          <select id="bday-month">
-            <option value="1">Ocak</option><option value="2">Şubat</option><option value="3">Mart</option><option value="4">Nisan</option>
-            <option value="5">Mayıs</option><option value="6">Haziran</option><option value="7">Temmuz</option><option value="8">Ağustos</option>
-            <option value="9">Eylül</option><option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
-          </select>
-        </div>
-        <div><label>Gün</label><input type="number" id="bday-day" min="1" max="31" placeholder="15"></div>
+    <div class="nav-group">
+      <div class="nav-group-title" onclick="toggleNavGroup(this)">
+        <span data-i18n="nav_personal">KİŞİSEL YAŞAM</span><span class="chevron">▼</span>
       </div>
-      <div class="form-btns">
-        <button class="btn btn-primary" onclick="saveBirthday()">Kaydet</button>
-        <button class="btn btn-ghost" onclick="toggleForm('bday-form')">İptal</button>
+      <div class="nav-group-content open">
+        <button class="nav-item" onclick="switchModule('appointments', 'pers')"><span class="nav-icon">📍</span><span class="nav-label" data-i18n="nav_pers_cal">Randevular</span></button>
+        <button class="nav-item" onclick="switchModule('todos', 'pers')"><span class="nav-icon">✅</span><span class="nav-label" data-i18n="nav_pers_todo">Görevler</span></button>
+        <button class="nav-item" onclick="switchModule('habits', 'pers')"><span class="nav-icon">⚡</span><span class="nav-label" data-i18n="nav_pers_habits">Gelişim & Rutin</span></button>
+        <button class="nav-item" onclick="switchModule('lists', 'pers')"><span class="nav-icon">📈</span><span class="nav-label" data-i18n="nav_pers_lists">Hedefler & Listeler</span></button>
+        <button class="nav-item" onclick="switchModule('travels', 'pers')"><span class="nav-icon">🎒</span><span class="nav-label" data-i18n="nav_pers_travel">Seyahat Planı</span></button>
+        <button class="nav-item" onclick="switchModule('birthdays', 'pers')"><span class="nav-icon">🎂</span><span class="nav-label" data-i18n="nav_pers_bday">Doğum Günleri</span></button>
+        <button class="nav-item" onclick="switchModule('notes', 'pers')"><span class="nav-icon">✍️</span><span class="nav-label" data-i18n="nav_pers_notes">Kişisel Notlar</span></button>
       </div>
     </div>
-    <div id="birthdays-list"></div>
-  </div>
+  </nav>
 
-  <div class="section" id="sec-notes">
-    <button class="btn-add" onclick="openNote(null)"><span>+</span> Yeni not oluştur</button>
-    <div id="notes-list"></div>
-  </div>
+  <main class="main-area">
+    <header>
+      <div class="header-left">
+        <span class="app-title">Planner</span>
+        <span class="app-date" id="headerDate"></span>
+      </div>
+      <button class="btn-settings" onclick="openModal('modal-settings')">⚙️</button>
+    </header>
 
+    <div class="content">
+      
+      <div class="section-main-title" id="module-header" style="display:none;">
+        <span id="module-title">Modül Adı</span>
+        <span id="module-badge" class="context-badge"></span>
+      </div>
+
+      <div class="section active" id="sec-summary">
+        <div id="summary-list"></div>
+      </div>
+
+      <div class="section" id="sec-appointments">
+        <button class="btn-add" onclick="openModal('modal-appt')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="appt-list"></div>
+      </div>
+
+      <div class="section" id="sec-todos">
+        <button class="btn-add" onclick="openModal('modal-todo')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="todo-list"></div>
+      </div>
+
+      <div class="section" id="sec-travels">
+        <button class="btn-add" onclick="openModal('modal-travel')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="travel-list"></div>
+      </div>
+
+      <div class="section" id="sec-habits">
+        <button class="btn-add" onclick="openModal('modal-habit')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="habit-list"></div>
+      </div>
+
+      <div class="section" id="sec-lists">
+        <div id="goal-container"></div>
+        <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px;" id="cat-tabs"></div>
+        <div id="list-content"></div>
+      </div>
+
+      <div class="section" id="sec-birthdays">
+        <button class="btn-add" onclick="openModal('modal-bday')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="bday-list"></div>
+      </div>
+
+      <div class="section" id="sec-notes">
+        <button class="btn-add" onclick="openNoteEditor()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="notes-list"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 class="modal-title" style="margin:0;" data-i18n="settings">Ayarlar</h2>
+      <button class="btn-icon" onclick="closeModal('modal-settings')" style="font-size:24px;">✕</button>
+    </div>
+    <div class="form-row">
+      <label data-i18n="theme">Görünüm Teması</label>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <button class="btn-ghost theme-btn" onclick="setTheme('dark')" id="t-dark">Koyu</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('light')" id="t-light">Aydınlık</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('sepia')" id="t-sepia">Bej</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('midnight')" id="t-midnight">Gece</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label data-i18n="language">Dil / Language</label>
+      <select onchange="setLang(this.value)" id="lang-select">
+        <option value="tr">Türkçe</option><option value="en">English</option>
+      </select>
+    </div>
+    <div class="form-row-2" style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px;">
+      <button class="btn-primary" onclick="exportData()" data-i18n="export">Yedekle (TXT)</button>
+      <button class="btn-ghost" onclick="document.getElementById('imp').click()" data-i18n="import">Veri Yükle</button>
+      <input type="file" id="imp" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-appt">
+  <div class="modal">
+    <div class="modal-title" id="appt-modal-title">Randevu</div>
+    <div class="form-row"><label data-i18n="title">Başlık</label><input type="text" id="m-appt-title"></div>
+    <div class="form-row-2">
+      <div><label data-i18n="date">Tarih</label><input type="date" id="m-appt-date"></div>
+      <div><label data-i18n="time">Saat</label><input type="time" id="m-appt-time"></div>
+    </div>
+    <div class="form-row"><label>Not</label><textarea id="m-appt-note"></textarea></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveAppt()" id="btn-appt-save">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-appt')">İptal</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-todo">
+  <div class="modal">
+    <div class="modal-title" id="todo-modal-title">Görev</div>
+    <div class="form-row"><label data-i18n="title">Görev Adı</label><input type="text" id="m-todo-title"></div>
+    <div class="form-row-2">
+      <div><label>Öncelik</label><select id="m-todo-pri"><option value="normal">Normal</option><option value="high">Yüksek</option></select></div>
+      <div><label>Tekrar</label><select id="m-todo-rec"><option value="">Tek Seferlik</option><option value="1">Günlük</option><option value="7">Haftalık</option><option value="30">Aylık</option></select></div>
+    </div>
+    <div class="form-row"><label data-i18n="date">Tarih</label><input type="date" id="m-todo-date"></div>
+    <div class="form-row"><label>Not</label><input type="text" id="m-todo-note"></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveTodo()" id="btn-todo-save">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-todo')">İptal</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-travel">
+  <div class="modal">
+    <div class="modal-title" id="travel-modal-title">Seyahat / Rota</div>
+    <div class="form-row"><label>Destinasyon</label><input type="text" id="m-travel-dest"></div>
+    <div class="form-row-2">
+      <div><label>Gidiş</label><input type="date" id="m-travel-start"></div>
+      <div><label>Dönüş</label><input type="date" id="m-travel-end"></div>
+    </div>
+    <div class="form-row"><label>Genel Not</label><textarea id="m-travel-note"></textarea></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveTravel()" id="btn-travel-save">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-travel')">İptal</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-habit">
+  <div class="modal">
+    <div class="modal-title">Rutin Ekle</div>
+    <div class="form-row"><label>Alışkanlık Adı</label><input type="text" id="m-habit-name"></div>
+    <div class="form-row"><label>Haftalık Hedef (Gün)</label><select id="m-habit-target"><option value="7">7 Gün</option><option value="5">5 Gün</option><option value="3">3 Gün</option><option value="1">1 Gün</option></select></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveHabit()">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-habit')">İptal</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-bday">
+  <div class="modal">
+    <div class="modal-title" id="bday-modal-title">Kişi Ekle</div>
+    <div class="form-row"><label>İsim Soyisim</label><input type="text" id="m-bday-name"></div>
+    <div class="form-row-2">
+      <div><label>Ay</label><select id="m-bday-month"><option value="1">Ocak</option><option value="2">Şubat</option><option value="3">Mart</option><option value="4">Nisan</option><option value="5">Mayıs</option><option value="6">Haziran</option><option value="7">Temmuz</option><option value="8">Ağustos</option><option value="9">Eylül</option><option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option></select></div>
+      <div><label>Gün</label><input type="number" id="m-bday-day" min="1" max="31"></div>
+    </div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveBday()" id="btn-bday-save">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-bday')">İptal</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-newlist">
+  <div class="modal">
+    <div class="modal-title">Yeni Liste Kategorisi</div>
+    <div class="form-row"><label>Kategori Adı</label><input type="text" id="m-newlist-name" placeholder="Örn: Filmler, Market..."></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveNewListCat()">Oluştur</button><button class="btn-ghost" onclick="closeModal('modal-newlist')">İptal</button></div>
+  </div>
 </div>
 
 <div class="note-editor" id="note-editor">
   <div class="note-editor-header">
-    <button class="btn-icon" onclick="closeNote()" style="font-size:20px;">&#8592;</button>
-    <input class="note-editor-title" id="note-title-input" placeholder="Başlık...">
-    <button class="btn-icon" onclick="deleteCurrentNote()" style="color:var(--accent-danger);font-size:18px;">&#10005;</button>
+    <button class="btn-icon" onclick="closeNoteEditor()" style="font-size:24px;">&#8592;</button>
+    <input class="note-editor-title" id="m-note-title" placeholder="Başlık...">
+    <button class="btn-icon" onclick="deleteNote()" style="color:var(--accent-danger);font-size:20px;">&#10005;</button>
   </div>
   <div class="note-tabs">
-    <div class="note-tab active" id="tab-write" onclick="switchNoteMode('write')">✏️ Düzenle</div>
-    <div class="note-tab" id="tab-preview" onclick="switchNoteMode('preview')">👁️ Önizle</div>
+    <div class="note-tab active" id="tab-write" onclick="switchNoteTab('write')">✏️ Düzenle</div>
+    <div class="note-tab" id="tab-preview" onclick="switchNoteTab('preview')">👁️ Önizle</div>
   </div>
-  <div class="note-editor-body">
-    <div class="note-content-area">
-      <textarea class="note-editor-area active" id="note-body-input" placeholder="# Başlık\n**Kalın metin** veya *eğik metin*\n- Madde işareti..."></textarea>
-      <div class="note-preview-area" id="note-preview-div"></div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="travel-modal">
-  <div class="modal">
-    <div class="modal-title" id="travel-modal-title">Yeni Destinasyon</div>
-    <div class="form-row"><label>Şehir / Ülke</label><input type="text" id="travel-dest" placeholder="Rota..."></div>
-    <div class="form-row form-row-2">
-      <div><label>Gidiş</label><input type="date" id="travel-start"></div>
-      <div><label>Dönüş</label><input type="date" id="travel-end"></div>
-    </div>
-    <div class="form-row"><label>Notlar</label><textarea id="travel-note" placeholder="Ulaşım, otel detayları..."></textarea></div>
-    <div class="form-btns">
-      <button class="btn btn-primary" onclick="saveTravel()">Kaydet</button>
-      <button class="btn btn-ghost" onclick="closeModal('travel-modal')">İptal</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="habit-modal">
-  <div class="modal">
-    <div class="modal-title">Yeni Rutin</div>
-    <div class="form-row"><label>Alışkanlık / Rutin</label><input type="text" id="habit-name" placeholder="Örn: İngilizce Okuma..."></div>
-    <div class="form-row"><label>Hedef (Haftada Gün)</label>
-      <select id="habit-target">
-        <option value="7">Her gün (7)</option><option value="5">Hafta içi (5)</option>
-        <option value="3">Haftada 3</option><option value="2">Haftada 2</option><option value="1">Haftada 1</option>
-      </select>
-    </div>
-    <div class="form-btns">
-      <button class="btn btn-primary" onclick="saveHabit()">Kaydet</button>
-      <button class="btn btn-ghost" onclick="closeModal('habit-modal')">İptal</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="newlist-modal">
-  <div class="modal">
-    <div class="modal-title">Yeni Kategori</div>
-    <div class="form-row"><label>Kategori Adı</label><input type="text" id="newlist-name" placeholder="Diziler, Alınacaklar..."></div>
-    <div class="form-btns">
-      <button class="btn btn-primary" onclick="saveNewList()">Oluştur</button>
-      <button class="btn btn-ghost" onclick="closeModal('newlist-modal')">İptal</button>
-    </div>
+  <div class="note-area">
+    <textarea class="note-textarea active" id="m-note-body" placeholder="# Markdown Destekli Not\n- Madde 1\n- **Kalın** veya *Eğik*..."></textarea>
+    <div class="note-preview" id="m-note-preview"></div>
   </div>
 </div>
 
 <script>
-// ==================== GLOBAL STATE & DB ====================
-let currentEditId = null;
-const MONTHS_TR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-
-const DB = {
-  get: (k) => JSON.parse(localStorage.getItem('planner_' + k) || 'null'),
-  set: (k, v) => localStorage.setItem('planner_' + k, JSON.stringify(v)),
-  getAll: () => {
-    let data = {};
-    for(let i=0; i<localStorage.length; i++) {
-      let key = localStorage.key(i);
-      if(key.startsWith('planner_')) data[key] = JSON.parse(localStorage.getItem(key));
-    }
-    return data;
+// ==================== DİL VE ÇEVİRİ SÖZLÜĞÜ ====================
+const translations = {
+  tr: {
+    nav_summary: "Özet", nav_work: "İş Dünyası", nav_work_cal: "Toplantı & Takvim", nav_work_todo: "İş Görevleri", nav_work_travel: "İş Seyahati", nav_work_notes: "Şirket Notları",
+    nav_personal: "Kişisel Yaşam", nav_pers_cal: "Randevular", nav_pers_todo: "Görevler", nav_pers_habits: "Gelişim & Rutin", nav_pers_lists: "Hedef & Listeler", nav_pers_travel: "Seyahat", nav_pers_bday: "Doğum Günleri", nav_pers_notes: "Kişisel Notlar",
+    settings: "Ayarlar", theme: "Görünüm Teması", language: "Dil / Language", export: "Yedekle (TXT)", import: "Veri Yükle", add_new: "Yeni Ekle", title: "Başlık", date: "Tarih", time: "Saat", empty: "Şu an planlanmış bir şey yok."
   },
-  import: (dataObj) => {
-    for(let key in dataObj) {
-      if(key.startsWith('planner_')) localStorage.setItem(key, JSON.stringify(dataObj[key]));
-    }
+  en: {
+    nav_summary: "Overview", nav_work: "Business", nav_work_cal: "Meetings", nav_work_todo: "Work Tasks", nav_work_travel: "Business Trip", nav_work_notes: "Work Notes",
+    nav_personal: "Personal", nav_pers_cal: "Appointments", nav_pers_todo: "Tasks", nav_pers_habits: "Habits", nav_pers_lists: "Goals & Lists", nav_pers_travel: "Travel", nav_pers_bday: "Birthdays", nav_pers_notes: "Notes",
+    settings: "Settings", theme: "Theme", language: "Language", export: "Export (TXT)", import: "Import", add_new: "Add New", title: "Title", date: "Date", time: "Time", empty: "Nothing here yet."
   }
 };
-function getData(k, def) { const v = DB.get(k); return v !== null ? v : def; }
+const MONTHS_TR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+// ==================== GLOBAL STATE & UTILS ====================
+let currentLang = localStorage.getItem('planner_lang') || 'tr';
+let currentTheme = localStorage.getItem('planner_theme') || 'dark';
+let currentModule = 'summary'; // appointments, todos, travels, habits, lists, birthdays, notes
+let currentContext = ''; // 'work' or 'pers'
+let currentEditId = null;
+
+const DB = {
+  get: (k, def) => JSON.parse(localStorage.getItem('planner_' + k)) || def,
+  set: (k, v) => localStorage.setItem('planner_' + k, JSON.stringify(v)),
+  getAll: () => { let d={}; for(let i=0; i<localStorage.length; i++){ let k=localStorage.key(i); if(k.startsWith('planner_')) d[k]=localStorage.getItem(k); } return d; }
+};
+
 function id() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
-function formatDate(d) { if (!d) return ''; const parts = d.split('-'); return `${parts[2]}.${parts[1]}.${parts[0]}`; }
-function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatDate(d) { if (!d) return ''; const p = d.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; }
 
-// ==================== IMPORT / EXPORT ====================
-function exportData() {
-  const data = DB.getAll();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const link = document.createElement('a'); link.href = window.URL.createObjectURL(blob);
-  link.setAttribute('download', `planner_yedek_${new Date().toISOString().split('T')[0]}.json`);
-  document.body.appendChild(link); link.click(); document.body.removeChild(link);
-}
-function importData(event) {
-  const file = event.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if(confirm("Tüm verileriniz yüklenecek dosyayla değiştirilecek. Onaylıyor musunuz?")) { DB.import(data); location.reload(); }
-    } catch(err) { alert("Geçersiz format!"); }
-  };
-  reader.readAsText(file);
-}
+// MODALS
+function openModal(mid) { document.getElementById(mid).classList.add('open'); }
+function closeModal(mid) { document.getElementById(mid).classList.remove('open'); currentEditId = null; }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e) { if(e.target===this) closeModal(this.id); }));
 
-// ==================== ICS GENERATOR ====================
-function downloadICS(title, startDateStr, timeStr, desc, endDateStr = null) {
-  if(!startDateStr) return;
-  const fmt = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const fmtAllDay = (d) => d.toISOString().split('T')[0].replace(/-/g, '');
-  let ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDESCRIPTION:${desc || ''}\n`;
+// THEME & LANG
+function setTheme(t) { currentTheme=t; document.body.setAttribute('data-theme', t); localStorage.setItem('planner_theme', t); document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active')); document.getElementById('t-'+t).classList.add('active'); updateThemeColors(); }
+function setLang(l) { currentLang=l; localStorage.setItem('planner_lang', l); applyTranslations(); updateHeaderDate(); switchModule(currentModule, currentContext); }
+function applyTranslations() { document.querySelectorAll('[data-i18n]').forEach(el => { const k=el.getAttribute('data-i18n'); el.innerText=translations[currentLang][k] || k; }); document.getElementById('lang-select').value=currentLang; }
+function updateHeaderDate() { const n=new Date(); const d={tr:['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']}; const m={tr:['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']}; document.getElementById('headerDate').textContent = `${d[currentLang][n.getDay()]}, ${n.getDate()} ${m[currentLang][n.getMonth()]}`; }
 
-  if (endDateStr && !timeStr) {
-    const start = new Date(startDateStr); const end = new Date(endDateStr);
-    if(end >= start) { end.setDate(end.getDate() + 1); ics += `DTSTART;VALUE=DATE:${fmtAllDay(start)}\nDTEND;VALUE=DATE:${fmtAllDay(end)}\n`; }
-    else { ics += `DTSTART;VALUE=DATE:${fmtAllDay(start)}\nDTEND;VALUE=DATE:${fmtAllDay(start)}\n`; }
+// ==================== CORE NAVIGATION ====================
+function toggleNavGroup(el) { const c=el.nextElementSibling; c.classList.toggle('open'); el.querySelector('.chevron').innerText=c.classList.contains('open')?'▼':'▶'; }
+
+function updateThemeColors() {
+  const root = document.querySelector(':root');
+  if(currentContext === 'work') {
+    root.style.setProperty('--accent', 'var(--accent-work)');
+    root.style.setProperty('--accent-light', 'var(--accent-work-light)');
   } else {
-    const start = new Date(startDateStr + (timeStr ? 'T' + timeStr : 'T00:00'));
-    let end = new Date(start.getTime() + (timeStr ? 60*60*1000 : 24*60*60*1000));
-    ics += `DTSTART:${fmt(start)}\nDTEND:${fmt(end)}\n`;
+    root.style.setProperty('--accent', ''); // reset to CSS defined
+    root.style.setProperty('--accent-light', '');
   }
-  ics += `END:VEVENT\nEND:VCALENDAR`;
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-  const link = document.createElement('a'); link.href = window.URL.createObjectURL(blob);
-  link.setAttribute('download', `${title.replace(/ /g,'_')}.ics`);
-  document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
 
-// ==================== TIME LOGIC ====================
-function getPreciseCountdown(dateStr, timeStr) {
-  if (!dateStr) return null;
-  const target = new Date(dateStr + (timeStr ? 'T' + timeStr : 'T23:59:59'));
-  const diffMs = target - new Date();
-  if (diffMs < 0) return { text: 'Geçti', class: 'badge-past' };
-
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffDays > 0) return { text: `${diffDays} gün kaldı`, class: diffDays > 7 ? 'badge-safe' : 'badge-warning' };
-  if (diffHours > 0) return { text: `${diffHours} saat kaldı`, class: 'badge-danger' };
-  return { text: `${diffMins} dk kaldı`, class: 'badge-danger' };
-}
-
-// ==================== TABS & MODALS ====================
-function switchTab(name) {
+function switchModule(mod, ctx = '') {
+  currentModule = mod; currentContext = ctx;
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
-  document.getElementById('sec-' + name).classList.add('active');
-  const tabs = ['summary','appointments','travel','lists','todo','habits','birthdays','notes'];
-  document.querySelectorAll('.nav-item')[tabs.indexOf(name)].classList.add('active');
+  document.getElementById('sec-' + mod).classList.add('active');
   
-  if (name === 'summary') renderSummary();
-  if (name === 'appointments') renderAppointments();
-  if (name === 'travel') renderTravel();
-  if (name === 'lists') { renderGoal(); renderLists(); }
-  if (name === 'todo') renderTodo();
-  if (name === 'habits') renderHabits();
-  if (name === 'birthdays') renderBirthdays();
-  if (name === 'notes') renderNotes();
+  // Update sidebar active state
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active', 'active-work'));
+  const btnAttr = ctx ? `switchModule('${mod}', '${ctx}')` : `switchModule('${mod}')`;
+  const activeBtn = Array.from(document.querySelectorAll('.nav-item')).find(b => b.getAttribute('onclick') === btnAttr);
+  if(activeBtn) { activeBtn.classList.add('active'); if(ctx === 'work') activeBtn.classList.add('active-work'); }
+  
+  // Title & Colors
+  const header = document.getElementById('module-header');
+  if(mod === 'summary') { header.style.display = 'none'; updateThemeColors(); renderSummary(); return; }
+  
+  header.style.display = 'flex';
+  document.getElementById('module-title').innerText = activeBtn ? activeBtn.querySelector('.nav-label').innerText : mod;
+  const badge = document.getElementById('module-badge');
+  badge.innerText = ctx === 'work' ? (currentLang==='tr'?'İŞ':'WORK') : (currentLang==='tr'?'KİŞİSEL':'PERSONAL');
+  badge.className = 'context-badge ' + (ctx === 'work' ? 'tag-work' : 'tag-personal');
+  
+  updateThemeColors();
+
+  // Render Module Content
+  if(mod === 'appointments') renderAppts();
+  if(mod === 'todos') renderTodos();
+  if(mod === 'travels') renderTravels();
+  if(mod === 'notes') renderNotes();
+  if(mod === 'habits') renderHabits();
+  if(mod === 'birthdays') renderBdays();
+  if(mod === 'lists') { renderGoal(); renderLists(); }
 }
 
-function toggleForm(fid) {
-  const f = document.getElementById(fid);
-  if(f.classList.contains('open')) { f.classList.remove('open'); currentEditId = null; }
-  else { f.classList.add('open'); }
+// ==================== TIME & EXPORT UTILS ====================
+function getCountdown(dateStr, timeStr) {
+  if(!dateStr) return null; const t=new Date(dateStr+(timeStr?'T'+timeStr:'T23:59:59')); const ms=t-new Date();
+  if(ms<0) return { t: currentLang==='tr'?'Geçti':'Passed', c:'badge-past' };
+  const d=Math.floor(ms/86400000); const h=Math.floor((ms%86400000)/3600000);
+  if(d>0) return { t:`${d} ${currentLang==='tr'?'gün':'days'}`, c:d>7?'badge-safe':'badge-warning' };
+  if(h>0) return { t:`${h} ${currentLang==='tr'?'saat':'hrs'}`, c:'badge-danger' };
+  return { t:`${Math.floor((ms%3600000)/60000)} ${currentLang==='tr'?'dk':'mins'}`, c:'badge-danger' };
 }
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); currentEditId = null; }
-document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); }));
+function downloadICS(title, dStr, tStr, note, endStr=null) {
+  if(!dStr) return; const fmt=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z'; const fmtAll=d=>d.toISOString().split('T')[0].replace(/-/g,'');
+  let ics=`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDESCRIPTION:${note||''}\n`;
+  if(endStr&&!tStr){ const s=new Date(dStr); const e=new Date(endStr); if(e>=s){ e.setDate(e.getDate()+1); ics+=`DTSTART;VALUE=DATE:${fmtAll(s)}\nDTEND;VALUE=DATE:${fmtAll(e)}\n`; }else{ ics+=`DTSTART;VALUE=DATE:${fmtAll(s)}\nDTEND;VALUE=DATE:${fmtAll(s)}\n`; } }
+  else{ const s=new Date(dStr+(tStr?'T'+tStr:'T00:00')); let e=new Date(s.getTime()+(tStr?3600000:86400000)); ics+=`DTSTART:${fmt(s)}\nDTEND:${fmt(e)}\n`; }
+  ics+=`END:VEVENT\nEND:VCALENDAR`;
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${title.replace(/ /g,'_')}.ics`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function exportData(){ const d={}; for(let i=0;i<localStorage.length;i++){ let k=localStorage.key(i); if(k.startsWith('planner_')) d[k]=localStorage.getItem(k); } const blob=new Blob([JSON.stringify(d,null,2)],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`planner_yedek_${new Date().toISOString().split('T')[0]}.txt`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+function importData(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>{try{const d=JSON.parse(ev.target.result); Object.keys(d).forEach(k=>{if(k.startsWith('planner_'))localStorage.setItem(k,d[k]);}); location.reload();}catch(err){alert("Format error");}}; r.readAsText(f); }
 
-// ==================== SUMMARY (DASHBOARD) ====================
+// ==================== 1. SUMMARY ====================
 function renderSummary() {
-  const el = document.getElementById('summary-list');
-  let events = [];
-  const now = new Date();
-  const todayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime(); 
-
-  // 1. Randevular
-  getData('appts', []).forEach(a => {
-    if(!a.date) return;
-    const d = new Date(a.date + 'T00:00').getTime();
-    if(d >= todayMs) events.push({ type: 'Randevu', icon: '🗓️', time: d, timeObj: new Date(a.date + (a.time ? 'T'+a.time : 'T23:59:59')), title: a.title, sub: formatDate(a.date) + (a.time ? ' · '+a.time : ''), tab: 'appointments' });
-  });
-
-  // 2. Seyahatler
-  getData('travels', []).forEach(t => {
-    if(!t.start) return;
-    const ds = new Date(t.start + 'T00:00').getTime();
-    const de = t.end ? new Date(t.end + 'T00:00').getTime() : ds;
-    if(ds >= todayMs || de >= todayMs) {
-      events.push({ type: 'Seyahat', icon: '✈️', time: ds, timeObj: new Date(t.start + 'T23:59:59'), title: t.dest, sub: [formatDate(t.start), t.end && formatDate(t.end)].filter(Boolean).join(' - '), tab: 'travel' });
-    }
-  });
-
-  // 3. Görevler
-  getData('todos', []).forEach(t => {
-    if(!t.date || t.done) return;
-    const d = new Date(t.date + 'T00:00').getTime();
-    if(d >= todayMs - 86400000) { 
-      events.push({ type: 'Görev', icon: '📋', time: d, timeObj: new Date(t.date + 'T23:59:59'), title: t.title, sub: formatDate(t.date), tab: 'todo' });
-    }
-  });
-
-  // 4. Doğum Günleri
-  const ty = now.getFullYear();
-  getData('birthdays', []).forEach(b => {
-     let next = new Date(ty, b.month - 1, b.day);
-     if(next.getTime() < todayMs) next = new Date(ty + 1, b.month - 1, b.day);
-     events.push({ type: 'Doğum Günü', icon: '🎂', time: next.getTime(), timeObj: new Date(next.getFullYear(), b.month-1, b.day, 23, 59, 59), title: b.name, sub: `${b.day} ${MONTHS_TR[b.month]}`, tab: 'birthdays' });
-  });
-
-  events.sort((a,b) => a.time - b.time);
-
-  if(!events.length) {
-    el.innerHTML = '<div class="empty">Ajandanız tertemiz! Yaklaşan hiçbir plan yok.</div>';
-    return;
-  }
-
-  el.innerHTML = '<div class="section-label" style="margin-bottom:16px;">Önümüzdeki Planlar</div>' + events.map(e => {
-    const dateStr = e.timeObj.toISOString().split('T')[0];
-    const timeStr = e.timeObj.toISOString().split('T')[1].substring(0,5);
-    const cd = getPreciseCountdown(dateStr, timeStr === '23:59' ? null : timeStr);
-
-    return `
-    <div class="summary-item" onclick="switchTab('${e.tab}')" style="cursor:pointer;">
-       <div class="summary-icon">${e.icon}</div>
-       <div class="summary-content">
-         <div class="summary-title">${esc(e.title)}</div>
-         <div class="summary-meta">${e.type} · ${e.sub}</div>
-       </div>
-       ${cd ? `<div style="text-align:right;"><span class="badge ${cd.class}" style="margin:0;">${cd.text}</span></div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-// ==================== GOAL TRACKER ====================
-function renderGoal() {
-  const goal = getData('goal', null);
-  const container = document.getElementById('goal-container');
-  if (!goal) {
-    container.innerHTML = `<button class="btn-add" onclick="editGoal()"><span>+</span> Finansal Hedef Ekle</button>`;
-    return;
-  }
-  let pct = (goal.target > 0) ? Math.min(100, Math.round((goal.current / goal.target) * 100)) : 0;
-  container.innerHTML = `
-    <div class="goal-card" id="goal-tracker">
-      <div class="goal-header">
-        <div class="goal-title">${esc(goal.title)}</div>
-        <div class="goal-amounts"><strong>${goal.current.toLocaleString('tr-TR')} TL</strong> / <span>${goal.target.toLocaleString('tr-TR')} TL</span></div>
-      </div>
-      <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${pct}%"></div></div>
-      <div class="goal-actions">
-        <input type="number" id="goal-add-input" placeholder="Miktar (TL)">
-        <button class="btn btn-primary" onclick="addGoalFunds()">Ekle</button>
-        <button class="btn btn-ghost" onclick="editGoal()" style="padding:8px;font-size:16px;">&#9998;</button>
-        <button class="btn btn-ghost" onclick="deleteGoal()" style="padding:8px;font-size:16px;color:var(--accent-danger);">&#10005;</button>
-      </div>
-    </div>
-  `;
-}
-function addGoalFunds() {
-  const val = parseInt(document.getElementById('goal-add-input').value); if(!val || val <= 0) return;
-  const goal = getData('goal', null);
-  if(goal) { goal.current += val; DB.set('goal', goal); renderGoal(); }
-}
-function editGoal() {
-  const goal = getData('goal', { title: 'Yeni Hedef', current: 0, target: 0 });
-  const t = prompt("Hedefin Adı:", goal.title); if(t === null) return;
-  const tg = prompt("Hedef Miktar (TL):", goal.target); if(tg === null) return;
-  const c = prompt("Şu Anki Birikim (TL):", goal.current); if(c === null) return;
-  DB.set('goal', { title: t, target: parseInt(tg) || 0, current: parseInt(c) || 0 }); renderGoal();
-}
-function deleteGoal() {
-  if(confirm("Hedefi silmek istediğinize emin misiniz?")) { DB.set('goal', null); renderGoal(); }
-}
-
-// ==================== APPOINTMENTS ====================
-function openApptForm(eId = null) {
-  currentEditId = eId; document.getElementById('appt-form-title').innerText = eId ? "Düzenle" : "Yeni Randevu";
-  if (eId) {
-    const a = getData('appts', []).find(x => x.id === eId);
-    document.getElementById('appt-title').value = a.title; document.getElementById('appt-date').value = a.date; document.getElementById('appt-time').value = a.time; document.getElementById('appt-note').value = a.note;
-  } else {
-    document.getElementById('appt-title').value = ''; document.getElementById('appt-date').value = new Date().toISOString().split('T')[0]; document.getElementById('appt-time').value = ''; document.getElementById('appt-note').value = '';
-  }
-  document.getElementById('appt-form').classList.add('open');
-}
-function saveAppointment() {
-  const title = document.getElementById('appt-title').value.trim(); if (!title) return;
-  const appts = getData('appts', []);
-  const p = { id: currentEditId || id(), title, date: document.getElementById('appt-date').value, time: document.getElementById('appt-time').value, note: document.getElementById('appt-note').value.trim() };
-  if (currentEditId) { const idx = appts.findIndex(x => x.id === currentEditId); if(idx > -1) appts[idx] = p; } else { appts.push(p); }
-  appts.sort((a,b) => (a.date + a.time) < (b.date + b.time) ? -1 : 1); DB.set('appts', appts); toggleForm('appt-form'); renderAppointments();
-}
-function deleteAppointment(aid) { if(!confirm("Silinsin mi?")) return; DB.set('appts', getData('appts', []).filter(a => a.id !== aid)); renderAppointments(); }
-function renderAppointments() {
-  const appts = getData('appts', []); const el = document.getElementById('appt-list');
-  if (!appts.length) { el.innerHTML = '<div class="empty">Henüz randevu yok</div>'; return; }
-  el.innerHTML = appts.map(a => {
-    const cd = getPreciseCountdown(a.date, a.time);
-    return `<div class="card">${cd ? `<span class="badge ${cd.class}">${cd.text}</span>` : ''}<div class="card-actions"><button class="btn-icon edit" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}', '${a.date}', '${a.time}', '${a.note}')">&#128197;</button><button class="btn-icon" onclick="deleteAppointment('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${a.date ? formatDate(a.date) : ''}${a.time ? ' · '+a.time : ''}</div>${a.note ? `<div class="card-note">${esc(a.note)}</div>` : ''}</div>`;
-  }).join('');
-}
-
-// ==================== TRAVEL ====================
-function openTravelForm(eId = null) {
-  currentEditId = eId; document.getElementById('travel-modal-title').innerText = eId ? "Düzenle" : "Yeni Destinasyon";
-  if (eId) {
-    const t = getData('travels', []).find(x => x.id === eId);
-    document.getElementById('travel-dest').value = t.dest; document.getElementById('travel-start').value = t.start; document.getElementById('travel-end').value = t.end; document.getElementById('travel-note').value = t.note;
-  } else { document.getElementById('travel-dest').value = ''; document.getElementById('travel-start').value = ''; document.getElementById('travel-end').value = ''; document.getElementById('travel-note').value = ''; }
-  openModal('travel-modal');
-}
-function saveTravel() {
-  const dest = document.getElementById('travel-dest').value.trim(); if (!dest) return;
-  const travels = getData('travels', []);
-  if(currentEditId) { const t = travels.find(x => x.id === currentEditId); if(t) { t.dest = dest; t.start = document.getElementById('travel-start').value; t.end = document.getElementById('travel-end').value; t.note = document.getElementById('travel-note').value.trim(); } } 
-  else { travels.push({ id: id(), dest, start: document.getElementById('travel-start').value, end: document.getElementById('travel-end').value, note: document.getElementById('travel-note').value.trim(), items: [] }); }
-  DB.set('travels', travels); closeModal('travel-modal'); renderTravel();
-}
-function toggleTravelBody(tid) { document.getElementById('tb-'+tid).classList.toggle('open'); document.getElementById('tc-'+tid).classList.toggle('open'); }
-function deleteTravel(tid) { if(confirm("Silinsin mi?")) { DB.set('travels', getData('travels', []).filter(t => t.id !== tid)); renderTravel(); } }
-function addTravelItem(tid) { const val = document.getElementById('ti-'+tid).value.trim(); if (!val) return; const t = getData('travels', []); const o = t.find(x => x.id === tid); if (o) { o.items.push({ id: id(), text: val, done: false }); DB.set('travels', t); renderTravel(); setTimeout(()=>toggleTravelBody(tid), 10); } }
-function toggleTravelItem(tid, iid) { const t = getData('travels', []); const o = t.find(x => x.id === tid); if (o) { const i = o.items.find(x => x.id === iid); if (i) i.done = !i.done; DB.set('travels', t); renderTravel(); setTimeout(()=>toggleTravelBody(tid), 10); } }
-function deleteTravelItem(tid, iid) { const t = getData('travels', []); const o = t.find(x => x.id === tid); if (o) { o.items = o.items.filter(x => x.id !== iid); DB.set('travels', t); renderTravel(); setTimeout(()=>toggleTravelBody(tid), 10); } }
-function renderTravel() {
-  const travels = getData('travels', []); const el = document.getElementById('travel-list');
-  if (!travels.length) { el.innerHTML = '<div class="empty">Henüz destinasyon yok</div>'; return; }
-  el.innerHTML = travels.map(t => {
-    const cd = getPreciseCountdown(t.start, null); const dr = [t.start && formatDate(t.start), t.end && formatDate(t.end)].filter(Boolean).join(' – ');
-    const items = (t.items || []).map(i => `<div class="travel-item"><div class="list-check" onclick="toggleTravelItem('${t.id}','${i.id}')" style="${i.done?'background:var(--accent);border-color:var(--accent)':''}">${i.done?'<span class="list-check-mark" style="display:block">&#10003;</span>':''}</div><span style="flex:1; ${i.done?'text-decoration:line-through;opacity:0.5':''}">${esc(i.text)}</span><button class="btn-icon" onclick="deleteTravelItem('${t.id}', '${i.id}')">&#10005;</button></div>`).join('');
-    return `<div class="travel-card"><div class="travel-header" onclick="toggleTravelBody('${t.id}')"><div>${cd ? `<span class="badge ${cd.class}">${cd.text}</span>` : ''}<div class="travel-dest">${esc(t.dest)}</div><div class="travel-dates">${dr}</div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('Seyahat: ${t.dest}', '${t.start}', null, '${t.note}', '${t.end}')">&#128197;</button><button class="btn-icon edit" onclick="event.stopPropagation();openTravelForm('${t.id}')">&#9998;</button><span class="chevron" id="tc-${t.id}">&#9660;</span></div></div><div class="travel-body" id="tb-${t.id}">${t.note ? `<div class="travel-note">${esc(t.note)}</div>` : ''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:12px;"><input type="text" id="ti-${t.id}" style="padding:10px;font-size:14px;border-radius:6px;" placeholder="Gezilecek yer ekle..." onkeydown="if(event.key==='Enter')addTravelItem('${t.id}')"><button class="btn btn-primary" style="padding:8px 14px;" onclick="addTravelItem('${t.id}')">Ekle</button></div><button class="btn btn-danger-outline" onclick="deleteTravel('${t.id}')">Seyahati Sil</button></div></div>`;
-  }).join('');
-}
-
-// ==================== LISTS ====================
-function getListCats() { return getData('listcats', ['Kitaplar', 'Diziler/Filmler', 'Alışveriş']); }
-function getActiveCat() { return getData('activecat', getListCats()[0]); }
-function safeid(s) { return s.replace(/[^a-zA-Z0-9]/g, '_'); }
-function renderLists() {
-  const cats = getListCats(); const a = getActiveCat();
-  document.getElementById('cat-tabs').innerHTML = cats.map(c => `<button class="cat-tab ${c === a ? 'active' : ''}" onclick="setCat('${esc(c)}')">${esc(c)}</button>`).join('') + `<button class="cat-tab" onclick="openModal('newlist-modal')" style="border-style:dashed">+ Yeni</button>`;
-  renderListItems(a);
-}
-function setCat(cat) { DB.set('activecat', cat); renderLists(); }
-function saveNewList() { const n = document.getElementById('newlist-name').value.trim(); if(!n) return; const c = getListCats(); if(!c.includes(n)) c.push(n); DB.set('listcats', c); DB.set('activecat', n); closeModal('newlist-modal'); renderLists(); }
-function addListItem(cat) { const val = document.getElementById('quick-input-'+safeid(cat)).value.trim(); if(!val) return; const i = getData('list_'+cat, []); i.push({ id: id(), text: val, done: false, prog: '', note: '' }); DB.set('list_'+cat, i); document.getElementById('quick-input-'+safeid(cat)).value = ''; renderLists(); }
-function toggleListItem(cat, iid) { const i = getData('list_'+cat, []); const o = i.find(x => x.id === iid); if(o) { o.done = !o.done; DB.set('list_'+cat, i); renderLists(); } }
-function deleteListItem(cat, iid) { DB.set('list_'+cat, getData('list_'+cat, []).filter(i => i.id !== iid)); renderLists(); }
-function toggleListBody(iid) { document.getElementById('lb-'+iid).classList.toggle('open'); document.getElementById('lc-'+iid).classList.toggle('open'); }
-function updateListDetails(cat, iid) { const i = getData('list_'+cat, []); const o = i.find(x => x.id === iid); if(o) { o.prog = document.getElementById('lp-'+iid).value.trim(); o.note = document.getElementById('ln-'+iid).value.trim(); DB.set('list_'+cat, i); } }
-function renderListItems(cat) {
-  const el = document.getElementById('list-content'); const items = getData('list_'+cat, []);
-  const renderItem = (i) => `<div class="list-wrapper ${i.done ? 'done' : ''}"><div class="list-header" onclick="toggleListBody('${i.id}')"><div class="list-check" onclick="event.stopPropagation();toggleListItem('${esc(cat)}','${i.id}')"><span class="list-check-mark">&#10003;</span></div><span class="item-text">${esc(i.text)}</span>${i.prog && !i.done ? `<span class="item-prog-badge">${esc(i.prog)}</span>` : ''}<span class="chevron" id="lc-${i.id}" style="margin-left:auto;">&#9660;</span></div><div class="list-body" id="lb-${i.id}"><input type="text" id="lp-${i.id}" value="${esc(i.prog||'')}" placeholder="Örn: Sayfa 3 / Bölüm 4" onchange="updateListDetails('${esc(cat)}','${i.id}')" style="margin-bottom:8px; padding:8px; font-size:13px; border-radius:6px;"><textarea id="ln-${i.id}" placeholder="Link, not veya inceleme..." onchange="updateListDetails('${esc(cat)}','${i.id}')" style="min-height:50px; padding:8px; font-size:13px; border-radius:6px;">${esc(i.note||'')}</textarea><div style="text-align:right; margin-top:8px;"><button class="btn-icon" onclick="deleteListItem('${esc(cat)}','${i.id}')" style="color:var(--accent-danger)">Sil</button></div></div></div>`;
-  const done = items.filter(i => i.done); const undone = items.filter(i => !i.done);
-  el.innerHTML = `<div class="quick-add"><input type="text" id="quick-input-${safeid(cat)}" placeholder="${esc(cat)} ekle..." onkeydown="if(event.key==='Enter')addListItem('${esc(cat)}')"><button class="btn btn-primary" onclick="addListItem('${esc(cat)}')">Ekle</button></div>${undone.length ? undone.map(renderItem).join('') : '<div class="empty">Liste boş</div>'}${done.length ? `<div class="divider"></div><div class="section-label">Tamamlananlar</div>${done.map(renderItem).join('')}` : ''}`;
-}
-
-// ==================== TO-DO ====================
-function openTodoForm(eId = null) {
-  currentEditId = eId; document.getElementById('todo-form-title').innerText = eId ? "Düzenle" : "Yeni Görev";
-  if(eId) { const t = getData('todos', []).find(x => x.id === eId); document.getElementById('todo-title').value = t.title; document.getElementById('todo-priority').value = t.priority; document.getElementById('todo-recur').value = t.recur || ''; document.getElementById('todo-date').value = t.date || ''; document.getElementById('todo-note').value = t.note || ''; } 
-  else { document.getElementById('todo-title').value = ''; document.getElementById('todo-priority').value = 'normal'; document.getElementById('todo-recur').value = ''; document.getElementById('todo-date').value = new Date().toISOString().split('T')[0]; document.getElementById('todo-note').value = ''; }
-  document.getElementById('todo-form').classList.add('open');
-}
-function saveTodo() {
-  const title = document.getElementById('todo-title').value.trim(); if (!title) return; const todos = getData('todos', []);
-  const p = { id: currentEditId || id(), title, priority: document.getElementById('todo-priority').value, recur: parseInt(document.getElementById('todo-recur').value) || null, date: document.getElementById('todo-date').value, note: document.getElementById('todo-note').value.trim(), done: false };
-  if(currentEditId) { const idx = todos.findIndex(x => x.id === currentEditId); if(idx > -1) { p.done = todos[idx].done; todos[idx] = p; } } else { todos.push(p); }
-  DB.set('todos', todos); toggleForm('todo-form'); renderTodo();
-}
-function toggleTodo(tid) {
-  const t = getData('todos', []); const o = t.find(x => x.id === tid);
-  if (o) { if (!o.done && o.recur && o.date) { let d = new Date(o.date); d.setDate(d.getDate() + o.recur); o.date = d.toISOString().split('T')[0]; } else { o.done = !o.done; } }
-  DB.set('todos', t); renderTodo();
-}
-function deleteTodo(tid) { if(confirm("Silinsin mi?")) { DB.set('todos', getData('todos', []).filter(t => t.id !== tid)); renderTodo(); } }
-function renderTodo() {
-  const todos = getData('todos', []); const el = document.getElementById('todo-list');
-  if (!todos.length) { el.innerHTML = '<div class="empty">Yapılacak bir şey yok</div>'; return; }
-  const pOrder = { high: 0, normal: 1, low: 2 };
-  const undone = todos.filter(t => !t.done).sort((a,b) => pOrder[a.priority] - pOrder[b.priority] || (a.date > b.date ? 1 : -1)); const done = todos.filter(t => t.done);
-  const renderItem = (t) => {
-    const cd = getPreciseCountdown(t.date, null); const db = cd && !t.done ? `<span style="color:var(--accent-danger);">${cd.text}</span>` : (t.date ? formatDate(t.date) : '');
-    const rl = t.recur === 1 ? 'Günlük' : t.recur === 7 ? 'Haftalık' : t.recur === 30 ? 'Aylık' : '';
-    return `<div class="todo-item priority-${t.priority} ${t.done ? 'done' : ''}"><div class="list-check" onclick="toggleTodo('${t.id}')" style="${t.done?'background:var(--accent);border-color:var(--accent)':''}"><span class="list-check-mark" style="${t.done?'display:block':''}">&#10003;</span></div><div style="flex:1;min-width:0;"><div class="todo-text">${esc(t.title)}</div><div class="todo-sub">${rl ? `<span class="recur-badge">&#10227; ${rl}</span>` : ''}${db ? `<span>${db}</span>` : ''}${t.note ? `<span style="opacity:0.7">· ${esc(t.note)}</span>` : ''}</div></div><button class="btn-icon edit" onclick="openTodoForm('${t.id}')">&#9998;</button><button class="btn-icon" onclick="deleteTodo('${t.id}')">&#10005;</button></div>`;
-  };
-  el.innerHTML = (undone.length ? undone.map(renderItem).join('') : '<div class="empty">Tüm görevler tamam!</div>') + (done.length ? `<div class="divider"></div><div class="section-label">Tamamlananlar (${done.length})</div>${done.map(renderItem).join('')}` : '');
-}
-
-// ==================== HABITS & BIRTHDAYS ====================
-function saveHabit() { const n = document.getElementById('habit-name').value.trim(); if(!n) return; const h = getData('habits', []); h.push({ id: id(), name: n, target: parseInt(document.getElementById('habit-target').value), checks: {} }); DB.set('habits', h); closeModal('habit-modal'); renderHabits(); }
-function toggleHabitDay(hid, dStr) { const h = getData('habits', []); const o = h.find(x => x.id === hid); if(o) { o.checks[dStr] = !o.checks[dStr]; DB.set('habits', h); renderHabits(); } }
-function deleteHabit(hid) { if(confirm("Silinsin mi?")) { DB.set('habits', getData('habits', []).filter(x => x.id !== hid)); renderHabits(); } }
-function renderHabits() {
-  const habits = getData('habits', []); const el = document.getElementById('habits-list');
-  const wDays = (() => { const t = new Date(); t.setHours(0,0,0,0); const m = new Date(t); m.setDate(t.getDate() - ((t.getDay() + 6) % 7)); const d = []; const l = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz']; for(let i=0;i<7;i++) { const x = new Date(m); x.setDate(m.getDate() + i); d.push({ date: x.toISOString().split('T')[0], label: l[i], num: x.getDate(), isToday: x.toDateString() === t.toDateString() }); } return d; })();
-  if(!habits.length) { el.innerHTML = '<div class="empty">Henüz rutin yok</div>'; return; }
-  el.innerHTML = habits.map(h => {
-    const c = h.checks || {}; const doneW = wDays.filter(d => c[d.date]).length; const pct = Math.round((doneW / h.target) * 100);
-    const dots = wDays.map(d => `<div class="habit-day ${c[d.date]?'checked':''} ${d.isToday?'today':''}" onclick="toggleHabitDay('${h.id}','${d.date}')"><span class="habit-day-label">${d.label}</span><span class="habit-day-num">${d.num}</span></div>`).join('');
-    return `<div class="habit-card"><div class="habit-header"><div><div class="habit-name">${esc(h.name)}</div><div class="habit-streak">${doneW}/${h.target} hedef</div></div><button class="btn-icon" onclick="deleteHabit('${h.id}')">&#10005;</button></div><div class="habit-days">${dots}</div><div class="habit-progress"><div class="habit-bar-bg"><div class="habit-bar-fill" style="width:${Math.min(pct,100)}%"></div></div><span class="habit-target-text">%${Math.min(pct,100)}</span></div></div>`;
-  }).join('');
-}
-
-function openBdayForm(eId=null) { currentEditId=eId; document.getElementById('bday-form-title').innerText = eId?"Düzenle":"Doğum Günü"; if(eId) { const b=getData('birthdays',[]).find(x=>x.id===eId); document.getElementById('bday-name').value=b.name; document.getElementById('bday-month').value=b.month; document.getElementById('bday-day').value=b.day; } else { document.getElementById('bday-name').value=''; document.getElementById('bday-month').value='1'; document.getElementById('bday-day').value=''; } document.getElementById('bday-form').classList.add('open'); }
-function saveBirthday() { const n=document.getElementById('bday-name').value.trim(); const d=parseInt(document.getElementById('bday-day').value); const m=parseInt(document.getElementById('bday-month').value); if(!n||!d||!m)return; const b=getData('birthdays',[]); if(currentEditId){ const idx=b.findIndex(x=>x.id===currentEditId); if(idx>-1){ b[idx].name=n; b[idx].day=d; b[idx].month=m; } } else { b.push({id:id(),name:n,day:d,month:m,items:[]}); } DB.set('birthdays',b); toggleForm('bday-form'); renderBirthdays(); }
-function deleteBirthday(bid) { if(confirm("Silinsin mi?")){ DB.set('birthdays',getData('birthdays',[]).filter(b=>b.id!==bid)); renderBirthdays(); } }
-function renderBirthdays() {
-  const b=getData('birthdays',[]); const el=document.getElementById('birthdays-list'); if(!b.length){ el.innerHTML='<div class="empty">Yok</div>'; return; }
-  const ty=new Date().getFullYear(); b.forEach(x=>{ let n=new Date(ty,x.month-1,x.day); if(n.getTime() < new Date().getTime())n=new Date(ty+1,x.month-1,x.day); x._n=n.getTime(); }); b.sort((x,y)=>x._n-y._n);
-  el.innerHTML=b.map(x=>{
-    const nDate = new Date(x._n); const cd=getPreciseCountdown(nDate.toISOString().split('T')[0], null); const dateStr=`${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;
-    return `<div class="bday-card"><div class="bday-header"><div style="display:flex;align-items:center;gap:12px;"><div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div><div><div class="bday-name">${esc(x.name)}</div><div class="bday-date">${x.day} ${MONTHS_TR[x.month]}</div><div style="margin-top:4px"><span class="badge ${cd.class}">${cd.text}</span></div></div></div><div style="display:flex;gap:8px;"><button class="btn-icon" onclick="downloadICS('${x.name} Doğum Günü', '${dateStr}', null, 'Kutlama')">&#128197;</button><button class="btn-icon edit" onclick="openBdayForm('${x.id}')">&#9998;</button><button class="btn-icon" onclick="deleteBirthday('${x.id}')">&#10005;</button></div></div></div>`;
-  }).join('');
-}
-
-// ==================== NOTES ====================
-function parseMD(text) { return esc(text).replace(/^### (.*$)/gim, '<h3>$1</h3>').replace(/^## (.*$)/gim, '<h2>$1</h2>').replace(/^# (.*$)/gim, '<h1>$1</h1>').replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>').replace(/\*(.*?)\*/gim, '<em>$1</em>').replace(/^\- (.*$)/gim, '<ul><li>$1</li></ul>').replace(/<\/ul>\n<ul>/gim, '').replace(/\n/gim, '<br>'); }
-let currentNoteId = null;
-function openNote(nid) { currentNoteId = nid; const n = nid ? getData('notes', []).find(x => x.id === nid) : null; document.getElementById('note-title-input').value = n ? n.title : ''; document.getElementById('note-body-input').value = n ? n.body : ''; switchNoteMode('write'); document.getElementById('note-editor').classList.add('open'); if (!nid) currentNoteId = id(); }
-function switchNoteMode(mode) { document.getElementById('tab-write').classList.remove('active'); document.getElementById('tab-preview').classList.remove('active'); document.getElementById('note-body-input').classList.remove('active'); document.getElementById('note-preview-div').classList.remove('active'); if(mode === 'write') { document.getElementById('tab-write').classList.add('active'); document.getElementById('note-body-input').classList.add('active'); } else { document.getElementById('tab-preview').classList.add('active'); const md = document.getElementById('note-body-input').value; document.getElementById('note-preview-div').innerHTML = md ? parseMD(md) : '<div style="color:var(--muted);font-style:italic">Önizleme yok...</div>'; document.getElementById('note-preview-div').classList.add('active'); } }
-function closeNote() { const title = document.getElementById('note-title-input').value.trim(); const body = document.getElementById('note-body-input').value.trim(); if (title || body) { const notes = getData('notes', []); const idx = notes.findIndex(n => n.id === currentNoteId); const e = { id: currentNoteId, title: title || 'Başlıksız', body, updated: new Date().toISOString() }; if (idx >= 0) notes[idx] = e; else notes.unshift(e); DB.set('notes', notes); } document.getElementById('note-editor').classList.remove('open'); renderNotes(); }
-function deleteCurrentNote() { if(!confirm("Silinsin mi?")) return; DB.set('notes', getData('notes', []).filter(n => n.id !== currentNoteId)); document.getElementById('note-editor').classList.remove('open'); renderNotes(); }
-function renderNotes() { const notes = getData('notes', []); const el = document.getElementById('notes-list'); if (!notes.length) { el.innerHTML = '<div class="empty">Henüz not yok</div>'; return; } el.innerHTML = notes.map(n => `<div class="note-card" onclick="openNote('${n.id}')"><div class="note-card-title">${esc(n.title)}</div><div class="note-card-preview">${esc(n.body)}</div></div>`).join(''); }
-
-// ==================== INIT ====================
-function init() {
-  const now = new Date(); const days = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi']; const months = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
-  document.getElementById('headerDate').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
-  const today = now.toISOString().split('T')[0]; document.getElementById('appt-date').value = today; document.getElementById('todo-date').value = today;
+  const el = document.getElementById('summary-list'); let evs = []; const tMs = new Date(new Date().setHours(0,0,0,0)).getTime();
+  const pushEv = (key, icon, extractFn) => { DB.get(key,[]).forEach(i => { const e = extractFn(i); if(e && e.t >= tMs-86400000) evs.push({...e, icon, ctx: key.includes('work')?'work':'pers', mod: key.split('_')[1]}); }); };
   
-  switchTab('summary');
-  setInterval(() => {
-    if(document.getElementById('sec-summary').classList.contains('active')) renderSummary();
-  }, 60000);
+  pushEv('work_appts', '🗓️', i => i.date ? {t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'')} : null);
+  pushEv('pers_appts', '📍', i => i.date ? {t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'')} : null);
+  pushEv('work_travels', '✈️', i => i.start ? {t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), title:i.dest, sub:formatDate(i.start)} : null);
+  pushEv('pers_travels', '🎒', i => i.start ? {t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), title:i.dest, sub:formatDate(i.start)} : null);
+  pushEv('work_todos', '💼', i => (i.date && !i.done) ? {t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), title:i.title, sub:formatDate(i.date)} : null);
+  pushEv('pers_todos', '✅', i => (i.date && !i.done) ? {t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), title:i.title, sub:formatDate(i.date)} : null);
+  
+  const ty=new Date().getFullYear(); DB.get('pers_birthdays',[]).forEach(b => { let n=new Date(ty,b.month-1,b.day); if(n.getTime()<tMs) n=new Date(ty+1,b.month-1,b.day); evs.push({t:n.getTime(), tObj:new Date(n.getFullYear(),b.month-1,b.day,23,59,59), title:b.name, sub:`${b.day} ${MONTHS_TR[b.month]}`, icon:'🎂', ctx:'pers', mod:'birthdays'}); });
+
+  evs.sort((a,b) => a.t - b.t);
+  if(!evs.length) { el.innerHTML = `<div class="empty">${translations[currentLang].empty}</div>`; return; }
+  
+  el.innerHTML = evs.map(e => {
+    const dStr = e.tObj.toISOString().split('T')[0]; const tStr = e.tObj.toISOString().split('T')[1].substring(0,5);
+    const cd = getCountdown(dStr, tStr==='23:59'?null:tStr);
+    return `<div class="summary-item" onclick="switchModule('${e.mod}', '${e.ctx}')"><div class="sum-icon">${e.icon}</div><div style="flex:1;"><div class="card-title" style="font-size:15px; margin:0;">${esc(e.title)}</div><div class="card-meta" style="font-size:12px; margin-top:2px;">${e.sub}</div></div>${cd?`<span class="badge ${cd.c}" style="margin:0;">${cd.t}</span>`:''}</div>`;
+  }).join('');
+}
+
+// ==================== 2. APPOINTMENTS ====================
+function getApptKey() { return currentContext + '_appts'; }
+function openApptForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getApptKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-appt-title').value=d?d.title:''; document.getElementById('m-appt-date').value=d?d.date:new Date().toISOString().split('T')[0]; document.getElementById('m-appt-time').value=d?d.time||'':''; document.getElementById('m-appt-note').value=d?d.note||'':''; document.getElementById('btn-appt-save').className = 'btn-primary ' + (currentContext==='work'?'btn-work':''); openModal('modal-appt'); }
+function saveAppt() { const t=document.getElementById('m-appt-title').value.trim(); if(!t)return; const k=getApptKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(), title:t, date:document.getElementById('m-appt-date').value, time:document.getElementById('m-appt-time').value, note:document.getElementById('m-appt-note').value.trim()}; if(currentEditId){ const i=arr.findIndex(x=>x.id===currentEditId); if(i>-1)arr[i]=p; }else{arr.push(p);} arr.sort((a,b)=>(a.date+a.time)<(b.date+b.time)?-1:1); DB.set(k,arr); closeModal('modal-appt'); renderAppts(); }
+function delAppt(id) { if(!confirm("Silinsin mi?"))return; const k=getApptKey(); DB.set(k, DB.get(k,[]).filter(x=>x.id!==id)); renderAppts(); }
+function renderAppts() { const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  el.innerHTML=arr.map(a=>{ const cd=getCountdown(a.date,a.time); return `<div class="card">${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}</div>`; }).join('');
+}
+
+// ==================== 3. TODOS ====================
+function getTodoKey() { return currentContext + '_todos'; }
+function openTodoForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getTodoKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-todo-title').value=d?d.title:''; document.getElementById('m-todo-pri').value=d?d.pri||'normal':'normal'; document.getElementById('m-todo-rec').value=d?d.rec||'':''; document.getElementById('m-todo-date').value=d?d.date||'':new Date().toISOString().split('T')[0]; document.getElementById('m-todo-note').value=d?d.note||'':''; document.getElementById('btn-todo-save').className = 'btn-primary ' + (currentContext==='work'?'btn-work':''); openModal('modal-todo'); }
+function saveTodo() { const t=document.getElementById('m-todo-title').value.trim(); if(!t)return; const k=getTodoKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(), title:t, pri:document.getElementById('m-todo-pri').value, rec:parseInt(document.getElementById('m-todo-rec').value)||null, date:document.getElementById('m-todo-date').value, note:document.getElementById('m-todo-note').value.trim(), done:false}; if(currentEditId){ const i=arr.findIndex(x=>x.id===currentEditId); if(i>-1){ p.done=arr[i].done; arr[i]=p; } }else{arr.push(p);} DB.set(k,arr); closeModal('modal-todo'); renderTodos(); }
+function toggleTodo(id) { const k=getTodoKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){ if(!o.done&&o.rec&&o.date){ let d=new Date(o.date); d.setDate(d.getDate()+o.rec); o.date=d.toISOString().split('T')[0]; }else{o.done=!o.done;} DB.set(k,arr); renderTodos(); } }
+function delTodo(id) { if(confirm("Silinsin mi?")){ const k=getTodoKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderTodos(); } }
+function renderTodos() { const arr=DB.get(getTodoKey(),[]); const el=document.getElementById('todo-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  const po={high:0,normal:1}; const un=arr.filter(t=>!t.done).sort((a,b)=>po[a.pri]-po[b.pri]||(a.date>b.date?1:-1)); const dn=arr.filter(t=>t.done);
+  const r=(t)=>{ const cd=getCountdown(t.date,null); const rl=t.rec===1?'1 Gün':t.rec===7?'1 Hafta':t.rec===30?'1 Ay':''; return `<div class="todo-item priority-${t.pri} ${t.done?'done':''}"><div class="list-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div><div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}</div><div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span class="recur-badge">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div><button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button><button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button></div>`; };
+  el.innerHTML = (un.length?un.map(r).join(''):'<div class="empty">Tüm görevler tamam!</div>') + (dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:'');
+}
+
+// ==================== 4. TRAVELS ====================
+function getTravKey() { return currentContext + '_travels'; }
+function openTravelForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getTravKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-travel-dest').value=d?d.dest:''; document.getElementById('m-travel-start').value=d?d.start:''; document.getElementById('m-travel-end').value=d?d.end:''; document.getElementById('m-travel-note').value=d?d.note||'':''; document.getElementById('btn-travel-save').className = 'btn-primary ' + (currentContext==='work'?'btn-work':''); openModal('modal-travel'); }
+function saveTravel() { const t=document.getElementById('m-travel-dest').value.trim(); if(!t)return; const k=getTravKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(), dest:t, start:document.getElementById('m-travel-start').value, end:document.getElementById('m-travel-end').value, note:document.getElementById('m-travel-note').value.trim(), items:[]}; if(currentEditId){ const i=arr.findIndex(x=>x.id===currentEditId); if(i>-1){ p.items=arr[i].items; arr[i]=p; } }else{arr.push(p);} DB.set(k,arr); closeModal('modal-travel'); renderTravels(); }
+function toggleTravelBody(id) { document.getElementById('tb-'+id).classList.toggle('open'); document.getElementById('tc-'+id).classList.toggle('open'); }
+function addTravItem(id){ const v=document.getElementById('ti-'+id).value.trim(); if(!v)return; const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){o.items.push({id:id(),t:v,d:false}); DB.set(k,arr); renderTravels(); setTimeout(()=>toggleTravelBody(id),10);} }
+function togTravItem(tid,iid){ const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){const i=o.items.find(x=>x.id===iid); if(i)i.d=!i.d; DB.set(k,arr); renderTravels(); setTimeout(()=>toggleTravelBody(tid),10);} }
+function delTravItem(tid,iid){ const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){o.items=o.items.filter(x=>x.id!==iid); DB.set(k,arr); renderTravels(); setTimeout(()=>toggleTravelBody(tid),10);} }
+function delTrav(id){ if(confirm("Silinsin mi?")){ const k=getTravKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderTravels(); } }
+function renderTravels() { const arr=DB.get(getTravKey(),[]); const el=document.getElementById('travel-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  el.innerHTML=arr.map(a=>{ const cd=getCountdown(a.start,null); const dr=[a.start&&formatDate(a.start),a.end&&formatDate(a.end)].filter(Boolean).join(' - '); const items=(a.items||[]).map(i=>`<div class="travel-item"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togTravItem('${a.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delTravItem('${a.id}','${i.id}')">✕</button></div>`).join('');
+    return `<div class="card"><div class="acc-header" onclick="toggleTravelBody('${a.id}')"><div>${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-title" style="font-size:22px;margin:0;">${esc(a.dest)}</div><div class="card-meta" style="margin-top:4px;">${dr}</div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openTravelForm('${a.id}')">&#9998;</button><span class="chevron" id="tc-${a.id}">▼</span></div></div><div class="acc-body" id="tb-${a.id}">${a.note?`<div class="card-note" style="margin-bottom:10px;">${esc(a.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="ti-${a.id}" placeholder="Not veya rota ekle..." onkeydown="if(event.key==='Enter')addTravItem('${a.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addTravItem('${a.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delTrav('${a.id}')">Seyahati Sil</button></div></div>`;
+  }).join('');
+}
+
+// ==================== 5. HABITS (Personal Only) ====================
+function saveHabit() { const t=document.getElementById('m-habit-name').value.trim(); if(!t)return; const arr=DB.get('pers_habits',[]); arr.push({id:id(), n:t, tg:parseInt(document.getElementById('m-habit-target').value), c:{}}); DB.set('pers_habits',arr); closeModal('modal-habit'); renderHabits(); }
+function togHabit(id, dStr) { const arr=DB.get('pers_habits',[]); const o=arr.find(x=>x.id===id); if(o){o.c[dStr]=!o.c[dStr]; DB.set('pers_habits',arr); renderHabits();} }
+function delHabit(id) { if(confirm("Silinsin mi?")){ DB.set('pers_habits',DB.get('pers_habits',[]).filter(x=>x.id!==id)); renderHabits(); } }
+function renderHabits() { const arr=DB.get('pers_habits',[]); const el=document.getElementById('habit-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  const wDays=(()=>{ const t=new Date(); t.setHours(0,0,0,0); const m=new Date(t); m.setDate(t.getDate()-((t.getDay()+6)%7)); const d=[]; const l={tr:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'],en:['Mo','Tu','We','Th','Fr','Sa','Su']}; for(let i=0;i<7;i++){const x=new Date(m); x.setDate(m.getDate()+i); d.push({ds:x.toISOString().split('T')[0], lb:l[currentLang][i], n:x.getDate(), td:x.toDateString()===t.toDateString()});} return d; })();
+  el.innerHTML=arr.map(h=>{ const ch=h.c||{}; const dw=wDays.filter(d=>ch[d.ds]).length; const pct=Math.min(100, Math.round((dw/h.tg)*100)); const dots=wDays.map(d=>`<div class="habit-day ${ch[d.ds]?'checked':''} ${d.td?'today':''}" onclick="togHabit('${h.id}','${d.ds}')"><span style="font-size:10px;font-weight:700;opacity:0.8">${d.lb}</span><span style="font-size:13px;font-weight:700">${d.n}</span></div>`).join('');
+    return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div class="card-title" style="margin:0;">${esc(h.n)}</div><div class="card-meta" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:2px;">${dw}/${h.tg} ${currentLang==='tr'?'hedef':'goal'}</div></div><button class="btn-icon" onclick="delHabit('${h.id}')">&#10005;</button></div><div class="habit-days">${dots}</div><div style="display:flex;align-items:center;gap:10px;margin-top:12px;"><div class="goal-bar-bg" style="margin:0;"><div class="goal-bar-fill" style="width:${pct}%"></div></div><span style="font-size:12px;font-weight:700;color:var(--muted)">%${pct}</span></div></div>`;
+  }).join('');
+}
+
+// ==================== 6. LISTS & GOALS (Personal Only) ====================
+// GOAL
+function renderGoal() { const g=DB.get('pers_goal',null); const c=document.getElementById('goal-container'); if(!g){c.innerHTML=`<button class="btn-add" style="border-style:solid;" onclick="editGoal()">+ ${currentLang==='tr'?'Finansal Hedef Ekle':'Add Financial Goal'}</button>`;return;}
+  const pct=g.tg>0?Math.min(100,Math.round((g.cr/g.tg)*100)):0; c.innerHTML=`<div class="goal-card"><div style="display:flex;justify-content:space-between;align-items:flex-end;"><div style="font-weight:700;font-size:16px;">${esc(g.t)}</div><div style="font-size:14px;color:var(--muted)"><strong style="color:var(--accent);font-size:16px;">${g.cr.toLocaleString()}</strong> / ${g.tg.toLocaleString()}</div></div><div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${pct}%"></div></div><div style="display:flex;gap:8px;margin-top:12px;"><input type="number" id="goal-val" placeholder="${currentLang==='tr'?'Miktar':'Amount'}" style="padding:8px;font-size:14px;"><button class="btn-primary" style="padding:8px 16px;" onclick="addGoal()">+</button><button class="btn-ghost" style="padding:8px 12px;" onclick="editGoal()">&#9998;</button><button class="btn-ghost" style="padding:8px 12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="if(confirm('Silinsin mi?')){DB.set('pers_goal',null);renderGoal();}">&#10005;</button></div></div>`; }
+function addGoal(){ const v=parseInt(document.getElementById('goal-val').value); if(!v||v<=0)return; const g=DB.get('pers_goal',null); if(g){g.cr+=v; DB.set('pers_goal',g); renderGoal();} }
+function editGoal(){ const g=DB.get('pers_goal',{t:'Hedef',cr:0,tg:0}); const t=prompt("Başlık / Title:",g.t); if(t===null)return; const tg=prompt("Hedef / Target:",g.tg); if(tg===null)return; const c=prompt("Mevcut / Current:",g.cr); if(c===null)return; DB.set('pers_goal',{t:t,tg:parseInt(tg)||0,cr:parseInt(c)||0}); renderGoal(); }
+
+// LISTS
+function getCatKeys() { return DB.get('pers_listcats', ['Alışveriş','İzlenecekler','Kitaplar']); }
+function getActiveCat() { return DB.get('pers_activecat', getCatKeys()[0]); }
+function safe(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
+function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer; font-size:13px; padding:8px 16px; margin:0; ${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer; font-size:13px; padding:8px 16px; margin:0; background:transparent; border:1px dashed var(--border); color:var(--text);" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); }
+function saveNewListCat(){ const n=document.getElementById('m-newlist-name').value.trim(); if(!n)return; const c=getCatKeys(); if(!c.includes(n))c.push(n); DB.set('pers_listcats',c); DB.set('pers_activecat',n); closeModal('modal-newlist'); renderLists(); }
+function addLItem(cat){ const v=document.getElementById('li-'+safe(cat)).value.trim(); if(!v)return; const arr=DB.get('pers_list_'+cat,[]); arr.push({id:id(),t:v,d:false,p:'',n:''}); DB.set('pers_list_'+cat,arr); renderLists(); }
+function togLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.d=!o.d; DB.set('pers_list_'+cat,arr); renderLists();} }
+function delLItem(cat,id){ DB.set('pers_list_'+cat, DB.get('pers_list_'+cat,[]).filter(x=>x.id!==id)); renderLists(); }
+function updLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.p=document.getElementById('lp-'+id).value.trim(); o.n=document.getElementById('ln-'+id).value.trim(); DB.set('pers_list_'+cat,arr);} }
+function togLBody(id){ document.getElementById('lb-'+id).classList.toggle('open'); document.getElementById('lc-'+id).classList.toggle('open'); }
+function renderListItems(cat) { const el=document.getElementById('list-content'); const arr=DB.get('pers_list_'+cat,[]); 
+  const r=(i)=>`<div class="card" style="padding:12px 16px; margin-bottom:8px; ${i.d?'opacity:0.5;box-shadow:none;':''}"><div class="acc-header" onclick="togLBody('${i.id}')"><div class="list-check ${i.d?'checked':''}" style="width:20px;height:20px;" onclick="event.stopPropagation();togLItem('${esc(cat)}','${i.id}')">${i.d?'✓':''}</div><div style="flex:1;font-weight:600;font-size:15px;margin-left:12px;${i.d?'text-decoration:line-through':''}">${esc(i.t)}</div>${i.p&&!i.d?`<span style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border);margin-right:10px;color:var(--muted)">${esc(i.p)}</span>`:''}<span class="chevron" id="lc-${i.id}">▼</span></div><div class="acc-body" id="lb-${i.id}"><input type="text" id="lp-${i.id}" value="${esc(i.p)}" placeholder="${currentLang==='tr'?'İlerleme (Örn: Sayfa 4)':'Progress'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;margin-bottom:8px;"><textarea id="ln-${i.id}" placeholder="${currentLang==='tr'?'Link veya Not':'Note or Link'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;min-height:50px;margin-bottom:8px;">${esc(i.n)}</textarea><div style="text-align:right"><button class="btn-icon" style="color:var(--accent-danger)" onclick="delLItem('${esc(cat)}','${i.id}')">Sil</button></div></div></div>`;
+  const un=arr.filter(i=>!i.d); const dn=arr.filter(i=>i.d);
+  el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:16px;"><input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')"><button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button></div>${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
+}
+
+// ==================== 7. BIRTHDAYS (Personal Only) ====================
+function saveBday() { const n=document.getElementById('m-bday-name').value.trim(); const m=parseInt(document.getElementById('m-bday-month').value); const d=parseInt(document.getElementById('m-bday-day').value); if(!n||!m||!d)return; const arr=DB.get('pers_birthdays',[]); arr.push({id:id(), name:n, month:m, day:d}); DB.set('pers_birthdays',arr); closeModal('modal-bday'); renderBdays(); }
+function delBday(id) { if(confirm("Silinsin mi?")){ DB.set('pers_birthdays',DB.get('pers_birthdays',[]).filter(x=>x.id!==id)); renderBdays(); } }
+function getBdayCD(m,d) { const t=new Date(); const ty=t.getFullYear(); let n=new Date(ty,m-1,d,23,59,59); if(n<t)n=new Date(ty+1,m-1,d,23,59,59); const ms=n-t; const diff=Math.floor(ms/86400000); if(diff===0)return{t:currentLang==='tr'?'Bugün!':'Today!',c:'badge-danger'}; if(diff<=7)return{t:`${diff} ${currentLang==='tr'?'gün':'days'}`,c:'badge-warning'}; return{t:`${diff} ${currentLang==='tr'?'gün':'days'}`,c:'badge-safe'}; }
+function renderBdays() { const arr=DB.get('pers_birthdays',[]); const el=document.getElementById('bday-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  const ty=new Date().getFullYear(); arr.forEach(x=>{ let n=new Date(ty,x.month-1,x.day); if(n.getTime()<new Date().getTime())n=new Date(ty+1,x.month-1,x.day); x._n=n.getTime(); }); arr.sort((a,b)=>a._n-b._n);
+  el.innerHTML=arr.map(x=>{ const nDate=new Date(x._n); const cd=getBdayCD(x.month,x.day); const dStr=`${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;
+    return `<div class="card" style="display:flex;align-items:center;gap:16px;padding:14px 18px;"><div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div><div style="flex:1;"><div style="font-weight:700;font-size:16px;">${esc(x.name)}</div><div class="card-meta" style="margin-top:2px;">${x.day} ${MONTHS_TR[x.month]}</div></div><div style="text-align:right;"><span class="badge ${cd.c}" style="display:block;margin-bottom:8px;">${cd.t}</span><div style="display:flex;gap:8px;justify-content:flex-end;"><button class="btn-icon" onclick="downloadICS('${x.name} D.Günü','${dStr}',null,'Kutlama')">&#128197;</button><button class="btn-icon" onclick="delBday('${x.id}')">&#10005;</button></div></div></div>`;
+  }).join('');
+}
+
+// ==================== 8. NOTES & MARKDOWN ====================
+function getNoteKey() { return currentContext + '_notes'; }
+function parseMD(t) { return esc(t).replace(/^### (.*$)/gim,'<h3>$1</h3>').replace(/^## (.*$)/gim,'<h2>$1</h2>').replace(/^# (.*$)/gim,'<h1>$1</h1>').replace(/\*\*(.*?)\*\*/gim,'<strong>$1</strong>').replace(/\*(.*?)\*/gim,'<em>$1</em>').replace(/^\- (.*$)/gim,'<ul><li>$1</li></ul>').replace(/<\/ul>\n<ul>/gim,'').replace(/\n/gim,'<br>'); }
+function openNoteEditor(eid=null) { currentEditId=eid; const n=eid?DB.get(getNoteKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-note-title').value=n?n.title:''; document.getElementById('m-note-body').value=n?n.body:''; switchNoteTab('write'); document.getElementById('note-editor').classList.add('open'); if(!eid)currentEditId=id(); }
+function switchNoteTab(m) { document.getElementById('tab-write').classList.remove('active'); document.getElementById('tab-preview').classList.remove('active'); document.getElementById('m-note-body').classList.remove('active'); document.getElementById('m-note-preview').classList.remove('active'); if(m==='write'){ document.getElementById('tab-write').classList.add('active'); document.getElementById('m-note-body').classList.add('active'); }else{ document.getElementById('tab-preview').classList.add('active'); const md=document.getElementById('m-note-body').value; document.getElementById('m-note-preview').innerHTML=md?parseMD(md):'<div style="color:var(--muted);font-style:italic">Boş...</div>'; document.getElementById('m-note-preview').classList.add('active'); } }
+function closeNoteEditor() { const t=document.getElementById('m-note-title').value.trim(); const b=document.getElementById('m-note-body').value.trim(); if(t||b){ const k=getNoteKey(); const arr=DB.get(k,[]); const idx=arr.findIndex(x=>x.id===currentEditId); const e={id:currentEditId, title:t||'İsimsiz', body:b, d:new Date().toISOString()}; if(idx>-1)arr[idx]=e; else arr.unshift(e); DB.set(k,arr); } document.getElementById('note-editor').classList.remove('open'); renderNotes(); }
+function deleteNote() { if(confirm("Silinsin mi?")){ const k=getNoteKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==currentEditId)); document.getElementById('note-editor').classList.remove('open'); renderNotes(); } }
+function renderNotes() { const arr=DB.get(getNoteKey(),[]); const el=document.getElementById('notes-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(n=>{ const d=new Date(n.d); return `<div class="card" style="cursor:pointer;" onclick="openNoteEditor('${n.id}')"><div class="card-title">${esc(n.title)}</div><div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div><div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;">${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</div></div>`; }).join(''); }
+
+// ==================== BAŞLATMA ====================
+function init() {
+  setTheme(currentTheme); applyTranslations(); updateHeaderDate(); switchModule('summary');
+  setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
 }
 init();
 </script>
-</div>
-</div>
 </body>
 </html>
