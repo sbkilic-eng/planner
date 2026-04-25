@@ -4,7 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Planner Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- PWA Meta Tags -->
+<meta name="theme-color" content="#1E2228">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Planner Pro">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%233A6EA8'/><stop offset='100%25' stop-color='%233E8A5C'/></linearGradient></defs><rect width='100' height='100' rx='24' fill='url(%23g)'/><rect x='21' y='16' width='14' height='68' rx='7' fill='white'/><path d='M35 22C58 18 78 28 78 38.5C78 49 58 59 35 55' fill='none' stroke='white' stroke-width='14' stroke-linecap='round'/><circle cx='77' cy='38.5' r='7.5' fill='%23E07B54'/></svg>">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* ================= TEMALAR ================= */
   :root {
@@ -13,204 +20,383 @@
     --border: #353B45;
     --text: #DFE4EC;
     --muted: #7E8899;
-    --accent: #5C9E78; 
-    --accent-work: #5C8BB8; 
+    --accent: #5C9E78;
+    --accent-work: #5C8BB8;
     --accent-light: rgba(92, 158, 120, 0.15);
     --accent-work-light: rgba(92, 139, 184, 0.15);
-    --accent-danger: #D86D6D;  
-    --shadow: 0 10px 30px rgba(0,0,0,0.3);
-    --card-radius: 18px;
+    --accent2: #E07B54;
+    --accent-warning: #D8A56D;
+    --accent-danger: #D86D6D;
+    --shadow: 0 4px 20px rgba(0,0,0,0.2);
   }
-
-  [data-theme="light"] { --bg: #F5F5F7; --surface: #FFFFFF; --border: #E5E5E7; --text: #1D1D1F; --muted: #86868B; --shadow: 0 10px 30px rgba(0,0,0,0.08); }
-  [data-theme="sepia"] { --bg: #F4ECD8; --surface: #FCF5E5; --border: #E6D8B8; --text: #433422; --muted: #8B7E66; --shadow: 0 10px 30px rgba(67, 52, 34, 0.1); }
+  [data-theme="light"] { --bg: #F5F5F7; --surface: #FFFFFF; --border: #E5E5E7; --text: #1D1D1F; --muted: #86868B; --shadow: 0 4px 15px rgba(0,0,0,0.05); }
+  [data-theme="sepia"] { --bg: #F4ECD8; --surface: #FCF5E5; --border: #E6D8B8; --text: #433422; --muted: #8B7E66; --shadow: 0 4px 15px rgba(67,52,34,0.08); }
   [data-theme="midnight"] { --bg: #000000; --surface: #121212; --border: #1F1F1F; --text: #E1E1E1; --muted: #666666; --shadow: none; }
 
+  /* ================= GENEL YAPI ================= */
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: background 0.3s, color 0.3s; }
-  
-  /* ================= SIDEBAR (CARD FAN) ================= */
-  .app-shell { display: flex; min-height: 100vh; width: 100%; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; min-height: 100dvh; overflow-x: hidden; transition: background 0.3s, color 0.3s; }
+  .app-shell { display: flex; min-height: 100vh; min-height: 100dvh; width: 100%; position: relative; }
 
-  .sidebar { 
-    width: 90px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); 
-    display: flex; flex-direction: column; align-items: center; padding: 20px 0; position: sticky; 
-    top: 0; height: 100vh; z-index: 100; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* ================= SIDEBAR ================= */
+  .sidebar { width: 260px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; z-index: 100; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  .app-logo-img { height: 42px; width: 42px; border-radius: 12px; display: block; flex-shrink: 0; }
+  .mobile-logo-img { display: none; height: 32px; width: 32px; border-radius: 9px; flex-shrink: 0; margin-left: 4px; }
+  .logo-wrap { display: flex; align-items: center; gap: 10px; }
+  .logo-wordmark { display: flex; flex-direction: column; line-height: 1; }
+  .logo-wordmark-main { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
+  .logo-wordmark-sub { font-size: 10px; font-weight: 800; letter-spacing: 2.5px; color: var(--accent); text-transform: uppercase; margin-top: 1px; }
+  .mobile-logo-wrap { display: none; align-items: center; gap: 8px; margin-left: 8px; }
+  .mobile-close-btn { display: none; font-size: 24px; color: var(--muted); background: none; border: none; cursor: pointer; }
+  .sidebar-scroll-area { flex: 1; overflow-y: auto; padding: 12px 0 20px; }
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; background: var(--surface); flex-shrink: 0; }
+
+  /* ================= NAV SUMMARY ITEM ================= */
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); border: none; background: none; width: 100%; text-align: left; transition: all 0.2s; }
+  .nav-item:hover { color: var(--text); background: rgba(126,136,153,0.05); }
+  .nav-item.active { color: var(--text); font-weight: 700; border-right: 4px solid var(--accent); background: var(--accent-light); }
+  .nav-item.active-work { border-right-color: var(--accent-work); background: var(--accent-work-light); }
+  .nav-icon { font-size: 16px; opacity: 0.8; }
+
+  /* ================= FAN MENU ================= */
+  .fan-group { margin-bottom: 4px; }
+  .fan-header {
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px; margin: 0 8px;
+    border-radius: 14px; cursor: pointer; border: none; background: none; width: calc(100% - 16px);
+    text-align: left; transition: background 0.2s; position: relative;
   }
-
-  .logo-area { margin-bottom: 25px; width: 55px; height: 55px; cursor: pointer; transition: transform 0.2s; }
-  .logo-area:hover { transform: rotate(-5deg) scale(1.05); }
-
-  .master-card {
-    width: 60px; height: 60px; background: var(--bg); border-radius: var(--card-radius);
-    display: flex; align-items: center; justify-content: center; font-size: 24px;
-    cursor: pointer; margin-bottom: 20px; border: 1px solid var(--border);
-    transition: all 0.3s ease; position: relative; z-index: 5;
+  .fan-header:hover { background: rgba(126,136,153,0.06); }
+  .fan-header-icon {
+    width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center;
+    justify-content: center; font-size: 22px; flex-shrink: 0; transition: transform 0.3s;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
   }
-  .master-card:hover { transform: scale(1.1); border-color: var(--muted); }
-  .master-card.active { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-light); }
-  .master-card.active-work { border-color: var(--accent-work); box-shadow: 0 0 15px var(--accent-work-light); }
+  .fan-header-icon.work { background: linear-gradient(135deg, #3A6EA8, #2E5A8E); }
+  .fan-header-icon.personal { background: linear-gradient(135deg, #3E8A5C, #2E7048); }
+  .fan-header-text { flex: 1; }
+  .fan-header-title { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.3px; }
+  .fan-header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .fan-arrow { font-size: 11px; color: var(--muted); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+  .fan-header.open .fan-arrow { transform: rotate(180deg); }
+  .fan-header.open .fan-header-icon { transform: scale(0.92); }
 
-  .fan-container { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; }
-  .sub-cards-wrapper { display: none; flex-direction: column; gap: 10px; padding: 5px 0 15px; width: 100%; align-items: center; }
-  .sub-cards-wrapper.open { display: flex; }
-
-  .sub-card {
-    width: 44px; height: 44px; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; display: flex; align-items: center; justify-content: center;
-    font-size: 18px; cursor: pointer; opacity: 0; transform: translateY(-15px);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow);
+  .fan-items {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; padding: 6px 12px 10px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease, padding 0.3s ease;
   }
-  .sub-cards-wrapper.open .sub-card { opacity: 1; transform: translateY(0); }
-  .sub-card:hover { background: var(--bg); transform: scale(1.15) !important; border-color: var(--muted); }
-  .sub-card.active { border-color: var(--accent); background: var(--accent-light); }
-  .sub-card.active-work { border-color: var(--accent-work); background: var(--accent-work-light); }
+  .fan-items.open { max-height: 500px; opacity: 1; }
 
-  .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 15px; margin-bottom: 10px; }
+  .fan-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; padding: 10px 6px; border-radius: 14px; cursor: pointer;
+    border: none; background: var(--bg); text-align: center;
+    border: 1px solid var(--border);
+    transition: transform 0.18s, background 0.18s, box-shadow 0.18s;
+    transform: translateY(-8px) scale(0.94);
+    opacity: 0;
+    animation: none;
+  }
+  .fan-items.open .fan-item { animation: fanItemIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  .fan-items.open .fan-item:nth-child(1) { animation-delay: 0.02s; }
+  .fan-items.open .fan-item:nth-child(2) { animation-delay: 0.06s; }
+  .fan-items.open .fan-item:nth-child(3) { animation-delay: 0.10s; }
+  .fan-items.open .fan-item:nth-child(4) { animation-delay: 0.14s; }
+  .fan-items.open .fan-item:nth-child(5) { animation-delay: 0.18s; }
+  .fan-items.open .fan-item:nth-child(6) { animation-delay: 0.22s; }
+  .fan-items.open .fan-item:nth-child(7) { animation-delay: 0.26s; }
+  @keyframes fanItemIn {
+    from { transform: translateY(-10px) scale(0.92); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .fan-item:hover { background: var(--surface); transform: scale(1.04); box-shadow: var(--shadow); }
+  .fan-item:active { transform: scale(0.96); }
+  .fan-item.active { background: var(--accent-light); border-color: var(--accent); }
+  .fan-item.active-work { background: var(--accent-work-light); border-color: var(--accent-work); }
+  .fan-item-icon { font-size: 22px; line-height: 1; }
+  .fan-item-label { font-size: 10px; font-weight: 600; color: var(--muted); line-height: 1.2; }
+  .fan-item.active .fan-item-label { color: var(--accent); }
+  .fan-item.active-work .fan-item-label { color: var(--accent-work); }
 
-  /* ================= HEADER & SEARCH ================= */
+  /* ================= ANA ALAN ================= */
   .main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  header { padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 90; background: var(--bg); border-bottom: 1px solid transparent; }
-  
-  .header-left { display: flex; align-items: center; gap: 12px; }
-  .hamburger { display: none; font-size: 24px; color: var(--text); background: none; border: none; cursor: pointer; }
+  header { padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; background: var(--bg); position: sticky; top: 0; z-index: 90; gap: 12px; }
+  .header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .hamburger { display: none; font-size: 24px; color: var(--text); background: none; border: none; cursor: pointer; padding: 4px; flex-shrink: 0; }
+  .app-date { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 4px; white-space: nowrap; }
+  .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .btn-header-icon { background: var(--surface); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 18px; flex-shrink: 0; }
+  .btn-header-icon:hover { color: var(--text); border-color: var(--muted); }
+  .btn-settings:hover { transform: rotate(45deg); }
+  .notif-dot { width: 8px; height: 8px; background: var(--accent-danger); border-radius: 50%; position: absolute; top: 6px; right: 6px; display: none; animation: pulse 2s infinite; }
+  .btn-header-icon { position: relative; }
 
-  .search-container { flex: 1; max-width: 320px; position: relative; margin: 0 20px; }
-  .search-input { width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 10px 15px 10px 38px; border-radius: 12px; color: var(--text); font-size: 14px; transition: all 0.2s; outline: none; }
-  .search-input:focus { border-color: var(--accent); background: var(--bg); }
-  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; }
-
-  .app-date { font-size: 14px; color: var(--muted); font-weight: 600; white-space: nowrap; }
-
-  /* ================= CONTENT & CARDS ================= */
-  .content { padding: 10px 32px 60px; max-width: 850px; margin: 0 auto; width: 100%; }
-  .section { display: none; animation: fadeIn 0.4s ease; } .section.active { display: block; }
+  .content { padding: 0 28px 100px; max-width: 820px; }
+  .section { display: none; animation: fadeIn 0.3s ease; } .section.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
   .section-main-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
   .context-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
 
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; box-shadow: var(--shadow); transition: transform 0.2s; }
-  .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; padding-right: 65px; color: var(--text); }
-  .card-meta { font-size: 14px; color: var(--muted); font-weight: 500; }
-  .card-note { font-size: 14px; color: var(--muted); margin-top: 10px; line-height: 1.6; white-space: pre-wrap; }
-  .card-actions { position: absolute; top: 20px; right: 20px; display: flex; gap: 8px; }
+  /* ================= ARAMA ================= */
+  .search-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; backdrop-filter: blur(6px); padding: 80px 20px 20px; }
+  .search-overlay.open { display: flex; flex-direction: column; animation: fadeIn 0.2s ease; }
+  .search-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .search-input { flex: 1; background: none; border: none; font-size: 17px; font-family: inherit; color: var(--text); outline: none; }
+  .search-input::placeholder { color: var(--muted); }
+  .search-close { background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer; padding: 4px; }
+  .search-results { flex: 1; overflow-y: auto; }
+  .search-result-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: transform 0.15s; }
+  .search-result-item:hover { transform: translateX(4px); border-color: var(--muted); }
+  .search-result-icon { font-size: 22px; width: 40px; height: 40px; border-radius: 10px; background: var(--bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .search-result-meta { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .search-empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 16px; font-style: italic; }
 
-  .summary-item { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; box-shadow: var(--shadow); }
-  .summary-item:hover { transform: translateX(6px); border-color: var(--muted); }
-  .sum-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid var(--border); flex-shrink: 0; }
-  
-  .badge { display: inline-block; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  /* ================= MOBİL ================= */
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(2px); }
+  @media (max-width: 768px) {
+    .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); width: 285px; box-shadow: var(--shadow); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .hamburger { display: block; }
+    .mobile-logo-wrap { display: flex; }
+    .mobile-close-btn { display: block; }
+    header { padding: 14px 16px; }
+    .app-date { display: none; }
+    .content { padding: 0 16px 100px; }
+  }
+
+  /* ================= ORTAK BİLEŞENLER ================= */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; position: relative; box-shadow: var(--shadow); }
+  .card-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; padding-right: 60px; }
+  .card-meta { font-size: 14px; color: var(--muted); }
+  .card-note { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.5; white-space: pre-wrap; }
+  .card-actions { position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin-bottom: 8px; }
+  .badge-past { background: var(--border); color: var(--muted); }
   .badge-safe { background: var(--accent-light); color: var(--accent); }
-  .badge-danger { background: rgba(216, 109, 109, 0.15); color: var(--accent-danger); }
-  .badge-warning { background: rgba(216, 165, 109, 0.15); color: var(--accent-warning); }
+  .badge-warning { background: rgba(216,165,109,0.15); color: var(--accent-warning); }
+  .badge-danger { background: rgba(216,109,109,0.15); color: var(--accent-danger); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%{opacity:1} 50%{opacity:0.7} 100%{opacity:1} }
 
-  /* AKORDİYONLAR VE LİSTELER */
+  .btn-add { display: flex; align-items: center; gap: 8px; width: 100%; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 14px 18px; color: var(--muted); cursor: pointer; font-weight: 600; font-size: 15px; margin-bottom: 16px; transition: all 0.2s; }
+  .btn-add:hover { border-color: var(--text); color: var(--text); }
+  .btn-primary { background: var(--accent); color: #fff; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-family: inherit; transition: transform 0.1s; font-size: 14px; }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-family: inherit; }
+  .btn-icon { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 16px; transition: color 0.2s; }
+  .btn-icon:hover { color: var(--accent2); }
+
+  .form-row { margin-bottom: 12px; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  input, textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 15px; font-family: inherit; color: var(--text); outline: none; }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 18px; font-style: italic; }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .section-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; margin-top: 8px; }
+
+  /* ================= ETİKETLER ================= */
+  .tag-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; letter-spacing: 0.3px; margin-right: 4px; }
+  .tag-blue   { background: rgba(92,139,184,0.2); color: #5C8BB8; }
+  .tag-green  { background: rgba(92,158,120,0.2); color: #5C9E78; }
+  .tag-orange { background: rgba(224,123,84,0.2); color: #E07B54; }
+  .tag-red    { background: rgba(216,109,109,0.2); color: #D86D6D; }
+  .tag-purple { background: rgba(140,100,200,0.2); color: #9B6FD0; }
+  .tag-yellow { background: rgba(216,165,109,0.2); color: #D8A56D; }
+  .tag-filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tag-filter-btn { font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .tag-filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .tag-color-row { display: flex; gap: 8px; margin-top: 6px; }
+  .tag-color-swatch { width: 28px; height: 28px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; }
+  .tag-color-swatch:hover { transform: scale(1.1); }
+  .tag-color-swatch.selected { border-color: var(--text); transform: scale(1.1); }
+
+  /* ================= FAB ================= */
+  .fab-container { position: fixed; bottom: 28px; right: 28px; z-index: 200; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 10px; }
+  .fab { width: 58px; height: 58px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; color: white; font-size: 26px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 24px rgba(92,158,120,0.45); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s; }
+  .fab:hover { transform: scale(1.08); }
+  .fab.open { transform: rotate(45deg); background: var(--accent2); box-shadow: 0 6px 24px rgba(224,123,84,0.45); }
+  .fab-menu { display: flex; flex-direction: column-reverse; gap: 10px; overflow: hidden; }
+  .fab-option { display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateY(10px) scale(0.9); transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
+  .fab-option.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+  .fab-option:nth-child(1) { transition-delay: 0.00s; }
+  .fab-option:nth-child(2) { transition-delay: 0.04s; }
+  .fab-option:nth-child(3) { transition-delay: 0.08s; }
+  .fab-option-label { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; box-shadow: var(--shadow); }
+  .fab-option-btn { width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: var(--shadow); flex-shrink: 0; }
+
+  /* ================= BİLDİRİM ÇUBUĞU ================= */
+  .notif-bar { background: linear-gradient(90deg, rgba(92,139,184,0.15), rgba(92,158,120,0.15)); border-bottom: 1px solid var(--border); padding: 10px 20px; display: none; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; font-size: 13px; }
+  .notif-bar.visible { display: flex; animation: fadeIn 0.3s ease; }
+  .notif-bar-text { color: var(--text); font-weight: 500; }
+  .notif-bar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .notif-bar-btn { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; border: none; font-family: inherit; }
+  .notif-bar-allow { background: var(--accent); color: white; }
+  .notif-bar-dismiss { background: var(--border); color: var(--muted); }
+
+  /* ================= MODÜL SPESİFİK ================= */
+  .summary-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; cursor: pointer; box-shadow: var(--shadow); transition: transform 0.2s; }
+  .summary-item:hover { transform: translateX(6px); border-color: var(--muted); }
+  .sum-icon { font-size: 22px; width: 44px; height: 44px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); flex-shrink: 0; }
+  .todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; transition: opacity 0.2s; border-left: 4px solid var(--border); box-shadow: var(--shadow); }
+  .todo-item.priority-high { border-left-color: var(--accent-danger); }
+  .todo-item.done { opacity: 0.4; } .todo-item.done .todo-text { text-decoration: line-through; }
+  .list-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .list-check.checked { background: var(--accent); border-color: var(--accent); }
   .acc-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-  .acc-body { display: none; padding-top: 14px; margin-top: 14px; border-top: 1px dashed var(--border); }
+  .acc-body { display: none; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--border); }
   .acc-body.open { display: block; animation: fadeIn 0.2s ease; }
   .chevron { transition: transform 0.2s; font-size: 12px; color: var(--muted); } .chevron.open { transform: rotate(180deg); }
-  
-  .list-item-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); } 
-  .list-item-row:last-child { border-bottom: none; }
-  .list-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-  .list-check.checked { background: var(--accent); border-color: var(--accent); }
-
-  /* ================= MODALS & FORMS ================= */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--surface); width: 92%; max-width: 480px; border-radius: 20px; padding: 24px; border: 1px solid var(--border); box-shadow: var(--shadow); max-height: 90vh; overflow-y: auto; }
-  .modal-title { font-family: 'Instrument Serif', serif; font-size: 26px; margin-bottom: 20px; }
-
-  label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
-  input, textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-size: 15px; font-family: inherit; color: var(--text); outline: none; margin-bottom: 15px; }
-  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
-  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-
-  /* BUTONLAR */
-  .btn-icon { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--muted); transition: color 0.2s; padding: 4px; }
-  .btn-icon:hover { color: var(--text); }
-  .btn-add { display: flex; align-items: center; gap: 8px; width: 100%; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 14px; color: var(--muted); cursor: pointer; font-weight: 700; margin-bottom: 20px; transition: 0.2s; font-size: 15px; }
-  .btn-add:hover { border-color: var(--text); color: var(--text); }
-  
-  .btn-primary { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; font-size: 15px; transition: transform 0.1s; }
-  .btn-primary:active { transform: scale(0.97); }
-  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; font-size: 15px; transition: background 0.2s; }
-  .btn-ghost:hover { background: var(--bg); }
-
-  /* MOBİL UYUMLULUK */
-  @media (max-width: 768px) {
-    .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); width: 90px; box-shadow: 15px 0 40px rgba(0,0,0,0.5); border-right: none; }
-    .sidebar.open { transform: translateX(0); }
-    .hamburger { display: block; }
-    .search-container { margin: 0 10px; }
-    header { padding: 15px 20px; }
-    .content { padding: 0 16px 40px; }
-  }
-  .empty { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 16px; font-style: italic; }
-
-  /* NOTE EDITOR FULLSCREEN */
-  .note-editor { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; flex-direction: column; max-width: 800px; margin: 0 auto; }
+  .list-item-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); } .list-item-row:last-child { border-bottom: none; }
+  .goal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .goal-bar-bg { width: 100%; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); margin: 12px 0; }
+  .goal-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
+  .habit-days { display: flex; gap: 8px; margin-top: 14px; }
+  .habit-day { flex: 1; aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.15s; }
+  .habit-day.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .habit-day.today { border-color: var(--accent-warning); }
+  .bday-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent); flex-shrink: 0; font-weight:700; }
+  .note-editor { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; flex-direction: column; max-width: 820px; margin: 0 auto; }
   .note-editor.open { display: flex; animation: fadeIn 0.2s; }
   .note-editor-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
   .note-editor-title { flex: 1; font-size: 18px; font-weight: 700; background: none; border: none; color: var(--text); }
   .note-tabs { display:flex; border-bottom:1px solid var(--border); background:var(--surface); }
-  .note-tab { flex:1; padding:12px; text-align:center; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); border-bottom: 2px solid transparent;}
+  .note-tab { flex:1; padding:12px; text-align:center; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); border-bottom: 2px solid transparent; }
   .note-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
   .note-area { flex:1; padding:20px; overflow-y:auto; background:var(--bg); }
-  .note-textarea { width: 100%; height:100%; background: none; border: none; color: var(--text); resize: none; display:none; line-height: 1.6; }
-  .note-preview { width: 100%; height:100%; display:none; line-height: 1.6; }
+  .note-textarea { width:100%; height:100%; background:none; border:none; color:var(--text); resize:none; display:none; line-height:1.6; }
+  .note-preview { width:100%; height:100%; display:none; line-height:1.6; }
   .note-textarea.active, .note-preview.active { display:block; }
+  .note-preview h1, .note-preview h2, .note-preview h3 { margin:15px 0 10px; font-weight:normal; }
+  .note-preview ul { margin-left:20px; margin-bottom:10px; }
+
+  /* ================= MODALS ================= */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); width: 90%; max-width: 500px; border-radius: 20px; padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-size: 24px; font-weight:700; margin-bottom: 20px; }
 </style>
 </head>
 <body data-theme="dark">
 
 <div class="app-shell">
-  <div style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:99; backdrop-filter: blur(2px);" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
   <nav class="sidebar" id="sidebar">
-    <div class="logo-area" onclick="switchModule('summary')">
-      <svg viewBox="0 0 100 100">
-        <defs>
-          <linearGradient id="pGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:var(--accent);stop-opacity:1" />
-            <stop offset="100%" style="stop-color:var(--accent-work);stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        <rect width="90" height="90" x="5" y="5" rx="22" fill="var(--surface)" />
-        <path d="M32 25 v50 M32 25 h20 c15 0 15 25 0 25 h-20" fill="none" stroke="url(#pGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M32 38 h12 M32 48 h12" stroke="var(--bg)" stroke-width="3" stroke-linecap="round" />
-      </svg>
-    </div>
-
-    <div class="master-card active" id="btn-summary" onclick="switchModule('summary')" title="Özet">🏠</div>
-
-    <div class="fan-container">
-      <div class="master-card" id="btn-work-master" onclick="toggleFan('work')" title="İş Dünyası">💼</div>
-      <div class="sub-cards-wrapper" id="fan-work">
-        <div class="sub-card" id="btn-work_appointments" onclick="switchModule('appointments', 'work')" title="Toplantılar">🗓️</div>
-        <div class="sub-card" id="btn-work_todos" onclick="switchModule('todos', 'work')" title="Görevler">💼</div>
-        <div class="sub-card" id="btn-work_travels" onclick="switchModule('travels', 'work')" title="İş Seyahati">✈️</div>
-        <div class="sub-card" id="btn-work_notes" onclick="switchModule('notes', 'work')" title="Notlar">📄</div>
+    <!-- BİLDİRİM ÇUBUĞU -->
+    <div class="notif-bar" id="notif-bar">
+      <span class="notif-bar-text">🔔 Hatırlatıcılar için izin ver?</span>
+      <div class="notif-bar-actions">
+        <button class="notif-bar-btn notif-bar-allow" onclick="allowNotifications()">İzin Ver</button>
+        <button class="notif-bar-btn notif-bar-dismiss" onclick="dismissNotifBar()">✕</button>
       </div>
     </div>
 
-    <div class="fan-container">
-      <div class="master-card" id="btn-pers-master" onclick="toggleFan('pers')" title="Kişisel Yaşam">🌱</div>
-      <div class="sub-cards-wrapper" id="fan-pers">
-        <div class="sub-card" id="btn-pers_appointments" onclick="switchModule('appointments', 'pers')" title="Randevular">📍</div>
-        <div class="sub-card" id="btn-pers_todos" onclick="switchModule('todos', 'pers')" title="Görevler">✅</div>
-        <div class="sub-card" id="btn-pers_habits" onclick="switchModule('habits', 'pers')" title="Rutinler">⚡</div>
-        <div class="sub-card" id="btn-pers_lists" onclick="switchModule('lists', 'pers')" title="Listeler">📈</div>
-        <div class="sub-card" id="btn-pers_travels" onclick="switchModule('travels', 'pers')" title="Seyahat">🎒</div>
-        <div class="sub-card" id="btn-pers_birthdays" onclick="switchModule('birthdays', 'pers')" title="D.Günü">🎂</div>
-        <div class="sub-card" id="btn-pers_notes" onclick="switchModule('notes', 'pers')" title="Notlar">✍️</div>
+    <div class="sidebar-header">
+      <div class="logo-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="app-logo-img">
+          <defs><linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3A6EA8"/><stop offset="100%" stop-color="#3E8A5C"/></linearGradient></defs>
+          <rect width="100" height="100" rx="24" fill="url(#lg1)"/>
+          <path d="M24 0L76 0Q100 0 100 24L100 37Q50 26 0 37L0 24Q0 0 24 0Z" fill="white" opacity="0.09"/>
+          <rect x="21" y="16" width="14" height="68" rx="7" fill="white"/>
+          <path d="M35 22C58 18 78 28 78 38.5C78 49 58 59 35 55" fill="none" stroke="white" stroke-width="14" stroke-linecap="round"/>
+          <circle cx="77" cy="38.5" r="7.5" fill="#E07B54"/>
+          <circle cx="74.5" cy="36" r="2.5" fill="white" opacity="0.35"/>
+        </svg>
+        <div class="logo-wordmark">
+          <span class="logo-wordmark-main">Planner</span>
+          <span class="logo-wordmark-sub">PRO</span>
+        </div>
+      </div>
+      <button class="mobile-close-btn" onclick="toggleSidebar()">✕</button>
+    </div>
+
+    <div class="sidebar-scroll-area">
+      <button class="nav-item active" id="nav-summary" onclick="switchModule('summary')">
+        <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Özet</span>
+      </button>
+
+      <!-- İŞ DÜNYASI FAN GROUP -->
+      <div class="fan-group">
+        <button class="fan-header" id="fan-work" onclick="toggleFanGroup('work')">
+          <div class="fan-header-icon work">💼</div>
+          <div class="fan-header-text">
+            <div class="fan-header-title" data-i18n="nav_work">İŞ DÜNYASI</div>
+            <div class="fan-header-sub" id="fan-work-sub">4 bölüm</div>
+          </div>
+          <span class="fan-arrow">▼</span>
+        </button>
+        <div class="fan-items" id="fan-items-work">
+          <button class="fan-item" onclick="switchModule('appointments','work')" id="fani-work-appointments">
+            <span class="fan-item-icon">🗓️</span>
+            <span class="fan-item-label" data-i18n="nav_work_cal">Toplantı & Takvim</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('todos','work')" id="fani-work-todos">
+            <span class="fan-item-icon">💼</span>
+            <span class="fan-item-label" data-i18n="nav_work_todo">İş Görevleri</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('travels','work')" id="fani-work-travels">
+            <span class="fan-item-icon">✈️</span>
+            <span class="fan-item-label" data-i18n="nav_work_travel">İş Seyahati</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('notes','work')" id="fani-work-notes">
+            <span class="fan-item-icon">📄</span>
+            <span class="fan-item-label" data-i18n="nav_work_notes">Şirket Notları</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KİŞİSEL YAŞAM FAN GROUP -->
+      <div class="fan-group">
+        <button class="fan-header" id="fan-pers" onclick="toggleFanGroup('pers')">
+          <div class="fan-header-icon personal">🌿</div>
+          <div class="fan-header-text">
+            <div class="fan-header-title" data-i18n="nav_personal">KİŞİSEL YAŞAM</div>
+            <div class="fan-header-sub" id="fan-pers-sub">7 bölüm</div>
+          </div>
+          <span class="fan-arrow">▼</span>
+        </button>
+        <div class="fan-items" id="fan-items-pers">
+          <button class="fan-item" onclick="switchModule('appointments','pers')" id="fani-pers-appointments">
+            <span class="fan-item-icon">📍</span>
+            <span class="fan-item-label" data-i18n="nav_pers_cal">Randevular</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('todos','pers')" id="fani-pers-todos">
+            <span class="fan-item-icon">✅</span>
+            <span class="fan-item-label" data-i18n="nav_pers_todo">Görevler</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('habits','pers')" id="fani-pers-habits">
+            <span class="fan-item-icon">⚡</span>
+            <span class="fan-item-label" data-i18n="nav_pers_habits">Gelişim & Rutin</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('lists','pers')" id="fani-pers-lists">
+            <span class="fan-item-icon">📈</span>
+            <span class="fan-item-label" data-i18n="nav_pers_lists">Hedefler & Listeler</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('travels','pers')" id="fani-pers-travels">
+            <span class="fan-item-icon">🎒</span>
+            <span class="fan-item-label" data-i18n="nav_pers_travel">Seyahat Planı</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('birthdays','pers')" id="fani-pers-birthdays">
+            <span class="fan-item-icon">🎂</span>
+            <span class="fan-item-label" data-i18n="nav_pers_bday">Doğum Günleri</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('notes','pers')" id="fani-pers-notes">
+            <span class="fan-item-icon">✍️</span>
+            <span class="fan-item-label" data-i18n="nav_pers_notes">Kişisel Notlar</span>
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="sidebar-footer">
-      <button class="btn-icon" onclick="exportData()" title="Yedekle">💾</button>
-      <button class="btn-icon" onclick="document.getElementById('imp').click()" title="Yükle">📂</button>
+      <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="exportData()">💾 <span data-i18n="export">Yedekle (TXT)</span></button>
+      <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="document.getElementById('imp').click()">📂 <span data-i18n="import">Veri Yükle</span></button>
       <input type="file" id="imp" style="display:none" onchange="importData(event)">
     </div>
   </nav>
@@ -219,191 +405,216 @@
     <header>
       <div class="header-left">
         <button class="hamburger" onclick="toggleSidebar()">☰</button>
-      </div>
-
-      <div class="search-container">
-        <span class="search-icon">🔍</span>
-        <input type="text" class="search-input" id="global-search" placeholder="Listede ara..." oninput="handleSearch(this.value)">
-      </div>
-
-      <div style="display:flex; align-items:center; gap:15px;">
+        <div class="mobile-logo-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="mobile-logo-img">
+            <defs><linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3A6EA8"/><stop offset="100%" stop-color="#3E8A5C"/></linearGradient></defs>
+            <rect width="100" height="100" rx="24" fill="url(#lg2)"/>
+            <rect x="21" y="16" width="14" height="68" rx="7" fill="white"/>
+            <path d="M35 22C58 18 78 28 78 38.5C78 49 58 59 35 55" fill="none" stroke="white" stroke-width="14" stroke-linecap="round"/>
+            <circle cx="77" cy="38.5" r="7.5" fill="#E07B54"/>
+          </svg>
+          <div class="logo-wordmark">
+            <span class="logo-wordmark-main" style="font-size:14px">Planner</span>
+            <span class="logo-wordmark-sub">PRO</span>
+          </div>
+        </div>
         <span class="app-date" id="headerDate"></span>
-        <button class="btn-settings" onclick="openModal('modal-settings')">⚙️</button>
+      </div>
+      <div class="header-right">
+        <button class="btn-header-icon" onclick="openSearch()" title="Ara">🔍</button>
+        <button class="btn-header-icon btn-settings" onclick="openModal('modal-settings')" title="Ayarlar">⚙️</button>
       </div>
     </header>
 
     <div class="content">
-        <div class="section-main-title" id="module-header" style="display:none;">
-            <span id="module-title"></span>
-            <span id="module-badge" class="context-badge"></span>
-        </div>
+      <div class="section-main-title" id="module-header" style="display:none;">
+        <span id="module-title">Modül Adı</span>
+        <span id="module-badge" class="context-badge"></span>
+      </div>
 
-        <div class="section active" id="sec-summary"><div id="summary-list"></div></div>
-        
-        <div class="section" id="sec-appointments">
-          <button class="btn-add" onclick="openForm('modal-appt')">+ Yeni Kayıt Ekle</button>
-          <div id="appt-list"></div>
-        </div>
+      <div class="section active" id="sec-summary">
+        <div id="summary-list"></div>
+      </div>
 
-        <div class="section" id="sec-todos">
-          <button class="btn-add" onclick="openForm('modal-todo')">+ Yeni Görev Ekle</button>
-          <div id="todo-list"></div>
-        </div>
-        
-        <div class="section" id="sec-travels">
-          <button class="btn-add" onclick="openForm('modal-travel')">+ Yeni Seyahat Planla</button>
-          <div id="travel-list"></div>
-        </div>
+      <div class="section" id="sec-appointments">
+        <button class="btn-add" onclick="openApptForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="appt-list"></div>
+      </div>
 
-        <div class="section" id="sec-habits">
-            <button class="btn-add" onclick="openForm('modal-habit')">+ Yeni Alışkanlık Ekle</button>
-            <div id="habit-list"></div>
-        </div>
+      <div class="section" id="sec-todos">
+        <button class="btn-add" onclick="openTodoForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div class="tag-filter-bar" id="todo-tag-filter"></div>
+        <div id="todo-list"></div>
+      </div>
 
-        <div class="section" id="sec-lists">
-            <div id="goal-container"></div>
-            <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px;" id="cat-tabs"></div>
-            <div id="list-content"></div>
-        </div>
+      <div class="section" id="sec-travels">
+        <button class="btn-add" onclick="openTravelForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="travel-list"></div>
+      </div>
 
-        <div class="section" id="sec-birthdays">
-            <button class="btn-add" onclick="openForm('modal-bday')">+ Yeni Kişi Ekle</button>
-            <div id="bday-list"></div>
-        </div>
-        
-        <div class="section" id="sec-notes">
-          <button class="btn-add" onclick="openNoteEditor()">+ Yeni Not Ekle</button>
-          <div id="notes-list"></div>
-        </div>
+      <div class="section" id="sec-habits">
+        <button class="btn-add" onclick="openModal('modal-habit')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="habit-list"></div>
+      </div>
+
+      <div class="section" id="sec-lists">
+        <div id="goal-container"></div>
+        <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px;" id="cat-tabs"></div>
+        <div id="list-content"></div>
+      </div>
+
+      <div class="section" id="sec-birthdays">
+        <button class="btn-add" onclick="openModal('modal-bday')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="bday-list"></div>
+      </div>
+
+      <div class="section" id="sec-notes">
+        <button class="btn-add" onclick="openNoteEditor()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <div id="notes-list"></div>
+      </div>
     </div>
   </main>
 </div>
 
+<!-- FAB -->
+<div class="fab-container" id="fab-container">
+  <button class="fab" id="fab-main" onclick="toggleFAB()">+</button>
+  <div class="fab-menu" id="fab-menu">
+    <div class="fab-option" id="fab-opt-appt">
+      <span class="fab-option-label">Randevu / Toplantı</span>
+      <button class="fab-option-btn" style="background:var(--accent-work);" onclick="fabAction('appt')">🗓️</button>
+    </div>
+    <div class="fab-option" id="fab-opt-todo">
+      <span class="fab-option-label">Görev Ekle</span>
+      <button class="fab-option-btn" style="background:var(--accent);" onclick="fabAction('todo')">✅</button>
+    </div>
+    <div class="fab-option" id="fab-opt-note">
+      <span class="fab-option-label">Hızlı Not</span>
+      <button class="fab-option-btn" style="background:var(--accent2);" onclick="fabAction('note')">✍️</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARAMA OVERLAY -->
+<div class="search-overlay" id="search-overlay">
+  <div class="search-box">
+    <span style="font-size:18px; color:var(--muted);">🔍</span>
+    <input class="search-input" id="search-input" placeholder="Görev, randevu, not ara..." oninput="performSearch()" autofocus>
+    <button class="search-close" onclick="closeSearch()">✕</button>
+  </div>
+  <div class="search-results" id="search-results"></div>
+</div>
+
+<!-- MODALS -->
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-      <h2 class="modal-title" style="margin:0;">Ayarlar</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 class="modal-title" style="margin:0;" data-i18n="settings">Ayarlar</h2>
       <button class="btn-icon" onclick="closeModal('modal-settings')" style="font-size:24px;">✕</button>
     </div>
-    <label>Görünüm Teması</label>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
-      <button class="btn-ghost" onclick="setTheme('dark')">Koyu</button>
-      <button class="btn-ghost" style="background:#fff; color:#111;" onclick="setTheme('light')">Aydınlık</button>
-      <button class="btn-ghost" style="background:#F4ECD8; color:#433422;" onclick="setTheme('sepia')">Bej</button>
-      <button class="btn-ghost" style="background:#000; color:#eee;" onclick="setTheme('midnight')">Gece</button>
+    <div class="form-row">
+      <label data-i18n="theme">Görünüm Teması</label>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <button class="btn-ghost theme-btn" onclick="setTheme('dark')" id="t-dark">Koyu</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('light')" id="t-light">Aydınlık</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('sepia')" id="t-sepia">Bej</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('midnight')" id="t-midnight">Gece</button>
+      </div>
     </div>
-    <label>Dil / Language</label>
-    <select onchange="setLang(this.value)" id="lang-select">
-      <option value="tr">Türkçe</option><option value="en">English</option>
-    </select>
-    <div class="form-row-2" style="margin-top:20px;">
-      <button class="btn-ghost" onclick="closeModal('modal-settings')" style="grid-column: span 2;">Kapat</button>
+    <div class="form-row" style="margin-top:20px;">
+      <label data-i18n="language">Dil / Language</label>
+      <select onchange="setLang(this.value)" id="lang-select">
+        <option value="tr">Türkçe</option><option value="en">English</option>
+      </select>
+    </div>
+    <div class="form-row" style="margin-top:20px;">
+      <label>Bildirimler</label>
+      <button class="btn-ghost" style="width:100%;" onclick="allowNotifications()" id="notif-settings-btn">🔔 Bildirimleri Etkinleştir</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-appt">
   <div class="modal">
-    <h2 class="modal-title" id="appt-modal-title">Randevu / Etkinlik</h2>
-    <label>Başlık</label><input type="text" id="m-appt-title" placeholder="Kiminle / Nerede?">
+    <div class="modal-title" id="appt-modal-title">Randevu</div>
+    <div class="form-row"><label data-i18n="title">Başlık</label><input type="text" id="m-appt-title"></div>
     <div class="form-row-2">
-      <div><label>Tarih</label><input type="date" id="m-appt-date"></div>
-      <div><label>Saat</label><input type="time" id="m-appt-time"></div>
+      <div><label data-i18n="date">Tarih</label><input type="date" id="m-appt-date"></div>
+      <div><label data-i18n="time">Saat</label><input type="time" id="m-appt-time"></div>
     </div>
-    <label>Not</label><textarea id="m-appt-note" style="min-height:70px;" placeholder="Ekstra detaylar..."></textarea>
-    
-    <div class="form-row-2" style="margin-top: 15px;">
-        <button class="btn-primary" onclick="saveData('appts')">Kaydet</button>
-        <button class="btn-ghost" onclick="closeModal('modal-appt')">İptal</button>
-    </div>
+    <div class="form-row"><label>Not</label><textarea id="m-appt-note"></textarea></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveAppt()" id="btn-appt-save">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-appt')">İptal</button></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-todo">
   <div class="modal">
-    <h2 class="modal-title">Görev</h2>
-    <label>Görev Adı</label><input type="text" id="m-todo-title" placeholder="Ne yapılacak?">
+    <div class="modal-title" id="todo-modal-title">Görev</div>
+    <div class="form-row"><label data-i18n="title">Görev Adı</label><input type="text" id="m-todo-title"></div>
     <div class="form-row-2">
       <div><label>Öncelik</label><select id="m-todo-pri"><option value="normal">Normal</option><option value="high">Yüksek</option></select></div>
-      <div><label>Tekrar</label><select id="m-todo-rec"><option value="">Tek Seferlik</option><option value="1">Günlük</option><option value="7">Haftalık</option></select></div>
+      <div><label>Tekrar</label><select id="m-todo-rec"><option value="">Tek Seferlik</option><option value="1">Günlük</option><option value="7">Haftalık</option><option value="30">Aylık</option></select></div>
     </div>
-    <label>Son Tarih</label><input type="date" id="m-todo-date">
-    <label>Not</label><input type="text" id="m-todo-note" placeholder="Detay...">
-    
-    <div class="form-row-2" style="margin-top: 15px;">
-        <button class="btn-primary" onclick="saveData('todos')">Kaydet</button>
-        <button class="btn-ghost" onclick="closeModal('modal-todo')">İptal</button>
+    <div class="form-row"><label data-i18n="date">Tarih</label><input type="date" id="m-todo-date"></div>
+    <div class="form-row"><label>Not</label><input type="text" id="m-todo-note"></div>
+    <div class="form-row">
+      <label>Etiket</label>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="m-todo-tag" placeholder="etiket adı..." style="flex:1;">
+      </div>
+      <div class="tag-color-row" style="margin-top:8px;">
+        <div class="tag-color-swatch selected" style="background:#5C8BB8;" data-color="blue" onclick="selectTagColor('blue',this)"></div>
+        <div class="tag-color-swatch" style="background:#5C9E78;" data-color="green" onclick="selectTagColor('green',this)"></div>
+        <div class="tag-color-swatch" style="background:#E07B54;" data-color="orange" onclick="selectTagColor('orange',this)"></div>
+        <div class="tag-color-swatch" style="background:#D86D6D;" data-color="red" onclick="selectTagColor('red',this)"></div>
+        <div class="tag-color-swatch" style="background:#9B6FD0;" data-color="purple" onclick="selectTagColor('purple',this)"></div>
+        <div class="tag-color-swatch" style="background:#D8A56D;" data-color="yellow" onclick="selectTagColor('yellow',this)"></div>
+      </div>
     </div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveTodo()" id="btn-todo-save">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-todo')">İptal</button></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-travel">
   <div class="modal">
-    <h2 class="modal-title">Seyahat / Rota</h2>
-    <label>Destinasyon</label><input type="text" id="m-travel-dest" placeholder="Nereye?">
+    <div class="modal-title" id="travel-modal-title">Seyahat / Rota</div>
+    <div class="form-row"><label>Destinasyon</label><input type="text" id="m-travel-dest"></div>
     <div class="form-row-2">
       <div><label>Gidiş</label><input type="date" id="m-travel-start"></div>
       <div><label>Dönüş</label><input type="date" id="m-travel-end"></div>
     </div>
-    <label>Not</label><textarea id="m-travel-note" style="min-height:60px;" placeholder="Konaklama, ulaşım vs."></textarea>
-    
-    <div class="form-row-2" style="margin-top: 15px;">
-        <button class="btn-primary" onclick="saveData('travels')">Kaydet</button>
-        <button class="btn-ghost" onclick="closeModal('modal-travel')">İptal</button>
-    </div>
+    <div class="form-row"><label>Genel Not</label><textarea id="m-travel-note"></textarea></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveTravel()" id="btn-travel-save">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-travel')">İptal</button></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-habit">
   <div class="modal">
-    <h2 class="modal-title">Alışkanlık / Rutin</h2>
-    <label>Alışkanlık Adı</label><input type="text" id="m-habit-name" placeholder="Örn: Spor, Kitap...">
-    <label>Haftalık Hedef</label>
-    <select id="m-habit-target">
-        <option value="7">Her Gün (7 Gün)</option>
-        <option value="5">Hafta İçi (5 Gün)</option>
-        <option value="3">Haftada 3 Gün</option>
-        <option value="1">Haftada 1 Gün</option>
-    </select>
-    
-    <div class="form-row-2" style="margin-top: 15px;">
-        <button class="btn-primary" onclick="saveData('habits')">Kaydet</button>
-        <button class="btn-ghost" onclick="closeModal('modal-habit')">İptal</button>
-    </div>
+    <div class="modal-title">Rutin Ekle</div>
+    <div class="form-row"><label>Alışkanlık Adı</label><input type="text" id="m-habit-name"></div>
+    <div class="form-row"><label>Haftalık Hedef (Gün)</label><select id="m-habit-target"><option value="7">7 Gün</option><option value="5">5 Gün</option><option value="3">3 Gün</option><option value="1">1 Gün</option></select></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveHabit()">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-habit')">İptal</button></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-bday">
   <div class="modal">
-    <h2 class="modal-title">Doğum Günü</h2>
-    <label>Kişinin Adı</label><input type="text" id="m-bday-name" placeholder="Ad Soyad">
+    <div class="modal-title" id="bday-modal-title">Kişi Ekle</div>
+    <div class="form-row"><label>İsim Soyisim</label><input type="text" id="m-bday-name"></div>
     <div class="form-row-2">
-      <div><label>Ay</label>
-        <select id="m-bday-month">
-            <option value="1">Ocak</option><option value="2">Şubat</option><option value="3">Mart</option>
-            <option value="4">Nisan</option><option value="5">Mayıs</option><option value="6">Haziran</option>
-            <option value="7">Temmuz</option><option value="8">Ağustos</option><option value="9">Eylül</option>
-            <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
-        </select>
-      </div>
-      <div><label>Gün</label><input type="number" id="m-bday-day" min="1" max="31" placeholder="15"></div>
+      <div><label>Ay</label><select id="m-bday-month"><option value="1">Ocak</option><option value="2">Şubat</option><option value="3">Mart</option><option value="4">Nisan</option><option value="5">Mayıs</option><option value="6">Haziran</option><option value="7">Temmuz</option><option value="8">Ağustos</option><option value="9">Eylül</option><option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option></select></div>
+      <div><label>Gün</label><input type="number" id="m-bday-day" min="1" max="31"></div>
     </div>
-    
-    <div class="form-row-2" style="margin-top: 15px;">
-        <button class="btn-primary" onclick="saveData('birthdays')">Kaydet</button>
-        <button class="btn-ghost" onclick="closeModal('modal-bday')">İptal</button>
-    </div>
+    <div class="form-row"><label>Genel Not</label><input type="text" id="m-bday-note" placeholder="Ekstra bir şey..."></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveBday()" id="btn-bday-save">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-bday')">İptal</button></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-newlist">
   <div class="modal">
-    <h2 class="modal-title">Yeni Liste Türü</h2>
-    <label>Kategori Adı</label><input type="text" id="m-newlist-name" placeholder="Örn: İzlenecekler, Market...">
-    <div class="form-row-2" style="margin-top: 15px;">
-        <button class="btn-primary" onclick="saveNewListCat()">Kaydet</button>
-        <button class="btn-ghost" onclick="closeModal('modal-newlist')">İptal</button>
-    </div>
+    <div class="modal-title">Yeni Liste Kategorisi</div>
+    <div class="form-row"><label>Kategori Adı</label><input type="text" id="m-newlist-name" placeholder="Örn: Filmler, Market..."></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveNewListCat()">Oluştur</button><button class="btn-ghost" onclick="closeModal('modal-newlist')">İptal</button></div>
   </div>
 </div>
 
@@ -411,359 +622,492 @@
   <div class="note-editor-header">
     <button class="btn-icon" onclick="closeNoteEditor()" style="font-size:24px;">&#8592;</button>
     <input class="note-editor-title" id="m-note-title" placeholder="Başlık...">
-    <button class="btn-icon" onclick="deleteData(currentEditId, true)" style="color:var(--accent-danger); font-size:22px;">✕</button>
+    <button class="btn-icon" onclick="deleteNote()" style="color:var(--accent-danger);font-size:20px;">&#10005;</button>
   </div>
   <div class="note-tabs">
     <div class="note-tab active" id="tab-write" onclick="switchNoteTab('write')">✏️ Düzenle</div>
     <div class="note-tab" id="tab-preview" onclick="switchNoteTab('preview')">👁️ Önizle</div>
   </div>
   <div class="note-area">
-    <textarea class="note-textarea active" id="m-note-body" placeholder="Karalamaya başla..."></textarea>
+    <textarea class="note-textarea active" id="m-note-body" placeholder="# Markdown Destekli Not&#10;- Madde 1&#10;- **Kalın** veya *Eğik*..."></textarea>
     <div class="note-preview" id="m-note-preview"></div>
-  </div>
-  <div style="padding:15px; border-top:1px solid var(--border); background:var(--surface);">
-    <button class="btn-primary" onclick="closeNoteEditor()">Kaydet ve Çık</button>
   </div>
 </div>
 
 <script>
-// ==================== CORE ====================
-let currentContext = 'pers'; 
-let currentModule = 'summary';
-let currentEditId = null;
+// ==================== DİL & ÇEVİRİ ====================
+const translations = {
+  tr: {
+    nav_summary:"Özet", nav_work:"İş Dünyası", nav_work_cal:"Toplantı & Takvim", nav_work_todo:"İş Görevleri", nav_work_travel:"İş Seyahati", nav_work_notes:"Şirket Notları",
+    nav_personal:"Kişisel Yaşam", nav_pers_cal:"Randevular", nav_pers_todo:"Görevler", nav_pers_habits:"Gelişim & Rutin", nav_pers_lists:"Hedef & Listeler", nav_pers_travel:"Seyahat", nav_pers_bday:"Doğum Günleri", nav_pers_notes:"Kişisel Notlar",
+    settings:"Ayarlar", theme:"Görünüm Teması", language:"Dil / Language", export:"Yedekle (TXT)", import:"Veri Yükle", add_new:"Yeni Ekle", title:"Başlık", date:"Tarih", time:"Saat", empty:"Şu an planlanmış bir şey yok."
+  },
+  en: {
+    nav_summary:"Overview", nav_work:"Business", nav_work_cal:"Meetings", nav_work_todo:"Work Tasks", nav_work_travel:"Business Trip", nav_work_notes:"Work Notes",
+    nav_personal:"Personal", nav_pers_cal:"Appointments", nav_pers_todo:"Tasks", nav_pers_habits:"Habits", nav_pers_lists:"Goals & Lists", nav_pers_travel:"Travel", nav_pers_bday:"Birthdays", nav_pers_notes:"Notes",
+    settings:"Settings", theme:"Theme", language:"Language", export:"Export (TXT)", import:"Import", add_new:"Add New", title:"Title", date:"Date", time:"Time", empty:"Nothing here yet."
+  }
+};
 const MONTHS_TR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
+// ==================== GLOBAL STATE ====================
+let currentLang = localStorage.getItem('planner_lang') || 'tr';
+let currentTheme = localStorage.getItem('planner_theme') || 'dark';
+let currentModule = 'summary';
+let currentContext = '';
+let currentEditId = null;
+let selectedTagColor = 'blue';
+let activeTagFilter = '';
+let fabOpen = false;
+
 const DB = {
-  get: (k, def) => JSON.parse(localStorage.getItem('planner_' + k)) || def,
-  set: (k, v) => localStorage.setItem('planner_' + k, JSON.stringify(v))
+  get: (k, def) => { try { return JSON.parse(localStorage.getItem('planner_' + k)) || def; } catch(e) { return def; } },
+  set: (k, v) => localStorage.setItem('planner_' + k, JSON.stringify(v)),
 };
 
-// ==================== UI CONTROLS ====================
-const modTitles = { 'appointments': 'Takvim & Randevu', 'todos': 'Görevler', 'travels': 'Seyahat', 'notes': 'Notlar', 'habits': 'Alışkanlık & Rutin', 'birthdays': 'Doğum Günleri', 'lists': 'Finans & Listeler' };
-
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); currentEditId = null; }
-function toggleSidebar() { const s = document.getElementById('sidebar'); s.classList.toggle('open'); document.getElementById('sidebar-overlay').style.display = s.classList.contains('open') ? 'block' : 'none'; }
-
-function openForm(modalId, editId = null) {
-    currentEditId = editId;
-    document.querySelectorAll('.modal input, .modal textarea').forEach(i => i.value = '');
-    
-    if(editId) {
-        const item = DB.get(`${currentContext}_${currentModule}`, []).find(x => x.id === editId);
-        if(item) {
-            if(modalId === 'modal-appt') { document.getElementById('m-appt-title').value = item.title; document.getElementById('m-appt-date').value = item.date; document.getElementById('m-appt-time').value = item.time; document.getElementById('m-appt-note').value = item.note; }
-            if(modalId === 'modal-todo') { document.getElementById('m-todo-title').value = item.title; document.getElementById('m-todo-pri').value = item.pri; document.getElementById('m-todo-rec').value = item.rec; document.getElementById('m-todo-date').value = item.date; document.getElementById('m-todo-note').value = item.note; }
-            if(modalId === 'modal-travel'){ document.getElementById('m-travel-dest').value = item.dest; document.getElementById('m-travel-start').value = item.start; document.getElementById('m-travel-end').value = item.end; document.getElementById('m-travel-note').value = item.note; }
-            if(modalId === 'modal-bday') { document.getElementById('m-bday-name').value = item.name; document.getElementById('m-bday-month').value = item.month; document.getElementById('m-bday-day').value = item.day; }
-        }
-    } else {
-        const today = new Date().toISOString().split('T')[0];
-        if(document.getElementById('m-appt-date')) document.getElementById('m-appt-date').value = today;
-        if(document.getElementById('m-todo-date')) document.getElementById('m-todo-date').value = today;
-    }
-    document.getElementById(modalId).classList.add('open');
-}
-
-function toggleFan(type) {
-  const fan = document.getElementById('fan-' + type);
-  const isOp = !fan.classList.contains('open');
-  document.querySelectorAll('.sub-cards-wrapper').forEach(w => w.classList.remove('open'));
-  if(isOp) { fan.classList.add('open'); fan.querySelectorAll('.sub-card').forEach((c, i) => c.style.transitionDelay = (i * 0.04) + 's'); }
-}
-
-function setTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('planner_theme', t); closeModal('modal-settings'); }
-function setLang(l) { localStorage.setItem('planner_lang', l); location.reload(); }
-
-function switchModule(mod, ctx = '') {
-  currentModule = mod; if(ctx) currentContext = ctx;
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('sec-' + mod).classList.add('active');
-  
-  document.querySelectorAll('.master-card, .sub-card').forEach(el => el.classList.remove('active', 'active-work'));
-  if(mod === 'summary') {
-      document.getElementById('btn-summary').classList.add('active');
-      document.getElementById('module-header').style.display = 'none';
-  } else {
-      const mCard = document.getElementById(`btn-${currentContext}-master`);
-      if(mCard) mCard.classList.add(currentContext==='work' ? 'active-work' : 'active');
-      const sCard = document.getElementById(`btn-${currentContext}_${mod}`);
-      if(sCard) sCard.classList.add(currentContext==='work' ? 'active-work' : 'active');
-      
-      document.getElementById('module-header').style.display = 'flex';
-      document.getElementById('module-title').innerText = modTitles[mod];
-      const badge = document.getElementById('module-badge');
-      badge.innerText = currentContext==='work' ? 'İŞ DÜNYASI' : 'KİŞİSEL';
-      badge.style.background = currentContext==='work' ? 'var(--accent-work)' : 'var(--accent)';
-  }
-
-  if(window.innerWidth <= 768) {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebar-overlay').style.display = 'none';
-  }
-  renderActiveModule();
-}
-
-// ==================== UNIVERSAL DATA SAVE/DELETE ====================
-function saveData(type) {
-    const key = `${currentContext}_${type}`;
-    const items = DB.get(key, []);
-    let payload = { id: currentEditId || Date.now().toString(36) };
-    
-    if(type === 'appts') {
-        payload.title = document.getElementById('m-appt-title').value.trim();
-        payload.date = document.getElementById('m-appt-date').value;
-        payload.time = document.getElementById('m-appt-time').value;
-        payload.note = document.getElementById('m-appt-note').value;
-        if(!payload.title || !payload.date) return;
-    } 
-    else if(type === 'todos') {
-        payload.title = document.getElementById('m-todo-title').value.trim();
-        payload.pri = document.getElementById('m-todo-pri').value;
-        payload.rec = document.getElementById('m-todo-rec').value;
-        payload.date = document.getElementById('m-todo-date').value;
-        payload.note = document.getElementById('m-todo-note').value;
-        payload.done = false;
-        if(!payload.title) return;
-    }
-    else if(type === 'travels') {
-        payload.dest = document.getElementById('m-travel-dest').value.trim();
-        payload.start = document.getElementById('m-travel-start').value;
-        payload.end = document.getElementById('m-travel-end').value;
-        payload.note = document.getElementById('m-travel-note').value;
-        payload.items = [];
-        if(!payload.dest) return;
-    }
-    else if(type === 'habits') {
-        payload.name = document.getElementById('m-habit-name').value.trim();
-        payload.target = document.getElementById('m-habit-target').value;
-        payload.checks = {};
-        if(!payload.name) return;
-    }
-    else if(type === 'birthdays') {
-        payload.name = document.getElementById('m-bday-name').value.trim();
-        payload.month = document.getElementById('m-bday-month').value;
-        payload.day = document.getElementById('m-bday-day').value;
-        payload.items = [];
-        if(!payload.name || !payload.day) return;
-    }
-
-    if(currentEditId) {
-        const i = items.findIndex(x => x.id === currentEditId);
-        if(type === 'todos') payload.done = items[i].done; 
-        if(type === 'travels') payload.items = items[i].items; 
-        if(type === 'birthdays') payload.items = items[i].items; 
-        items[i] = payload;
-    } else {
-        items.push(payload);
-    }
-    
-    DB.set(key, items);
-    closeModal(`modal-${type.replace('appts','appt').replace('todos','todo').replace('travels','travel').replace('habits','habit').replace('birthdays','bday')}`);
-    renderActiveModule();
-}
-
-function deleteData(id, isNote = false) {
-    if(!confirm("Silinsin mi?")) return;
-    const key = `${currentContext}_${currentModule}`;
-    DB.set(key, DB.get(key, []).filter(x => x.id !== id));
-    if(isNote) document.getElementById('note-editor').style.display='none';
-    renderActiveModule();
-}
-
-function handleSearch(q) {
-    const term = q.toLowerCase();
-    document.querySelectorAll('.section.active .card, .section.active .summary-item').forEach(c => {
-        c.style.display = c.innerText.toLowerCase().includes(term) ? '' : 'none';
-    });
-}
-
-// ==================== RENDERS ====================
-function renderActiveModule() {
-  if(currentModule === 'summary') renderSummary();
-  else if(currentModule === 'appointments') renderAppts();
-  else if(currentModule === 'todos') renderTodos();
-  else if(currentModule === 'travels') renderTravels();
-  else if(currentModule === 'notes') renderNotes();
-  else if(currentModule === 'habits') renderHabits();
-  else if(currentModule === 'birthdays') renderBdays();
-  else if(currentModule === 'lists') { renderGoal(); renderLists(); }
-}
-
-function formatDate(d) { if(!d) return ''; const p = d.split('-'); return p[2]+'.'+p[1]+'.'+p[0]; }
+function id() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function getCountdown(d, t) { if(!d) return null; const target = new Date(d + (t ? 'T'+t : 'T23:59:59')); const ms = target - new Date(); if(ms < 0) return {t:'Geçti', c:'badge-past'}; const diffD = Math.floor(ms/86400000); if(diffD > 0) return {t: diffD + ' gün', c: diffD > 3 ? 'badge-safe' : 'badge-warning'}; return {t: 'Bugün', c: 'badge-danger'}; }
-function downloadICS(title, dStr, tStr, note, endStr=null) { if(!dStr) return; const fmt=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z'; const fmtAll=d=>d.toISOString().split('T')[0].replace(/-/g,''); let ics=`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDESCRIPTION:${note||''}\n`; if(endStr&&!tStr){ const s=new Date(dStr); const e=new Date(endStr); if(e>=s){ e.setDate(e.getDate()+1); ics+=`DTSTART;VALUE=DATE:${fmtAll(s)}\nDTEND;VALUE=DATE:${fmtAll(e)}\n`; }else{ ics+=`DTSTART;VALUE=DATE:${fmtAll(s)}\nDTEND;VALUE=DATE:${fmtAll(s)}\n`; } } else{ const s=new Date(dStr+(tStr?'T'+tStr:'T00:00')); let e=new Date(s.getTime()+(tStr?3600000:86400000)); ics+=`DTSTART:${fmt(s)}\nDTEND:${fmt(e)}\n`; } ics+=`END:VEVENT\nEND:VCALENDAR`; const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${title.replace(/ /g,'_')}.ics`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+function formatDate(d) { if(!d) return ''; const p=d.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; }
 
-// ==================== TAM KAPSAMLI ÖZET (DASHBOARD) ====================
-function renderSummary() {
-    const el = document.getElementById('summary-list');
-    let evs = [];
-    const now = new Date();
-    const tMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    
-    // Yardımcı fonksiyon: Veriyi evs dizisine aktarır
-    const pushEv = (key, icon, extractFn) => {
-        DB.get(key, []).forEach(i => {
-            const e = extractFn(i);
-            if(e && e.t >= tMs) evs.push({...e, icon, ctx: key.includes('work')?'work':'pers', mod: key.split('_')[1]});
-        });
-    };
-    
-    // Tüm modülleri tara
-    pushEv('work_appts', '🗓️', i => i.date ? {t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'')} : null);
-    pushEv('pers_appts', '📍', i => i.date ? {t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'')} : null);
-    pushEv('work_travels', '✈️', i => i.start ? {t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), title:i.dest, sub:formatDate(i.start)} : null);
-    pushEv('pers_travels', '🎒', i => i.start ? {t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), title:i.dest, sub:formatDate(i.start)} : null);
-    pushEv('work_todos', '💼', i => (i.date && !i.done) ? {t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), title:i.title, sub:formatDate(i.date)} : null);
-    pushEv('pers_todos', '✅', i => (i.date && !i.done) ? {t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), title:i.title, sub:formatDate(i.date)} : null);
-    
-    // Doğum Günleri için özel yıl hesabı
-    const ty = now.getFullYear();
-    DB.get('pers_birthdays', []).forEach(b => {
-        let n = new Date(ty, b.month-1, b.day);
-        if(n.getTime() < tMs) n = new Date(ty+1, b.month-1, b.day);
-        evs.push({t: n.getTime(), tObj: new Date(n.getFullYear(), b.month-1, b.day, 23, 59, 59), title: b.name, sub: `${b.day} ${MONTHS_TR[b.month]}`, icon: '🎂', ctx: 'pers', mod: 'birthdays'});
+// ==================== MODALS & SIDEBAR ====================
+function openModal(mid) { document.getElementById(mid).classList.add('open'); }
+function closeModal(mid) { document.getElementById(mid).classList.remove('open'); currentEditId=null; }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e) { if(e.target===this) closeModal(this.id); }));
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+// ==================== FAN MENU ====================
+let fanState = { work: false, pers: false };
+
+function toggleFanGroup(group) {
+  const wasOpen = fanState[group];
+  // Close all
+  Object.keys(fanState).forEach(g => {
+    fanState[g] = false;
+    document.getElementById('fan-'+g).classList.remove('open');
+    document.getElementById('fan-items-'+g).classList.remove('open');
+  });
+  // Open clicked if was closed
+  if (!wasOpen) {
+    fanState[group] = true;
+    document.getElementById('fan-'+g).classList.add('open');
+    const header = document.getElementById('fan-'+group);
+    const items = document.getElementById('fan-items-'+group);
+    header.classList.add('open');
+    items.classList.add('open');
+  }
+}
+
+function updateFanActiveState(mod, ctx) {
+  document.querySelectorAll('.fan-item').forEach(el => el.classList.remove('active','active-work'));
+  if (mod !== 'summary' && ctx) {
+    const el = document.getElementById(`fani-${ctx}-${mod}`);
+    if (el) { el.classList.add(ctx === 'work' ? 'active-work' : 'active'); }
+    // Auto-open the fan group
+    const group = ctx;
+    if (!fanState[group]) {
+      fanState[group] = true;
+      document.getElementById('fan-'+group).classList.add('open');
+      document.getElementById('fan-items-'+group).classList.add('open');
+    }
+  }
+  // Summary nav
+  const sumNav = document.getElementById('nav-summary');
+  sumNav.classList.toggle('active', mod === 'summary');
+}
+
+// ==================== THEME & LANG ====================
+function setTheme(t) { currentTheme=t; document.body.setAttribute('data-theme',t); localStorage.setItem('planner_theme',t); document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active')); document.getElementById('t-'+t).classList.add('active'); updateThemeColors(); }
+function setLang(l) { currentLang=l; localStorage.setItem('planner_lang',l); applyTranslations(); updateHeaderDate(); switchModule(currentModule,currentContext); }
+function applyTranslations() { document.querySelectorAll('[data-i18n]').forEach(el => { const k=el.getAttribute('data-i18n'); el.innerText=translations[currentLang][k]||k; }); document.getElementById('lang-select').value=currentLang; }
+function updateHeaderDate() { const n=new Date(); const d={tr:['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']}; const m={tr:['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']}; document.getElementById('headerDate').textContent=`${d[currentLang][n.getDay()]}, ${n.getDate()} ${m[currentLang][n.getMonth()]}`; }
+
+// ==================== CORE NAVIGATION ====================
+function updateThemeColors() {
+  const root = document.querySelector(':root');
+  if(currentContext === 'work') {
+    root.style.setProperty('--accent','#5C8BB8');
+    root.style.setProperty('--accent-light','rgba(92,139,184,0.15)');
+  } else {
+    root.style.setProperty('--accent','#5C9E78');
+    root.style.setProperty('--accent-light','rgba(92,158,120,0.15)');
+  }
+}
+
+function switchModule(mod, ctx='') {
+  currentModule=mod; currentContext=ctx;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+mod).classList.add('active');
+  if(window.innerWidth<=768) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+
+  updateFanActiveState(mod, ctx);
+  updateThemeColors();
+
+  const header=document.getElementById('module-header');
+  if(mod==='summary') { header.style.display='none'; renderSummary(); return; }
+
+  header.style.display='flex';
+  const fanItem = ctx ? document.getElementById(`fani-${ctx}-${mod}`) : null;
+  document.getElementById('module-title').innerText = fanItem ? fanItem.querySelector('.fan-item-label').innerText : mod;
+  const badge=document.getElementById('module-badge');
+  badge.innerText=ctx==='work'?(currentLang==='tr'?'İŞ':'WORK'):(currentLang==='tr'?'KİŞİSEL':'PERSONAL');
+  badge.className='context-badge '+(ctx==='work'?'tag-work':'tag-personal');
+
+  activeTagFilter = '';
+  if(mod==='appointments') renderAppts();
+  if(mod==='todos') { renderTodoTagFilter(); renderTodos(); }
+  if(mod==='travels') renderTravels();
+  if(mod==='notes') renderNotes();
+  if(mod==='habits') renderHabits();
+  if(mod==='birthdays') renderBdays();
+  if(mod==='lists') { renderGoal(); renderLists(); }
+}
+
+// ==================== FAB ====================
+function toggleFAB() {
+  fabOpen = !fabOpen;
+  document.getElementById('fab-main').classList.toggle('open', fabOpen);
+  document.querySelectorAll('.fab-option').forEach((el,i) => {
+    setTimeout(() => el.classList.toggle('visible', fabOpen), fabOpen ? i*40 : (2-i)*40);
+  });
+}
+function fabAction(type) {
+  toggleFAB();
+  setTimeout(() => {
+    if(type==='appt') { openApptForm(); }
+    else if(type==='todo') { openTodoForm(); }
+    else if(type==='note') { openNoteEditor(); }
+  }, 200);
+}
+document.addEventListener('click', function(e) {
+  if(fabOpen && !e.target.closest('.fab-container')) toggleFAB();
+});
+
+// ==================== ARAMA ====================
+function openSearch() {
+  document.getElementById('search-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('search-input').focus(), 100);
+}
+function closeSearch() {
+  document.getElementById('search-overlay').classList.remove('open');
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-results').innerHTML = '';
+}
+document.getElementById('search-overlay').addEventListener('click', function(e) { if(e.target===this) closeSearch(); });
+
+function performSearch() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const el = document.getElementById('search-results');
+  if(q.length < 2) { el.innerHTML = '<div class="search-empty">En az 2 karakter girin...</div>'; return; }
+
+  const results = [];
+  const push = (items, icon, ctx, mod, getTitle, getSub) => {
+    (items||[]).forEach(i => {
+      const t = getTitle(i); const s = getSub(i);
+      if((t+' '+s).toLowerCase().includes(q)) results.push({icon, ctx, mod, title:t, sub:s});
     });
+  };
+  push(DB.get('work_appts',[]),'🗓️','work','appointments',i=>i.title,i=>formatDate(i.date)+(i.time?' '+i.time:''));
+  push(DB.get('pers_appts',[]),'📍','pers','appointments',i=>i.title,i=>formatDate(i.date));
+  push(DB.get('work_todos',[]),'💼','work','todos',i=>i.title,i=>i.note||'');
+  push(DB.get('pers_todos',[]),'✅','pers','todos',i=>i.title,i=>i.note||'');
+  push(DB.get('work_travels',[]),'✈️','work','travels',i=>i.dest,i=>formatDate(i.start));
+  push(DB.get('pers_travels',[]),'🎒','pers','travels',i=>i.dest,i=>formatDate(i.start));
+  push(DB.get('pers_birthdays',[]),'🎂','pers','birthdays',i=>i.name,i=>`${i.day} ${MONTHS_TR[i.month]}`);
+  push(DB.get('pers_habits',[]),'⚡','pers','habits',i=>i.n,i=>'');
 
-    evs.sort((a,b) => a.t - b.t);
-    
-    if(!evs.length) { el.innerHTML = '<div class="empty">Planlanmış bir şey yok.</div>'; return; }
-    
-    el.innerHTML = '<div class="section-label">Yaklaşan Tüm Planlar</div>' + evs.map(e => {
-        // Saat kaymalarını önlemek için güvenli format
-        const pad = n => String(n).padStart(2, '0');
-        const dStr = `${e.tObj.getFullYear()}-${pad(e.tObj.getMonth()+1)}-${pad(e.tObj.getDate())}`;
-        const tStr = `${pad(e.tObj.getHours())}:${pad(e.tObj.getMinutes())}`;
-        const cd = getCountdown(dStr, tStr==='23:59'?null:tStr);
-        
-        return `<div class="summary-item" onclick="switchModule('${e.mod}', '${e.ctx}')">
-            <div class="sum-icon">${e.icon}</div>
-            <div style="flex:1;">
-                <div style="font-weight:700; font-size:16px;">${esc(e.title)}</div>
-                <div style="font-size:13px; color:var(--muted); margin-top:4px;">${e.sub}</div>
-            </div>
-            <div style="text-align:right;">
-                ${cd ? `<span class="badge ${cd.c}" style="display:block; margin-bottom:6px;">${cd.t}</span>` : ''}
-                <span class="badge ${e.ctx==='work'?'badge-danger':'badge-safe'}" style="margin:0;">${e.ctx==='work'?'İŞ':'KİŞİSEL'}</span>
-            </div>
-        </div>`;
+  // Search notes
+  ['work_notes','pers_notes'].forEach(key => {
+    const ctx = key.includes('work')?'work':'pers';
+    (DB.get(key,[])||[]).forEach(n => {
+      if((n.title+' '+n.body).toLowerCase().includes(q))
+        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:n.body.slice(0,60)});
+    });
+  });
+
+  if(!results.length) { el.innerHTML='<div class="search-empty">Sonuç bulunamadı.</div>'; return; }
+
+  el.innerHTML = results.slice(0,12).map(r => `
+    <div class="search-result-item" onclick="closeSearch();switchModule('${r.mod}','${r.ctx}')">
+      <div class="search-result-icon">${r.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:15px;">${esc(r.title)}</div>
+        <div class="search-result-meta">${r.sub}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ==================== BİLDİRİMLER ====================
+function initNotifications() {
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'default' && !localStorage.getItem('planner_notif_dismissed')) {
+    document.getElementById('notif-bar').classList.add('visible');
+  }
+  if(Notification.permission === 'granted') {
+    checkAndNotify();
+    updateNotifSettingsBtn();
+  }
+}
+
+function allowNotifications() {
+  if(!('Notification' in window)) return;
+  Notification.requestPermission().then(p => {
+    document.getElementById('notif-bar').classList.remove('visible');
+    if(p === 'granted') { checkAndNotify(); updateNotifSettingsBtn(); }
+  });
+}
+
+function dismissNotifBar() {
+  document.getElementById('notif-bar').classList.remove('visible');
+  localStorage.setItem('planner_notif_dismissed', '1');
+}
+
+function updateNotifSettingsBtn() {
+  const btn = document.getElementById('notif-settings-btn');
+  if(!btn) return;
+  if(Notification.permission === 'granted') btn.textContent = '✅ Bildirimler Açık';
+  else if(Notification.permission === 'denied') btn.textContent = '🚫 Bildirimler Engellendi (Tarayıcı ayarından aç)';
+}
+
+function checkAndNotify() {
+  if(Notification.permission !== 'granted') return;
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const tomorrowStr = new Date(now.getTime()+86400000).toISOString().split('T')[0];
+  const notified = DB.get('notif_sent', {});
+
+  const tryNotify = (key, title, body) => {
+    if(notified[key]) return;
+    notified[key] = true;
+    DB.set('notif_sent', notified);
+    new Notification('Planner Pro — ' + title, { body, icon: 'logo.svg', badge: 'logo.svg' });
+  };
+
+  // Appointments
+  [...DB.get('work_appts',[]), ...DB.get('pers_appts',[])].forEach(a => {
+    if(a.date === todayStr) tryNotify('appt_'+a.id+'_today', 'Bugün!', `${a.title} — ${a.time||'Tüm gün'}`);
+    if(a.date === tomorrowStr) tryNotify('appt_'+a.id+'_tmr', 'Yarın', `${a.title} yarın`);
+  });
+
+  // Birthdays
+  const ty = now.getFullYear();
+  DB.get('pers_birthdays',[]).forEach(b => {
+    const bStr = `${ty}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`;
+    if(bStr === todayStr) tryNotify('bday_'+b.id+'_'+ty, '🎂 Doğum Günü!', `${b.name} bugün doğum günü!`);
+    if(bStr === tomorrowStr) tryNotify('bday_'+b.id+'_tmr_'+ty, '🎂 Yarın Doğum Günü', `${b.name} yarın doğum günü!`);
+  });
+
+  // Due todos
+  [...DB.get('work_todos',[]), ...DB.get('pers_todos',[])].filter(t=>!t.done&&t.date).forEach(t => {
+    if(t.date === todayStr) tryNotify('todo_'+t.id+'_today', 'Bugün Son Gün!', t.title);
+  });
+
+  // Clear old keys daily
+  if(!notified['_date'] || notified['_date'] !== todayStr) {
+    DB.set('notif_sent', { _date: todayStr });
+  }
+}
+
+// ==================== ETİKETLER ====================
+function selectTagColor(color, el) {
+  selectedTagColor = color;
+  document.querySelectorAll('.tag-color-swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function tagPill(tag, color) {
+  if(!tag) return '';
+  return `<span class="tag-pill tag-${color||'blue'}">#${esc(tag)}</span>`;
+}
+
+function renderTodoTagFilter() {
+  const arr = DB.get(getTodoKey(), []);
+  const tags = [...new Set(arr.filter(t=>t.tag).map(t=>t.tag+':'+t.tagColor))];
+  const el = document.getElementById('todo-tag-filter');
+  if(!tags.length) { el.innerHTML=''; return; }
+  el.innerHTML = `<button class="tag-filter-btn ${activeTagFilter===''?'active':''}" onclick="setTagFilter('')">Tümü</button>` +
+    tags.map(tc => {
+      const [tag,color] = tc.split(':');
+      return `<button class="tag-filter-btn ${activeTagFilter===tag?'active':''}" onclick="setTagFilter('${esc(tag)}')">#${esc(tag)}</button>`;
     }).join('');
 }
 
-function renderAppts() {
-    const arr = DB.get(`${currentContext}_appts`, []).sort((a,b)=> (a.date+a.time)<(b.date+b.time)?-1:1);
-    const el = document.getElementById('appt-list');
-    if(!arr.length) { el.innerHTML = '<div class="empty">Kayıt yok.</div>'; return; }
-    el.innerHTML = arr.map(a => `<div class="card">
-        <div class="card-actions"><button class="btn-icon" onclick="openForm('modal-appt', '${a.id}')">&#9998;</button><button class="btn-icon" onclick="deleteData('${a.id}')">✕</button></div>
-        ${getCountdown(a.date, a.time) ? `<span class="badge ${getCountdown(a.date, a.time).c}">${getCountdown(a.date, a.time).t}</span>` : ''}
-        <div class="card-title">${esc(a.title)}</div>
-        <div class="card-meta">🗓️ ${formatDate(a.date)} ${a.time ? '· 🕒 '+a.time : ''}</div>
-        ${a.note ? `<div class="card-note">${esc(a.note)}</div>` : ''}
-    </div>`).join('');
+function setTagFilter(tag) {
+  activeTagFilter = tag;
+  renderTodoTagFilter();
+  renderTodos();
 }
 
-// TODO
-function toggleTodoDone(id) { const key = `${currentContext}_todos`; const arr = DB.get(key, []); const t = arr.find(x => x.id === id); if(t) { t.done = !t.done; DB.set(key, arr); renderTodos(); } }
+// ==================== TIME & EXPORT UTILS ====================
+function getCountdown(dateStr, timeStr) {
+  if(!dateStr) return null;
+  const t=new Date(dateStr+(timeStr?'T'+timeStr:'T23:59:59')); const ms=t-new Date();
+  if(ms<0) return { t:currentLang==='tr'?'Geçti':'Passed', c:'badge-past' };
+  const d=Math.floor(ms/86400000); const h=Math.floor((ms%86400000)/3600000);
+  if(d>0) return { t:`${d} ${currentLang==='tr'?'gün':'days'}`, c:d>7?'badge-safe':'badge-warning' };
+  if(h>0) return { t:`${h} ${currentLang==='tr'?'saat':'hrs'}`, c:'badge-danger' };
+  return { t:`${Math.floor((ms%3600000)/60000)} ${currentLang==='tr'?'dk':'mins'}`, c:'badge-danger' };
+}
+function downloadICS(title, dStr, tStr, note, endStr=null) {
+  if(!dStr) return;
+  const fmt=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const fmtAll=d=>d.toISOString().split('T')[0].replace(/-/g,'');
+  let ics=`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDESCRIPTION:${note||''}\n`;
+  if(endStr&&!tStr){ const s=new Date(dStr); const e=new Date(endStr); if(e>=s){e.setDate(e.getDate()+1);ics+=`DTSTART;VALUE=DATE:${fmtAll(s)}\nDTEND;VALUE=DATE:${fmtAll(e)}\n`;}else{ics+=`DTSTART;VALUE=DATE:${fmtAll(s)}\nDTEND;VALUE=DATE:${fmtAll(s)}\n`;} }
+  else { const s=new Date(dStr+(tStr?'T'+tStr:'T00:00')); let e=new Date(s.getTime()+(tStr?3600000:86400000)); ics+=`DTSTART:${fmt(s)}\nDTEND:${fmt(e)}\n`; }
+  ics+=`END:VEVENT\nEND:VCALENDAR`;
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${title.replace(/ /g,'_')}.ics`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function exportData() { const d={}; for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i);if(k.startsWith('planner_'))d[k]=localStorage.getItem(k);} const blob=new Blob([JSON.stringify(d,null,2)],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`planner_yedek_${new Date().toISOString().split('T')[0]}.txt`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+function importData(e) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>{try{const d=JSON.parse(ev.target.result);Object.keys(d).forEach(k=>{if(k.startsWith('planner_'))localStorage.setItem(k,d[k]);});location.reload();}catch(err){alert("Format error");}};r.readAsText(f); }
+
+// ==================== 1. SUMMARY ====================
+function renderSummary() {
+  const el=document.getElementById('summary-list'); let evs=[]; const tMs=new Date(new Date().setHours(0,0,0,0)).getTime();
+  const pushEv=(key,icon,extractFn)=>{ DB.get(key,[]).forEach(i=>{const e=extractFn(i);if(e&&e.t>=tMs-86400000)evs.push({...e,icon,ctx:key.includes('work')?'work':'pers',mod:key.split('_')[1]});}); };
+  pushEv('work_appts','🗓️',i=>i.date?{t:new Date(i.date+'T00:00').getTime(),tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')),title:i.title,sub:formatDate(i.date)+(i.time?' '+i.time:'')}:null);
+  pushEv('pers_appts','📍',i=>i.date?{t:new Date(i.date+'T00:00').getTime(),tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')),title:i.title,sub:formatDate(i.date)+(i.time?' '+i.time:'')}:null);
+  pushEv('work_travels','✈️',i=>i.start?{t:new Date(i.start+'T00:00').getTime(),tObj:new Date(i.start+'T23:59:59'),title:i.dest,sub:formatDate(i.start)}:null);
+  pushEv('pers_travels','🎒',i=>i.start?{t:new Date(i.start+'T00:00').getTime(),tObj:new Date(i.start+'T23:59:59'),title:i.dest,sub:formatDate(i.start)}:null);
+  pushEv('work_todos','💼',i=>(i.date&&!i.done)?{t:new Date(i.date+'T00:00').getTime(),tObj:new Date(i.date+'T23:59:59'),title:i.title,sub:formatDate(i.date)}:null);
+  pushEv('pers_todos','✅',i=>(i.date&&!i.done)?{t:new Date(i.date+'T00:00').getTime(),tObj:new Date(i.date+'T23:59:59'),title:i.title,sub:formatDate(i.date)}:null);
+  const ty=new Date().getFullYear(); DB.get('pers_birthdays',[]).forEach(b=>{let n=new Date(ty,b.month-1,b.day);if(n.getTime()<tMs)n=new Date(ty+1,b.month-1,b.day);evs.push({t:n.getTime(),tObj:new Date(n.getFullYear(),b.month-1,b.day,23,59,59),title:b.name,sub:`${b.day} ${MONTHS_TR[b.month]}`,icon:'🎂',ctx:'pers',mod:'birthdays'});});
+  evs.sort((a,b)=>a.t-b.t);
+  if(!evs.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  el.innerHTML=evs.map(e=>{const dStr=e.tObj.toISOString().split('T')[0];const tStr=e.tObj.toISOString().split('T')[1].substring(0,5);const cd=getCountdown(dStr,tStr==='23:59'?null:tStr);return `<div class="summary-item" onclick="switchModule('${e.mod}','${e.ctx}')"><div class="sum-icon">${e.icon}</div><div style="flex:1;"><div class="card-title" style="font-size:15px;margin:0;">${esc(e.title)}</div><div class="card-meta" style="font-size:12px;margin-top:2px;">${e.sub}</div></div>${cd?`<span class="badge ${cd.c}" style="margin:0;">${cd.t}`:''}</span></div>`;}).join('');
+}
+
+// ==================== 2. APPOINTMENTS ====================
+function getApptKey() { return currentContext+'_appts'; }
+function openApptForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getApptKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-appt-title').value=d?d.title:''; document.getElementById('m-appt-date').value=d?d.date:new Date().toISOString().split('T')[0]; document.getElementById('m-appt-time').value=d?d.time||'':''; document.getElementById('m-appt-note').value=d?d.note||'':''; openModal('modal-appt'); }
+function saveAppt() { const t=document.getElementById('m-appt-title').value.trim(); if(!t)return; const k=getApptKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} arr.sort((a,b)=>(a.date+a.time)<(b.date+b.time)?-1:1); DB.set(k,arr); closeModal('modal-appt'); renderAppts(); checkAndNotify(); }
+function delAppt(id) { if(!confirm("Silinsin mi?"))return; const k=getApptKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderAppts(); }
+function renderAppts() { const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.date,a.time);return `<div class="card">${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}</div>`;}).join(''); }
+
+// ==================== 3. TODOS ====================
+function getTodoKey() { return currentContext+'_todos'; }
+function openTodoForm(eid=null) {
+  currentEditId=eid; const d=eid?DB.get(getTodoKey(),[]).find(x=>x.id===eid):null;
+  document.getElementById('m-todo-title').value=d?d.title:'';
+  document.getElementById('m-todo-pri').value=d?d.pri||'normal':'normal';
+  document.getElementById('m-todo-rec').value=d?d.rec||'':'';
+  document.getElementById('m-todo-date').value=d?d.date||'':new Date().toISOString().split('T')[0];
+  document.getElementById('m-todo-note').value=d?d.note||'':'';
+  document.getElementById('m-todo-tag').value=d?d.tag||'':'';
+  selectedTagColor=d?d.tagColor||'blue':'blue';
+  document.querySelectorAll('.tag-color-swatch').forEach(s=>s.classList.toggle('selected',s.dataset.color===selectedTagColor));
+  openModal('modal-todo');
+}
+function saveTodo() {
+  const t=document.getElementById('m-todo-title').value.trim(); if(!t)return;
+  const k=getTodoKey(); const arr=DB.get(k,[]);
+  const p={id:currentEditId||id(),title:t,pri:document.getElementById('m-todo-pri').value,rec:parseInt(document.getElementById('m-todo-rec').value)||null,date:document.getElementById('m-todo-date').value,note:document.getElementById('m-todo-note').value.trim(),tag:document.getElementById('m-todo-tag').value.trim(),tagColor:selectedTagColor,done:false};
+  if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.done=arr[i].done;arr[i]=p;}}else{arr.push(p);}
+  DB.set(k,arr); closeModal('modal-todo'); renderTodoTagFilter(); renderTodos(); checkAndNotify();
+}
+function toggleTodo(id) { const k=getTodoKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){if(!o.done&&o.rec&&o.date){let d=new Date(o.date);d.setDate(d.getDate()+o.rec);o.date=d.toISOString().split('T')[0];}else{o.done=!o.done;} DB.set(k,arr); renderTodos();} }
+function delTodo(id) { if(confirm("Silinsin mi?")){const k=getTodoKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderTodoTagFilter(); renderTodos();} }
 function renderTodos() {
-    const arr = DB.get(`${currentContext}_todos`, []); const el = document.getElementById('todo-list');
-    if(!arr.length) { el.innerHTML = '<div class="empty">Görev yok.</div>'; return; }
-    el.innerHTML = arr.map(t => `<div class="card" style="${t.done?'opacity:0.5':''}">
-        <div class="card-actions"><button class="btn-icon" onclick="openForm('modal-todo', '${t.id}')">&#9998;</button><button class="btn-icon" onclick="deleteData('${t.id}')">✕</button></div>
-        <div style="display:flex; align-items:flex-start; gap:10px;">
-            <input type="checkbox" style="width:20px; height:20px; accent-color:var(--accent); cursor:pointer;" ${t.done?'checked':''} onchange="toggleTodoDone('${t.id}')">
-            <div>
-                <div class="card-title" style="margin:0; ${t.done?'text-decoration:line-through':''}">${esc(t.title)}</div>
-                <div class="card-meta" style="margin-top:5px;">${t.date ? formatDate(t.date) : 'Tarihsiz'} ${t.pri==='high'?'<span style="color:var(--accent-danger)">· Yüksek</span>':''}</div>
-                ${t.note ? `<div class="card-note">${esc(t.note)}</div>` : ''}
-            </div>
-        </div>
-    </div>`).join('');
+  let arr=DB.get(getTodoKey(),[]);
+  if(activeTagFilter) arr=arr.filter(t=>t.tag===activeTagFilter);
+  const el=document.getElementById('todo-list');
+  if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  const po={high:0,normal:1}; const un=arr.filter(t=>!t.done).sort((a,b)=>po[a.pri]-po[b.pri]||(a.date>b.date?1:-1)); const dn=arr.filter(t=>t.done);
+  const r=(t)=>{ const cd=getCountdown(t.date,null); const rl=t.rec===1?'1 Gün':t.rec===7?'1 Hafta':t.rec===30?'1 Ay':'';
+    return `<div class="todo-item priority-${t.pri} ${t.done?'done':''}"><div class="list-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div><div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}${t.tag?tagPill(t.tag,t.tagColor):''}</div><div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div><button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button><button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button></div>`; };
+  el.innerHTML=(un.length?un.map(r).join(''):'<div class="empty">Tüm görevler tamam! 🎉</div>')+(dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:'');
 }
 
-// TRAVEL ACCORDION
-function toggleAcc(id) { document.getElementById('bdy-'+id).classList.toggle('open'); document.getElementById('chv-'+id).classList.toggle('open'); }
-function addTravItem(id){ const v=document.getElementById('ti-'+id).value.trim(); if(!v)return; const k=`${currentContext}_travels`; const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){o.items.push({id:Date.now().toString(36),t:v,d:false}); DB.set(k,arr); renderTravels(); setTimeout(()=>toggleAcc(id),10);} }
-function togTravItem(tid,iid){ const k=`${currentContext}_travels`; const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){const i=o.items.find(x=>x.id===iid); if(i)i.d=!i.d; DB.set(k,arr); renderTravels(); setTimeout(()=>toggleAcc(tid),10);} }
-function delTravItem(tid,iid){ const k=`${currentContext}_travels`; const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){o.items=o.items.filter(x=>x.id!==iid); DB.set(k,arr); renderTravels(); setTimeout(()=>toggleAcc(tid),10);} }
+// ==================== 4. TRAVELS ====================
+function getTravKey() { return currentContext+'_travels'; }
+function openTravelForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getTravKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-travel-dest').value=d?d.dest:''; document.getElementById('m-travel-start').value=d?d.start:''; document.getElementById('m-travel-end').value=d?d.end:''; document.getElementById('m-travel-note').value=d?d.note||'':''; openModal('modal-travel'); }
+function saveTravel() { const t=document.getElementById('m-travel-dest').value.trim(); if(!t)return; const k=getTravKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),dest:t,start:document.getElementById('m-travel-start').value,end:document.getElementById('m-travel-end').value,note:document.getElementById('m-travel-note').value.trim(),items:[]}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.items=arr[i].items;arr[i]=p;}}else{arr.push(p);} DB.set(k,arr); closeModal('modal-travel'); renderTravels(); }
+function toggleTravelBody(id) { document.getElementById('tb-'+id).classList.toggle('open'); document.getElementById('tc-'+id).classList.toggle('open'); }
+function addTravItem(id){ const v=document.getElementById('ti-'+id).value.trim(); if(!v)return; const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){o.items.push({id:id(),t:v,d:false});DB.set(k,arr);renderTravels();setTimeout(()=>toggleTravelBody(id),10);} }
+function togTravItem(tid,iid){ const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){const i=o.items.find(x=>x.id===iid);if(i)i.d=!i.d;DB.set(k,arr);renderTravels();setTimeout(()=>toggleTravelBody(tid),10);} }
+function delTravItem(tid,iid){ const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){o.items=o.items.filter(x=>x.id!==iid);DB.set(k,arr);renderTravels();setTimeout(()=>toggleTravelBody(tid),10);} }
+function delTrav(id){ if(confirm("Silinsin mi?")){const k=getTravKey();DB.set(k,DB.get(k,[]).filter(x=>x.id!==id));renderTravels();} }
+function renderTravels() { const arr=DB.get(getTravKey(),[]); const el=document.getElementById('travel-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.start,null);const dr=[a.start&&formatDate(a.start),a.end&&formatDate(a.end)].filter(Boolean).join(' - ');const items=(a.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togTravItem('${a.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delTravItem('${a.id}','${i.id}')">✕</button></div>`).join('');return `<div class="card"><div class="acc-header" onclick="toggleTravelBody('${a.id}')"><div>${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-title" style="font-size:22px;margin:0;">${esc(a.dest)}</div><div class="card-meta" style="margin-top:4px;">${dr}</div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openTravelForm('${a.id}')">&#9998;</button><span class="chevron" id="tc-${a.id}">▼</span></div></div><div class="acc-body" id="tb-${a.id}">${a.note?`<div class="card-note" style="margin-bottom:10px;">${esc(a.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="ti-${a.id}" placeholder="Not veya rota ekle..." onkeydown="if(event.key==='Enter')addTravItem('${a.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addTravItem('${a.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delTrav('${a.id}')">Seyahati Sil</button></div></div>`;}).join(''); }
 
-function renderTravels() {
-    const arr = DB.get(`${currentContext}_travels`, []); const el = document.getElementById('travel-list');
-    if(!arr.length) { el.innerHTML = '<div class="empty">Seyahat yok.</div>'; return; }
-    el.innerHTML = arr.map(a => {
-        const items = (a.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" onclick="togTravItem('${a.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" onclick="delTravItem('${a.id}','${i.id}')">✕</button></div>`).join('');
-        return `<div class="card"><div class="acc-header" onclick="toggleAcc('${a.id}')"><div><div class="card-title" style="margin:0;">${esc(a.dest)}</div><div class="card-meta">${formatDate(a.start)} - ${formatDate(a.end)}</div></div><div style="display:flex;gap:12px;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openForm('modal-travel','${a.id}')">&#9998;</button><span class="chevron" id="chv-${a.id}">▼</span></div></div><div class="acc-body" id="bdy-${a.id}">${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="ti-${a.id}" placeholder="Eşya/Rota..." style="margin:0;"><button class="btn-primary" style="width:auto;padding:12px;" onclick="addTravItem('${a.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="deleteData('${a.id}')">Seyahati Sil</button></div></div>`;
-    }).join('');
-}
-
-// BDAY ACCORDION
-function addBdayItem(id){ const v=document.getElementById('bi-'+id).value.trim(); if(!v)return; const k=`pers_birthdays`; const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){o.items.push({id:Date.now().toString(36),t:v,d:false}); DB.set(k,arr); renderBdays(); setTimeout(()=>toggleAcc(id),10);} }
-function togBdayItem(tid,iid){ const k=`pers_birthdays`; const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){const i=o.items.find(x=>x.id===iid); if(i)i.d=!i.d; DB.set(k,arr); renderBdays(); setTimeout(()=>toggleAcc(tid),10);} }
-function delBdayItem(tid,iid){ const k=`pers_birthdays`; const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){o.items=o.items.filter(x=>x.id!==iid); DB.set(k,arr); renderBdays(); setTimeout(()=>toggleAcc(tid),10);} }
-
-function renderBdays() {
-    const arr = DB.get(`pers_birthdays`, []); const el = document.getElementById('bday-list');
-    if(!arr.length) { el.innerHTML = '<div class="empty">Kayıt yok.</div>'; return; }
-    
-    const ty=new Date().getFullYear(); arr.forEach(x=>{ let n=new Date(ty,x.month-1,x.day); if(n.getTime()<new Date().getTime())n=new Date(ty+1,x.month-1,x.day); x._n=n.getTime(); }); arr.sort((a,b)=>a._n-b._n);
-    
-    el.innerHTML = arr.map(b => {
-        const nDate=new Date(b._n); const dStr=`${nDate.getFullYear()}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`;
-        const items = (b.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" onclick="togBdayItem('${b.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" onclick="delBdayItem('${b.id}','${i.id}')">✕</button></div>`).join('');
-        return `<div class="card"><div class="acc-header" onclick="toggleAcc('${b.id}')"><div style="display:flex;gap:15px;align-items:center;"><div style="width:45px;height:45px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;">${esc(b.name).charAt(0)}</div><div><div class="card-title" style="margin:0;">${esc(b.name)}</div><div class="card-meta">${b.day} ${MONTHS_TR[b.month]}</div></div></div><div style="display:flex;gap:12px;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${b.name} D.Günü','${dStr}',null,'Kutlama')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openForm('modal-bday','${b.id}')">&#9998;</button><span class="chevron" id="chv-${b.id}">▼</span></div></div><div class="acc-body" id="bdy-${b.id}"><div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="bi-${b.id}" placeholder="Hediye/Sürpriz fikri..." style="margin:0;"><button class="btn-primary" style="width:auto;padding:12px;" onclick="addBdayItem('${b.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="deleteData('${b.id}')">Kişiyi Sil</button></div></div>`;
-    }).join('');
-}
-
-// HABITS
-function toggleHabitDay(hid, dStr) { const arr=DB.get('pers_habits',[]); const o=arr.find(x=>x.id===hid); if(o){o.checks[dStr]=!o.checks[dStr]; DB.set('pers_habits',arr); renderHabits();} }
+// ==================== 5. HABITS ====================
+function saveHabit() { const t=document.getElementById('m-habit-name').value.trim(); if(!t)return; const arr=DB.get('pers_habits',[]); arr.push({id:id(),n:t,tg:parseInt(document.getElementById('m-habit-target').value),c:{}}); DB.set('pers_habits',arr); closeModal('modal-habit'); renderHabits(); }
+function togHabit(id,dStr) { const arr=DB.get('pers_habits',[]); const o=arr.find(x=>x.id===id); if(o){o.c[dStr]=!o.c[dStr];DB.set('pers_habits',arr);renderHabits();} }
+function delHabit(id) { if(confirm("Silinsin mi?")){DB.set('pers_habits',DB.get('pers_habits',[]).filter(x=>x.id!==id));renderHabits();} }
 function renderHabits() {
-    const arr = DB.get(`pers_habits`, []); const el = document.getElementById('habit-list');
-    if(!arr.length) { el.innerHTML = '<div class="empty">Alışkanlık yok.</div>'; return; }
-    const wDays=(()=>{ const t=new Date(); t.setHours(0,0,0,0); const m=new Date(t); m.setDate(t.getDate()-((t.getDay()+6)%7)); const d=[]; const l=['Pt','Sa','Ça','Pe','Cu','Ct','Pz']; for(let i=0;i<7;i++){const x=new Date(m); x.setDate(m.getDate()+i); d.push({ds:x.toISOString().split('T')[0], lb:l[i], n:x.getDate(), td:x.toDateString()===t.toDateString()});} return d; })();
-    el.innerHTML = arr.map(h => {
-        const ch=h.checks||{}; const dw=wDays.filter(d=>ch[d.ds]).length; const pct=Math.min(100, Math.round((dw/h.target)*100));
-        const dots=wDays.map(d=>`<div style="flex:1;aspect-ratio:1;border-radius:8px;border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer; ${ch[d.ds]?'background:var(--accent);color:#fff;border-color:var(--accent);':(d.td?'border-color:var(--accent-warning);':'background:var(--bg);')}" onclick="toggleHabitDay('${h.id}','${d.ds}')"><span style="font-size:10px;">${d.lb}</span><span style="font-size:13px;font-weight:700;">${d.n}</span></div>`).join('');
-        return `<div class="card"><div class="card-actions"><button class="btn-icon" onclick="deleteData('${h.id}')">✕</button></div><div class="card-title">${esc(h.name)}</div><div class="card-meta">Hedef: ${h.target} Gün (Bu Hafta: ${dw})</div><div style="display:flex;gap:8px;margin-top:15px;">${dots}</div></div>`;
-    }).join('');
+  const arr=DB.get('pers_habits',[]); const el=document.getElementById('habit-list');
+  if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  const wDays=(()=>{const t=new Date();t.setHours(0,0,0,0);const m=new Date(t);m.setDate(t.getDate()-((t.getDay()+6)%7));const d=[];const l={tr:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'],en:['Mo','Tu','We','Th','Fr','Sa','Su']};for(let i=0;i<7;i++){const x=new Date(m);x.setDate(m.getDate()+i);d.push({ds:x.toISOString().split('T')[0],lb:l[currentLang][i],n:x.getDate(),td:x.toDateString()===t.toDateString()});}return d;})();
+  el.innerHTML=arr.map(h=>{const ch=h.c||{};const dw=wDays.filter(d=>ch[d.ds]).length;const pct=Math.min(100,Math.round((dw/h.tg)*100));const dots=wDays.map(d=>`<div class="habit-day ${ch[d.ds]?'checked':''} ${d.td?'today':''}" onclick="togHabit('${h.id}','${d.ds}')"><span style="font-size:10px;font-weight:700;opacity:0.8">${d.lb}</span><span style="font-size:13px;font-weight:700">${d.n}</span></div>`).join('');return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div class="card-title" style="margin:0;">${esc(h.n)}</div><div class="card-meta" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:2px;">${dw}/${h.tg} ${currentLang==='tr'?'hedef':'goal'}</div></div><button class="btn-icon" onclick="delHabit('${h.id}')">&#10005;</button></div><div class="habit-days">${dots}</div><div style="display:flex;align-items:center;gap:10px;margin-top:12px;"><div class="goal-bar-bg" style="margin:0;"><div class="goal-bar-fill" style="width:${pct}%"></div></div><span style="font-size:12px;font-weight:700;color:var(--muted)">%${pct}</span></div></div>`;}).join('');
 }
 
-// LISTS & GOALS
-function renderGoal() { const g=DB.get('pers_goal',null); const c=document.getElementById('goal-container'); if(!g){c.innerHTML=`<button class="btn-add" style="border-style:solid;" onclick="editGoal()">+ Finansal Hedef Ekle</button>`;return;} const pct=g.tg>0?Math.min(100,Math.round((g.cr/g.tg)*100)):0; c.innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-end;"><div style="font-weight:700;font-size:16px;">${esc(g.t)}</div><div style="font-size:14px;color:var(--muted)"><strong style="color:var(--accent);font-size:16px;">${g.cr.toLocaleString()}</strong> / ${g.tg.toLocaleString()}</div></div><div style="width:100%;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border);margin:12px 0;"><div style="height:100%;background:var(--accent);width:${pct}%"></div></div><div style="display:flex;gap:8px;margin-top:12px;"><input type="number" id="goal-val" placeholder="Miktar" style="margin:0;"><button class="btn-primary" style="width:auto;padding:12px;" onclick="addGoal()">+</button><button class="btn-ghost" style="width:auto;padding:12px;" onclick="editGoal()">&#9998;</button><button class="btn-ghost" style="width:auto;padding:12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="if(confirm('Silinsin mi?')){DB.set('pers_goal',null);renderGoal();}">✕</button></div></div>`; }
-function addGoal(){ const v=parseInt(document.getElementById('goal-val').value); if(!v||v<=0)return; const g=DB.get('pers_goal',null); if(g){g.cr+=v; DB.set('pers_goal',g); renderGoal();} }
-function editGoal(){ const g=DB.get('pers_goal',{t:'Hedef',cr:0,tg:0}); const t=prompt("Başlık:",g.t); if(!t)return; const tg=prompt("Hedef Miktar:",g.tg); if(!tg)return; const c=prompt("Mevcut:",g.cr); if(!c)return; DB.set('pers_goal',{t:t,tg:parseInt(tg)||0,cr:parseInt(c)||0}); renderGoal(); }
+// ==================== 6. LISTS & GOALS ====================
+function renderGoal() { const g=DB.get('pers_goal',null); const c=document.getElementById('goal-container'); if(!g){c.innerHTML=`<button class="btn-add" style="border-style:solid;" onclick="editGoal()">+ ${currentLang==='tr'?'Finansal Hedef Ekle':'Add Financial Goal'}</button>`;return;} const pct=g.tg>0?Math.min(100,Math.round((g.cr/g.tg)*100)):0; c.innerHTML=`<div class="goal-card"><div style="display:flex;justify-content:space-between;align-items:flex-end;"><div style="font-weight:700;font-size:16px;">${esc(g.t)}</div><div style="font-size:14px;color:var(--muted)"><strong style="color:var(--accent);font-size:16px;">${g.cr.toLocaleString()}</strong> / ${g.tg.toLocaleString()}</div></div><div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${pct}%"></div></div><div style="display:flex;gap:8px;margin-top:12px;"><input type="number" id="goal-val" placeholder="${currentLang==='tr'?'Miktar':'Amount'}" style="padding:8px;font-size:14px;"><button class="btn-primary" style="padding:8px 16px;" onclick="addGoal()">+</button><button class="btn-ghost" style="padding:8px 12px;" onclick="editGoal()">&#9998;</button><button class="btn-ghost" style="padding:8px 12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="if(confirm('Silinsin mi?')){DB.set('pers_goal',null);renderGoal();}">&#10005;</button></div></div>`; }
+function addGoal(){ const v=parseInt(document.getElementById('goal-val').value); if(!v||v<=0)return; const g=DB.get('pers_goal',null); if(g){g.cr+=v;DB.set('pers_goal',g);renderGoal();} }
+function editGoal(){ const g=DB.get('pers_goal',{t:'Hedef',cr:0,tg:0}); const t=prompt("Başlık / Title:",g.t); if(t===null)return; const tg=prompt("Hedef / Target:",g.tg); if(tg===null)return; const c=prompt("Mevcut / Current:",g.cr); if(c===null)return; DB.set('pers_goal',{t:t,tg:parseInt(tg)||0,cr:parseInt(c)||0}); renderGoal(); }
 
-function renderLists() { const cats=DB.get('pers_listcats',['Alışveriş','Kitaplar']); const ac=DB.get('pers_activecat',cats[0]); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer; font-size:13px; padding:8px 16px; margin:0; flex-shrink:0; ${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer; font-size:13px; padding:8px 16px; margin:0; background:transparent; border:1px dashed var(--border); color:var(--text); flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); }
-function saveNewListCat(){ const n=document.getElementById('m-newlist-name').value.trim(); if(!n)return; const c=DB.get('pers_listcats',[]); if(!c.includes(n))c.push(n); DB.set('pers_listcats',c); DB.set('pers_activecat',n); closeModal('modal-newlist'); renderLists(); }
+function getCatKeys() { return DB.get('pers_listcats',['Alışveriş','İzlenecekler','Kitaplar']); }
+function getActiveCat() { return DB.get('pers_activecat',getCatKeys()[0]); }
 function safe(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
-function addLItem(cat){ const v=document.getElementById('li-'+safe(cat)).value.trim(); if(!v)return; const arr=DB.get('pers_list_'+cat,[]); arr.push({id:Date.now().toString(36),t:v,d:false,p:'',n:''}); DB.set('pers_list_'+cat,arr); renderLists(); }
-function togLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.d=!o.d; DB.set('pers_list_'+cat,arr); renderLists();} }
-function delLItem(cat,id){ DB.set('pers_list_'+cat, DB.get('pers_list_'+cat,[]).filter(x=>x.id!==id)); renderLists(); }
-function updLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.p=document.getElementById('lp-'+id).value.trim(); o.n=document.getElementById('ln-'+id).value.trim(); DB.set('pers_list_'+cat,arr);} }
+function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); }
+function saveNewListCat(){ const n=document.getElementById('m-newlist-name').value.trim(); if(!n)return; const c=getCatKeys(); if(!c.includes(n))c.push(n); DB.set('pers_listcats',c); DB.set('pers_activecat',n); closeModal('modal-newlist'); renderLists(); }
+function addLItem(cat){ const v=document.getElementById('li-'+safe(cat)).value.trim(); if(!v)return; const arr=DB.get('pers_list_'+cat,[]); arr.push({id:id(),t:v,d:false,p:'',n:''}); DB.set('pers_list_'+cat,arr); renderLists(); }
+function togLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.d=!o.d;DB.set('pers_list_'+cat,arr);renderLists();} }
+function delLItem(cat,id){ DB.set('pers_list_'+cat,DB.get('pers_list_'+cat,[]).filter(x=>x.id!==id)); renderLists(); }
+function updLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.p=document.getElementById('lp-'+id).value.trim();o.n=document.getElementById('ln-'+id).value.trim();DB.set('pers_list_'+cat,arr);} }
 function togLBody(id){ document.getElementById('lb-'+id).classList.toggle('open'); document.getElementById('lc-'+id).classList.toggle('open'); }
-function renderListItems(cat) { const el=document.getElementById('list-content'); const arr=DB.get('pers_list_'+cat,[]); 
-  const r=(i)=>`<div class="card" style="padding:12px 16px; margin-bottom:8px; ${i.d?'opacity:0.5;box-shadow:none;':''}"><div class="acc-header" onclick="togLBody('${i.id}')"><div class="list-check ${i.d?'checked':''}" style="width:20px;height:20px;" onclick="event.stopPropagation();togLItem('${esc(cat)}','${i.id}')">${i.d?'✓':''}</div><div style="flex:1;font-weight:600;font-size:15px;margin-left:12px;${i.d?'text-decoration:line-through':''}">${esc(i.t)}</div>${i.p&&!i.d?`<span style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border);margin-right:10px;color:var(--muted)">${esc(i.p)}</span>`:''}<span class="chevron" id="lc-${i.id}">▼</span></div><div class="acc-body" id="lb-${i.id}"><input type="text" id="lp-${i.id}" value="${esc(i.p)}" placeholder="İlerleme (Örn: Sayfa 4)" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;margin-bottom:8px;"><textarea id="ln-${i.id}" placeholder="Link veya Not" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;min-height:50px;margin-bottom:8px;">${esc(i.n)}</textarea><div style="text-align:right"><button class="btn-icon" style="color:var(--accent-danger)" onclick="delLItem('${esc(cat)}','${i.id}')">Sil</button></div></div></div>`;
+function renderListItems(cat) { const el=document.getElementById('list-content'); const arr=DB.get('pers_list_'+cat,[]);
+  const r=(i)=>`<div class="card" style="padding:12px 16px;margin-bottom:8px;${i.d?'opacity:0.5;box-shadow:none;':''}"><div class="acc-header" onclick="togLBody('${i.id}')"><div class="list-check ${i.d?'checked':''}" style="width:20px;height:20px;" onclick="event.stopPropagation();togLItem('${esc(cat)}','${i.id}')">${i.d?'✓':''}</div><div style="flex:1;font-weight:600;font-size:15px;margin-left:12px;${i.d?'text-decoration:line-through':''}">${esc(i.t)}</div>${i.p&&!i.d?`<span style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border);margin-right:10px;color:var(--muted)">${esc(i.p)}</span>`:''}<span class="chevron" id="lc-${i.id}">▼</span></div><div class="acc-body" id="lb-${i.id}"><input type="text" id="lp-${i.id}" value="${esc(i.p)}" placeholder="${currentLang==='tr'?'İlerleme (Örn: Sayfa 4)':'Progress'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;margin-bottom:8px;"><textarea id="ln-${i.id}" placeholder="${currentLang==='tr'?'Link veya Not':'Note or Link'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;min-height:50px;margin-bottom:8px;">${esc(i.n)}</textarea><div style="text-align:right"><button class="btn-icon" style="color:var(--accent-danger)" onclick="delLItem('${esc(cat)}','${i.id}')">Sil</button></div></div></div>`;
   const un=arr.filter(i=>!i.d); const dn=arr.filter(i=>i.d);
-  el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:16px;"><input type="text" id="li-${safe(cat)}" placeholder="Öğe ekle..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')"><button class="btn-primary" style="width:auto;padding:12px;" onclick="addLItem('${esc(cat)}')">+</button></div>${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}${dn.length?`<div style="height:1px;background:var(--border);margin:20px 0;"></div><div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
+  el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:16px;"><input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')"><button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button></div>${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
 }
 
-// NOTE EDITOR
+// ==================== 7. BIRTHDAYS ====================
+function saveBday() { const n=document.getElementById('m-bday-name').value.trim(); const m=parseInt(document.getElementById('m-bday-month').value); const d=parseInt(document.getElementById('m-bday-day').value); if(!n||!m||!d)return; const arr=DB.get('pers_birthdays',[]); arr.push({id:id(),name:n,month:m,day:d,note:document.getElementById('m-bday-note').value.trim(),items:[]}); DB.set('pers_birthdays',arr); closeModal('modal-bday'); renderBdays(); checkAndNotify(); }
+function delBday(id) { if(confirm("Silinsin mi?")){DB.set('pers_birthdays',DB.get('pers_birthdays',[]).filter(x=>x.id!==id));renderBdays();} }
+function getBdayCD(m,d) { const t=new Date(); const ty=t.getFullYear(); let n=new Date(ty,m-1,d,23,59,59); if(n<t)n=new Date(ty+1,m-1,d,23,59,59); const ms=n-t; const diff=Math.floor(ms/86400000); if(diff===0)return{t:currentLang==='tr'?'Bugün!':'Today!',c:'badge-danger'}; if(diff<=7)return{t:`${diff} ${currentLang==='tr'?'gün':'days'}`,c:'badge-warning'}; return{t:`${diff} ${currentLang==='tr'?'gün':'days'}`,c:'badge-safe'}; }
+function toggleBdayBody(id) { document.getElementById('bb-'+id).classList.toggle('open'); document.getElementById('bc-'+id).classList.toggle('open'); }
+function addBdayItem(id){ const v=document.getElementById('bi-'+id).value.trim(); if(!v)return; const arr=DB.get('pers_birthdays',[]); const o=arr.find(x=>x.id===id); if(o){o.items=o.items||[];o.items.push({id:id(),t:v,d:false});DB.set('pers_birthdays',arr);renderBdays();setTimeout(()=>toggleBdayBody(id),10);} }
+function togBdayItem(bid,iid){ const arr=DB.get('pers_birthdays',[]); const o=arr.find(x=>x.id===bid); if(o){const i=o.items.find(x=>x.id===iid);if(i)i.d=!i.d;DB.set('pers_birthdays',arr);renderBdays();setTimeout(()=>toggleBdayBody(bid),10);} }
+function delBdayItem(bid,iid){ const arr=DB.get('pers_birthdays',[]); const o=arr.find(x=>x.id===bid); if(o){o.items=o.items.filter(x=>x.id!==iid);DB.set('pers_birthdays',arr);renderBdays();setTimeout(()=>toggleBdayBody(bid),10);} }
+function renderBdays() { const arr=DB.get('pers_birthdays',[]); const el=document.getElementById('bday-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} const ty=new Date().getFullYear(); arr.forEach(x=>{let n=new Date(ty,x.month-1,x.day);if(n.getTime()<new Date().getTime())n=new Date(ty+1,x.month-1,x.day);x._n=n.getTime();}); arr.sort((a,b)=>a._n-b._n); el.innerHTML=arr.map(x=>{const nDate=new Date(x._n);const cd=getBdayCD(x.month,x.day);const dStr=`${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;const items=(x.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togBdayItem('${x.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delBdayItem('${x.id}','${i.id}')">✕</button></div>`).join('');return `<div class="card"><div class="acc-header" onclick="toggleBdayBody('${x.id}')"><div style="display:flex;align-items:center;gap:14px;"><div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div><div><div style="font-weight:700;font-size:16px;">${esc(x.name)}</div><div class="card-meta" style="margin-top:2px;">${x.day} ${MONTHS_TR[x.month]}</div><div style="margin-top:6px;"><span class="badge ${cd.c}" style="margin:0;">${cd.t}</span></div></div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${x.name} D.Günü','${dStr}',null,'Kutlama')">&#128197;</button><span class="chevron" id="bc-${x.id}">▼</span></div></div><div class="acc-body" id="bb-${x.id}">${x.note?`<div class="card-note" style="margin-bottom:10px;">${esc(x.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="bi-${x.id}" placeholder="Hediye veya sürpriz planı..." onkeydown="if(event.key==='Enter')addBdayItem('${x.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addBdayItem('${x.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delBday('${x.id}')">Kişiyi Sil</button></div></div>`;}).join(''); }
+
+// ==================== 8. NOTES ====================
+function getNoteKey() { return currentContext+'_notes'; }
 function parseMD(t) { return esc(t).replace(/^### (.*$)/gim,'<h3>$1</h3>').replace(/^## (.*$)/gim,'<h2>$1</h2>').replace(/^# (.*$)/gim,'<h1>$1</h1>').replace(/\*\*(.*?)\*\*/gim,'<strong>$1</strong>').replace(/\*(.*?)\*/gim,'<em>$1</em>').replace(/^\- (.*$)/gim,'<ul><li>$1</li></ul>').replace(/<\/ul>\n<ul>/gim,'').replace(/\n/gim,'<br>'); }
-function openNoteEditor(eid=null) { currentEditId=eid; const n=eid?DB.get(`${currentContext}_notes`,[]).find(x=>x.id===eid):null; document.getElementById('m-note-title').value=n?n.title:''; document.getElementById('m-note-body').value=n?n.body:''; switchNoteTab('write'); document.getElementById('note-editor').style.display='flex'; if(!eid)currentEditId=Date.now().toString(36); }
-function switchNoteTab(m) { document.getElementById('tab-write').classList.remove('active'); document.getElementById('tab-preview').classList.remove('active'); document.getElementById('m-note-body').classList.remove('active'); document.getElementById('m-note-preview').classList.remove('active'); if(m==='write'){ document.getElementById('tab-write').classList.add('active'); document.getElementById('m-note-body').classList.add('active'); }else{ document.getElementById('tab-preview').classList.add('active'); document.getElementById('m-note-preview').innerHTML=parseMD(document.getElementById('m-note-body').value); document.getElementById('m-note-preview').classList.add('active'); } }
-function closeNoteEditor() { const t=document.getElementById('m-note-title').value.trim(); const b=document.getElementById('m-note-body').value.trim(); if(t||b){ const k=`${currentContext}_notes`; const arr=DB.get(k,[]); const idx=arr.findIndex(x=>x.id===currentEditId); const e={id:currentEditId, title:t||'İsimsiz', body:b, d:new Date().toISOString()}; if(idx>-1)arr[idx]=e; else arr.unshift(e); DB.set(k,arr); } document.getElementById('note-editor').style.display='none'; renderNotes(); }
-function deleteNote() { if(confirm("Silinsin mi?")){ DB.set(`${currentContext}_notes`,DB.get(`${currentContext}_notes`,[]).filter(x=>x.id!==currentEditId)); document.getElementById('note-editor').style.display='none'; renderNotes(); } }
-function renderNotes() { const arr=DB.get(`${currentContext}_notes`,[]); const el=document.getElementById('notes-list'); if(!arr.length){el.innerHTML=`<div class="empty">Not yok.</div>`;return;} el.innerHTML=arr.map(n=>{ const d=new Date(n.d); return `<div class="card" style="cursor:pointer;" onclick="openNoteEditor('${n.id}')"><div class="card-title">${esc(n.title)}</div><div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div><div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;">${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</div></div>`; }).join(''); }
+function openNoteEditor(eid=null) { currentEditId=eid; const n=eid?DB.get(getNoteKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-note-title').value=n?n.title:''; document.getElementById('m-note-body').value=n?n.body:''; switchNoteTab('write'); document.getElementById('note-editor').classList.add('open'); if(!eid)currentEditId=id(); }
+function switchNoteTab(m) { document.getElementById('tab-write').classList.remove('active'); document.getElementById('tab-preview').classList.remove('active'); document.getElementById('m-note-body').classList.remove('active'); document.getElementById('m-note-preview').classList.remove('active'); if(m==='write'){document.getElementById('tab-write').classList.add('active');document.getElementById('m-note-body').classList.add('active');}else{document.getElementById('tab-preview').classList.add('active');const md=document.getElementById('m-note-body').value;document.getElementById('m-note-preview').innerHTML=md?parseMD(md):'<div style="color:var(--muted);font-style:italic">Boş...</div>';document.getElementById('m-note-preview').classList.add('active');} }
+function closeNoteEditor() { const t=document.getElementById('m-note-title').value.trim(); const b=document.getElementById('m-note-body').value.trim(); if(t||b){const k=getNoteKey();const arr=DB.get(k,[]);const idx=arr.findIndex(x=>x.id===currentEditId);const e={id:currentEditId,title:t||'İsimsiz',body:b,d:new Date().toISOString()};if(idx>-1)arr[idx]=e;else arr.unshift(e);DB.set(k,arr);} document.getElementById('note-editor').classList.remove('open'); renderNotes(); }
+function deleteNote() { if(confirm("Silinsin mi?")){const k=getNoteKey();DB.set(k,DB.get(k,[]).filter(x=>x.id!==currentEditId));document.getElementById('note-editor').classList.remove('open');renderNotes();} }
+function renderNotes() { const arr=DB.get(getNoteKey(),[]); const el=document.getElementById('notes-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(n=>{const d=new Date(n.d);return `<div class="card" style="cursor:pointer;" onclick="openNoteEditor('${n.id}')"><div class="card-title">${esc(n.title)}</div><div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div><div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;">${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</div></div>`;}).join(''); }
 
-// EXPORT/IMPORT
-function exportData() { const d={}; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(k.startsWith('planner_'))d[k]=localStorage.getItem(k);} const blob=new Blob([JSON.stringify(d,null,2)],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`planner_yedek_${new Date().toISOString().split('T')[0]}.txt`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
-function importData(e) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>{const d=JSON.parse(ev.target.result); Object.keys(d).forEach(k=>localStorage.setItem(k,d[k])); location.reload();}; r.readAsText(f); }
+// ==================== PWA ====================
+function registerSW() {
+  if('serviceWorker' in navigator) {
+    const sw = `
+      self.addEventListener('install', e => { self.skipWaiting(); });
+      self.addEventListener('fetch', e => {
+        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+      });
+    `;
+    const blob = new Blob([sw], {type:'application/javascript'});
+    const swURL = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swURL).catch(()=>{});
+  }
+}
 
-// INIT
+// ==================== BAŞLATMA ====================
 function init() {
-  document.getElementById('headerDate').textContent = new Date().toLocaleDateString('tr-TR', {weekday:'long', day:'numeric', month:'long'});
-  setTheme(localStorage.getItem('planner_theme') || 'dark');
+  setTheme(currentTheme);
+  applyTranslations();
+  updateHeaderDate();
   switchModule('summary');
+  initNotifications();
+  registerSW();
+  setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
 }
 init();
 </script>
