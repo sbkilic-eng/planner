@@ -249,8 +249,8 @@
   .sum-icon.ctx-pers { background: rgba(92,158,120,0.18); border-color: rgba(92,158,120,0.35); }
   .sum-past-toggle { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; border-radius: 12px; border: 1px dashed var(--border); background: none; width: 100%; color: var(--muted); font-size: 13px; font-weight: 700; font-family: inherit; transition: background 0.2s; margin-top: 8px; }
   .sum-past-toggle:hover { background: var(--surface); }
-  .sum-past-list { overflow: hidden; max-height: 0; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1); }
-  .sum-past-list.open { max-height: 2000px; }
+  .sum-past-list { overflow: hidden; height: 0; transition: height 0.4s cubic-bezier(0.4,0,0.2,1); }
+  .sum-past-list-inner { padding-top: 8px; }
   .todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; transition: opacity 0.2s; border-left: 4px solid var(--border); box-shadow: var(--shadow); }
   .todo-item.priority-high { border-left-color: var(--accent-danger); }
   .todo-item.done { opacity: 0.4; } .todo-item.done .todo-text { text-decoration: line-through; }
@@ -1067,11 +1067,23 @@ let pastOpen = false;
 
 function togglePastSection() {
   pastOpen = !pastOpen;
-  const list = document.getElementById('sum-past-list');
+  const list  = document.getElementById('sum-past-list');
+  const inner = document.getElementById('sum-past-inner');
   const arrow = document.getElementById('sum-past-arrow');
-  const count = document.getElementById('sum-past-count');
-  list.classList.toggle('open', pastOpen);
-  arrow.style.transform = pastOpen ? 'rotate(180deg)' : '';
+  if (pastOpen) {
+    list.style.height = inner.scrollHeight + 'px';
+    arrow.style.transform = 'rotate(180deg)';
+    list.addEventListener('transitionend', function onEnd() {
+      list.style.height = 'auto';
+      list.removeEventListener('transitionend', onEnd);
+    });
+  } else {
+    list.style.height = inner.scrollHeight + 'px';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { list.style.height = '0'; });
+    });
+    arrow.style.transform = '';
+  }
 }
 
 function renderSummary() {
@@ -1142,8 +1154,8 @@ function renderSummary() {
           <span id="sum-past-count" style="background:var(--border);padding:2px 8px;border-radius:6px;font-size:11px;">${past.length}</span>
           <span id="sum-past-arrow" style="font-size:11px;transition:transform 0.3s;">▼</span>
         </button>
-        <div class="sum-past-list ${pastOpen?'open':''}" id="sum-past-list">
-          <div style="padding-top:8px;">
+        <div class="sum-past-list" id="sum-past-list" style="height:0;">
+          <div class="sum-past-list-inner" id="sum-past-inner">
             ${past.map(e => cardHTML(e, true)).join('')}
           </div>
         </div>`;
