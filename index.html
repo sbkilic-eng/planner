@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Planner Pro</title>
-<!-- PWA Meta Tags -->
 <meta name="theme-color" content="#1E2228">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -340,7 +339,6 @@
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
   <nav class="sidebar" id="sidebar">
-    <!-- BİLDİRİM ÇUBUĞU -->
     <div class="notif-bar" id="notif-bar">
       <span class="notif-bar-text">🔔 Hatırlatıcılar için izin ver?</span>
       <div class="notif-bar-actions">
@@ -354,33 +352,24 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="app-logo-img">
           <defs><linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3A6EA8"/><stop offset="100%" stop-color="#1A3A5C"/></linearGradient></defs>
           <rect width="100" height="100" rx="24" fill="url(#lg1)"/>
-          <!-- kanatlar arka -->
           <ellipse cx="26" cy="44" rx="11" ry="18" fill="white" opacity="0.28" transform="rotate(-25 26 44)"/>
           <ellipse cx="74" cy="44" rx="11" ry="18" fill="white" opacity="0.28" transform="rotate(25 74 44)"/>
-          <!-- gövde -->
           <ellipse cx="50" cy="60" rx="17" ry="22" fill="#FCEEA0"/>
           <clipPath id="bB1"><ellipse cx="50" cy="60" rx="17" ry="22"/></clipPath>
           <rect x="33" y="54" width="34" height="7" fill="#3A2800" opacity="0.3" clip-path="url(#bB1)"/>
           <rect x="33" y="65" width="34" height="6" fill="#3A2800" opacity="0.25" clip-path="url(#bB1)"/>
           <ellipse cx="50" cy="60" rx="17" ry="22" fill="none" stroke="#E8C040" stroke-width="1.5"/>
-          <!-- küçük kanatlar ön -->
           <ellipse cx="30" cy="56" rx="7" ry="12" fill="white" opacity="0.18" transform="rotate(-15 30 56)"/>
           <ellipse cx="70" cy="56" rx="7" ry="12" fill="white" opacity="0.18" transform="rotate(15 70 56)"/>
-          <!-- iğne -->
           <path d="M50 81 L47 90 L50 88 L53 90 Z" fill="#E8C040"/>
-          <!-- baş -->
           <circle cx="50" cy="34" r="14" fill="#FCEEA0" stroke="#E8C040" stroke-width="1.5"/>
-          <!-- yanak allık -->
           <circle cx="43" cy="37" r="4" fill="#F5A0A0" opacity="0.5"/>
           <circle cx="57" cy="37" r="4" fill="#F5A0A0" opacity="0.5"/>
-          <!-- gözler -->
           <circle cx="45" cy="32" r="3.5" fill="#2A1A00"/>
           <circle cx="55" cy="32" r="3.5" fill="#2A1A00"/>
           <circle cx="44" cy="31" r="1.2" fill="white" opacity="0.8"/>
           <circle cx="54" cy="31" r="1.2" fill="white" opacity="0.8"/>
-          <!-- gülümseme -->
           <path d="M44 38 Q50 43 56 38" fill="none" stroke="#2A1A00" stroke-width="1.8" stroke-linecap="round"/>
-          <!-- antenler -->
           <path d="M44 21 Q40 14 36 10" fill="none" stroke="#E8C040" stroke-width="2" stroke-linecap="round"/>
           <circle cx="36" cy="10" r="3" fill="#F08030"/>
           <path d="M56 21 Q60 14 64 10" fill="none" stroke="#E8C040" stroke-width="2" stroke-linecap="round"/>
@@ -399,7 +388,6 @@
         <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Özet</span>
       </button>
 
-      <!-- İŞ DÜNYASI FAN GROUP -->
       <div class="fan-group">
         <button class="fan-header" id="fan-work" onclick="toggleFanGroup('work')">
           <div class="fan-header-icon work">💼</div>
@@ -429,7 +417,6 @@
         </div>
       </div>
 
-      <!-- KİŞİSEL YAŞAM FAN GROUP -->
       <div class="fan-group">
         <button class="fan-header" id="fan-pers" onclick="toggleFanGroup('pers')">
           <div class="fan-header-icon personal">🌿</div>
@@ -571,10 +558,8 @@
   </main>
 </div>
 
-<!-- YAZDIR ALANI -->
 <div id="print-area"></div>
 
-<!-- FAB -->
 <div class="fab-container" id="fab-container">
   <button class="fab" id="fab-main" onclick="toggleFAB()">+</button>
   <div class="fab-menu" id="fab-menu">
@@ -593,7 +578,6 @@
   </div>
 </div>
 
-<!-- ARAMA OVERLAY -->
 <div class="search-overlay" id="search-overlay">
   <div class="search-box">
     <span style="font-size:18px; color:var(--muted);">🔍</span>
@@ -603,7 +587,6 @@
   <div class="search-results" id="search-results"></div>
 </div>
 
-<!-- MODALS -->
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
@@ -898,6 +881,10 @@ document.getElementById('search-overlay').addEventListener('click', function(e) 
 function performSearch() {
   const q = document.getElementById('search-input').value.trim().toLowerCase();
   const el = document.getElementById('search-results');
+  
+  // DÜZELTME: Arama kutusu tamamen boşsa sonuçları da temizle
+  if(q.length === 0) { el.innerHTML = ''; return; }
+  
   if(q.length < 2) { el.innerHTML = '<div class="search-empty">En az 2 karakter girin...</div>'; return; }
 
   const results = [];
@@ -1168,7 +1155,22 @@ function renderSummary() {
 // ==================== 2. APPOINTMENTS ====================
 function getApptKey() { return currentContext+'_appts'; }
 function openApptForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getApptKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-appt-title').value=d?d.title:''; document.getElementById('m-appt-date').value=d?d.date:new Date().toISOString().split('T')[0]; document.getElementById('m-appt-time').value=d?d.time||'':''; document.getElementById('m-appt-note').value=d?d.note||'':''; openModal('modal-appt'); }
-function saveAppt() { const t=document.getElementById('m-appt-title').value.trim(); if(!t)return; const k=getApptKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} arr.sort((a,b)=>(a.date+a.time)<(b.date+b.time)?-1:1); DB.set(k,arr); closeModal('modal-appt'); renderAppts(); checkAndNotify(); }
+function saveAppt() { 
+  const t=document.getElementById('m-appt-title').value.trim(); 
+  if(!t)return; 
+  const k=getApptKey(); 
+  const arr=DB.get(k,[]); 
+  const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; 
+  if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} 
+  
+  // DÜZELTME: (Sort Bug) Null check eklendi time için
+  arr.sort((a,b)=>(a.date+(a.time||''))<(b.date+(b.time||''))?-1:1); 
+  
+  DB.set(k,arr); 
+  closeModal('modal-appt'); 
+  renderAppts(); 
+  checkAndNotify(); 
+}
 function delAppt(id) { if(!confirm("Silinsin mi?"))return; const k=getApptKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderAppts(); }
 function renderAppts() { const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.date,a.time);return `<div class="card">${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}</div>`;}).join(''); }
 
@@ -1211,9 +1213,49 @@ function getTravKey() { return currentContext+'_travels'; }
 function openTravelForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getTravKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-travel-dest').value=d?d.dest:''; document.getElementById('m-travel-start').value=d?d.start:''; document.getElementById('m-travel-end').value=d?d.end:''; document.getElementById('m-travel-note').value=d?d.note||'':''; openModal('modal-travel'); }
 function saveTravel() { const t=document.getElementById('m-travel-dest').value.trim(); if(!t)return; const k=getTravKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),dest:t,start:document.getElementById('m-travel-start').value,end:document.getElementById('m-travel-end').value,note:document.getElementById('m-travel-note').value.trim(),items:[]}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.items=arr[i].items;arr[i]=p;}}else{arr.push(p);} DB.set(k,arr); closeModal('modal-travel'); renderTravels(); }
 function toggleTravelBody(id) { document.getElementById('tb-'+id).classList.toggle('open'); document.getElementById('tc-'+id).classList.toggle('open'); }
-function addTravItem(id){ const v=document.getElementById('ti-'+id).value.trim(); if(!v)return; const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){o.items.push({id:id(),t:v,d:false});DB.set(k,arr);renderTravels();setTimeout(()=>toggleTravelBody(id),10);} }
-function togTravItem(tid,iid){ const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){const i=o.items.find(x=>x.id===iid);if(i)i.d=!i.d;DB.set(k,arr);renderTravels();setTimeout(()=>toggleTravelBody(tid),10);} }
-function delTravItem(tid,iid){ const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){o.items=o.items.filter(x=>x.id!==iid);DB.set(k,arr);renderTravels();setTimeout(()=>toggleTravelBody(tid),10);} }
+
+// DÜZELTME: (Odak ve Titreme - Travels)
+function addTravItem(tid){ 
+  const v=document.getElementById('ti-'+tid).value.trim(); 
+  if(!v)return; 
+  const k=getTravKey(); 
+  const arr=DB.get(k,[]); 
+  const o=arr.find(x=>x.id===tid); 
+  if(o){
+    // Artık parametre adı 'tid' olduğu için global id() fonksiyonu sorunsuz çalışır
+    o.items.push({id:id(),t:v,d:false});
+    DB.set(k,arr);
+    renderTravels();
+    document.getElementById('tb-'+tid).classList.add('open');
+    document.getElementById('tc-'+tid).classList.add('open');
+    document.getElementById('ti-'+tid).focus();
+  } 
+}
+function togTravItem(tid,iid){ 
+  const k=getTravKey(); 
+  const arr=DB.get(k,[]); 
+  const o=arr.find(x=>x.id===tid); 
+  if(o){
+    const i=o.items.find(x=>x.id===iid);
+    if(i)i.d=!i.d;
+    DB.set(k,arr);
+    renderTravels();
+    document.getElementById('tb-'+tid).classList.add('open');
+    document.getElementById('tc-'+tid).classList.add('open');
+  } 
+}
+function delTravItem(tid,iid){ 
+  const k=getTravKey(); 
+  const arr=DB.get(k,[]); 
+  const o=arr.find(x=>x.id===tid); 
+  if(o){
+    o.items=o.items.filter(x=>x.id!==iid);
+    DB.set(k,arr);
+    renderTravels();
+    document.getElementById('tb-'+tid).classList.add('open');
+    document.getElementById('tc-'+tid).classList.add('open');
+  } 
+}
 function delTrav(id){ if(confirm("Silinsin mi?")){const k=getTravKey();DB.set(k,DB.get(k,[]).filter(x=>x.id!==id));renderTravels();} }
 function renderTravels() { const arr=DB.get(getTravKey(),[]); const el=document.getElementById('travel-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.start,null);const dr=[a.start&&formatDate(a.start),a.end&&formatDate(a.end)].filter(Boolean).join(' - ');const items=(a.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togTravItem('${a.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delTravItem('${a.id}','${i.id}')">✕</button></div>`).join('');return `<div class="card"><div class="acc-header" onclick="toggleTravelBody('${a.id}')"><div>${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-title" style="font-size:22px;margin:0;">${esc(a.dest)}</div><div class="card-meta" style="margin-top:4px;">${dr}</div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openTravelForm('${a.id}')">&#9998;</button><span class="chevron" id="tc-${a.id}">▼</span></div></div><div class="acc-body" id="tb-${a.id}">${a.note?`<div class="card-note" style="margin-bottom:10px;">${esc(a.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="ti-${a.id}" placeholder="Not veya rota ekle..." onkeydown="if(event.key==='Enter')addTravItem('${a.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addTravItem('${a.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delTrav('${a.id}')">Seyahati Sil</button></div></div>`;}).join(''); }
 
@@ -1231,34 +1273,151 @@ function renderHabits() {
 // ==================== 6. LISTS & GOALS ====================
 function renderGoal() { const g=DB.get('pers_goal',null); const c=document.getElementById('goal-container'); if(!g){c.innerHTML=`<button class="btn-add" style="border-style:solid;" onclick="editGoal()">+ ${currentLang==='tr'?'Finansal Hedef Ekle':'Add Financial Goal'}</button>`;return;} const pct=g.tg>0?Math.min(100,Math.round((g.cr/g.tg)*100)):0; c.innerHTML=`<div class="goal-card"><div style="display:flex;justify-content:space-between;align-items:flex-end;"><div style="font-weight:700;font-size:16px;">${esc(g.t)}</div><div style="font-size:14px;color:var(--muted)"><strong style="color:var(--accent);font-size:16px;">${g.cr.toLocaleString()}</strong> / ${g.tg.toLocaleString()}</div></div><div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${pct}%"></div></div><div style="display:flex;gap:8px;margin-top:12px;"><input type="number" id="goal-val" placeholder="${currentLang==='tr'?'Miktar':'Amount'}" style="padding:8px;font-size:14px;"><button class="btn-primary" style="padding:8px 16px;" onclick="addGoal()">+</button><button class="btn-ghost" style="padding:8px 12px;" onclick="editGoal()">&#9998;</button><button class="btn-ghost" style="padding:8px 12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="if(confirm('Silinsin mi?')){DB.set('pers_goal',null);renderGoal();}">&#10005;</button></div></div>`; }
 function addGoal(){ const v=parseInt(document.getElementById('goal-val').value); if(!v||v<=0)return; const g=DB.get('pers_goal',null); if(g){g.cr+=v;DB.set('pers_goal',g);renderGoal();} }
-function editGoal(){ const g=DB.get('pers_goal',{t:'Hedef',cr:0,tg:0}); const t=prompt("Başlık / Title:",g.t); if(t===null)return; const tg=prompt("Hedef / Target:",g.tg); if(tg===null)return; const c=prompt("Mevcut / Current:",g.cr); if(c===null)return; DB.set('pers_goal',{t:t,tg:parseInt(tg)||0,cr:parseInt(c)||0}); renderGoal(); }
+
+// DÜZELTME: (Hedef Modal İptal Mantığı - Promptlar)
+function editGoal(){ 
+  const g=DB.get('pers_goal',{t:'Hedef',cr:0,tg:0}); 
+  let t=prompt("Başlık / Title:",g.t); 
+  if(t===null) t=g.t; 
+  let tg=prompt("Hedef / Target:",g.tg); 
+  if(tg===null) tg=g.tg; 
+  let c=prompt("Mevcut / Current:",g.cr); 
+  if(c===null) c=g.cr; 
+  DB.set('pers_goal',{t:t,tg:parseInt(tg)||0,cr:parseInt(c)||0}); 
+  renderGoal(); 
+}
 
 function getCatKeys() { return DB.get('pers_listcats',['Alışveriş','İzlenecekler','Kitaplar']); }
 function getActiveCat() { return DB.get('pers_activecat',getCatKeys()[0]); }
 function safe(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
 function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); }
 function saveNewListCat(){ const n=document.getElementById('m-newlist-name').value.trim(); if(!n)return; const c=getCatKeys(); if(!c.includes(n))c.push(n); DB.set('pers_listcats',c); DB.set('pers_activecat',n); closeModal('modal-newlist'); renderLists(); }
-function addLItem(cat){ const v=document.getElementById('li-'+safe(cat)).value.trim(); if(!v)return; const arr=DB.get('pers_list_'+cat,[]); arr.push({id:id(),t:v,d:false,p:'',n:''}); DB.set('pers_list_'+cat,arr); renderLists(); }
-function togLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.d=!o.d;DB.set('pers_list_'+cat,arr);renderLists();} }
-function delLItem(cat,id){ DB.set('pers_list_'+cat,DB.get('pers_list_'+cat,[]).filter(x=>x.id!==id)); renderLists(); }
-function updLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.p=document.getElementById('lp-'+id).value.trim();o.n=document.getElementById('ln-'+id).value.trim();DB.set('pers_list_'+cat,arr);} }
-function togLBody(id){ document.getElementById('lb-'+id).classList.toggle('open'); document.getElementById('lc-'+id).classList.toggle('open'); }
-function renderListItems(cat) { const el=document.getElementById('list-content'); const arr=DB.get('pers_list_'+cat,[]);
-  const r=(i)=>`<div class="card" style="padding:12px 16px;margin-bottom:8px;${i.d?'opacity:0.5;box-shadow:none;':''}"><div class="acc-header" onclick="togLBody('${i.id}')"><div class="list-check ${i.d?'checked':''}" style="width:20px;height:20px;" onclick="event.stopPropagation();togLItem('${esc(cat)}','${i.id}')">${i.d?'✓':''}</div><div style="flex:1;font-weight:600;font-size:15px;margin-left:12px;${i.d?'text-decoration:line-through':''}">${esc(i.t)}</div>${i.p&&!i.d?`<span style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border);margin-right:10px;color:var(--muted)">${esc(i.p)}</span>`:''}<span class="chevron" id="lc-${i.id}">▼</span></div><div class="acc-body" id="lb-${i.id}"><input type="text" id="lp-${i.id}" value="${esc(i.p)}" placeholder="${currentLang==='tr'?'İlerleme (Örn: Sayfa 4)':'Progress'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;margin-bottom:8px;"><textarea id="ln-${i.id}" placeholder="${currentLang==='tr'?'Link veya Not':'Note or Link'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;min-height:50px;margin-bottom:8px;">${esc(i.n)}</textarea><div style="text-align:right"><button class="btn-icon" style="color:var(--accent-danger)" onclick="delLItem('${esc(cat)}','${i.id}')">Sil</button></div></div></div>`;
-  const un=arr.filter(i=>!i.d); const dn=arr.filter(i=>i.d);
-  el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:16px;"><input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')"><button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button></div>${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
+
+// DÜZELTME: (Odak Kaybı - Lists)
+function addLItem(cat){ 
+  const inputId = 'li-' + safe(cat);
+  const v=document.getElementById(inputId).value.trim(); 
+  if(!v)return; 
+  const arr=DB.get('pers_list_'+cat,[]); 
+  arr.push({id:id(),t:v,d:false,p:'',n:''}); 
+  DB.set('pers_list_'+cat,arr); 
+  renderLists(); 
+  document.getElementById(inputId).focus();
 }
 
+function togLItem(cat, lid){ 
+  const arr=DB.get('pers_list_'+cat,[]); 
+  const o=arr.find(x=>x.id===lid); 
+  if(o){
+    o.d=!o.d;
+    DB.set('pers_list_'+cat,arr);
+    renderLists();
+    // Akordeonun kapanmasını engelle
+    const body = document.getElementById('lb-'+lid);
+    const chevron = document.getElementById('lc-'+lid);
+    if(body) body.classList.add('open');
+    if(chevron) chevron.classList.add('open');
+  } 
+}
+function updLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.p=document.getElementById('lp-'+id).value.trim();o.n=document.getElementById('ln-'+id).value.trim();DB.set('pers_list_'+cat,arr);} }
+function togLBody(id){ document.getElementById('lb-'+id).classList.toggle('open'); document.getElementById('lc-'+id).classList.toggle('open'); }
+function renderListItems(cat) { 
+  const el=document.getElementById('list-content'); 
+  if(!cat) { el.innerHTML=''; return; }
+  const arr=DB.get('pers_list_'+cat,[]);
+  const r=(i)=>`<div class="card" style="padding:12px 16px;margin-bottom:8px;${i.d?'opacity:0.5;box-shadow:none;':''}"><div class="acc-header" onclick="togLBody('${i.id}')"><div class="list-check ${i.d?'checked':''}" style="width:20px;height:20px;" onclick="event.stopPropagation();togLItem('${esc(cat)}','${i.id}')">${i.d?'✓':''}</div><div style="flex:1;font-weight:600;font-size:15px;margin-left:12px;${i.d?'text-decoration:line-through':''}">${esc(i.t)}</div>${i.p&&!i.d?`<span style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border);margin-right:10px;color:var(--muted)">${esc(i.p)}</span>`:''}<span class="chevron" id="lc-${i.id}">▼</span></div><div class="acc-body" id="lb-${i.id}"><input type="text" id="lp-${i.id}" value="${esc(i.p)}" placeholder="${currentLang==='tr'?'İlerleme (Örn: Sayfa 4)':'Progress'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;margin-bottom:8px;"><textarea id="ln-${i.id}" placeholder="${currentLang==='tr'?'Link veya Not':'Note or Link'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;min-height:50px;margin-bottom:8px;">${esc(i.n)}</textarea><div style="text-align:right"><button class="btn-icon" style="color:var(--accent-danger)" onclick="delLItem('${esc(cat)}','${i.id}')">Sil</button></div></div></div>`;
+  const un=arr.filter(i=>!i.d); const dn=arr.filter(i=>i.d);
+  
+  // ARAYÜZ DEĞİŞİKLİĞİ: Silme butonu input barının yanına eklendi
+  el.innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')">
+      <button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button>
+      <button class="btn-ghost" style="padding:8px 12px; border-color:var(--accent-danger); color:var(--accent-danger);" onclick="delListCat('${esc(cat)}')">🗑️</button>
+    </div>
+    ${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}
+    ${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
+}
+
+// YENİ FONKSİYON: Listeyi Komple Silme
+function delListCat(cat){
+  if(confirm(currentLang==='tr' ? "Bu listeyi tamamen silmek istediğinize emin misiniz?" : "Delete this list entirely?")){
+    let cats = getCatKeys().filter(c => c !== cat);
+    DB.set('pers_listcats', cats);
+    localStorage.removeItem('planner_pers_list_' + cat); // Alt elemanları localStorage'dan temizler
+    DB.set('pers_activecat', cats.length ? cats[0] : '');
+    renderLists();
+  }
+}
 // ==================== 7. BIRTHDAYS ====================
 function saveBday() { const n=document.getElementById('m-bday-name').value.trim(); const m=parseInt(document.getElementById('m-bday-month').value); const d=parseInt(document.getElementById('m-bday-day').value); if(!n||!m||!d)return; const arr=DB.get('pers_birthdays',[]); arr.push({id:id(),name:n,month:m,day:d,note:document.getElementById('m-bday-note').value.trim(),items:[]}); DB.set('pers_birthdays',arr); closeModal('modal-bday'); renderBdays(); checkAndNotify(); }
 function delBday(id) { if(confirm("Silinsin mi?")){DB.set('pers_birthdays',DB.get('pers_birthdays',[]).filter(x=>x.id!==id));renderBdays();} }
-function getBdayCD(m,d) { const t=new Date(); const ty=t.getFullYear(); let n=new Date(ty,m-1,d,23,59,59); if(n<t)n=new Date(ty+1,m-1,d,23,59,59); const ms=n-t; const diff=Math.floor(ms/86400000); if(diff===0)return{t:currentLang==='tr'?'Bugün!':'Today!',c:'badge-danger'}; if(diff<=7)return{t:`${diff} ${currentLang==='tr'?'gün':'days'}`,c:'badge-warning'}; return{t:`${diff} ${currentLang==='tr'?'gün':'days'}`,c:'badge-safe'}; }
-function toggleBdayBody(id) { document.getElementById('bb-'+id).classList.toggle('open'); document.getElementById('bc-'+id).classList.toggle('open'); }
-function addBdayItem(id){ const v=document.getElementById('bi-'+id).value.trim(); if(!v)return; const arr=DB.get('pers_birthdays',[]); const o=arr.find(x=>x.id===id); if(o){o.items=o.items||[];o.items.push({id:id(),t:v,d:false});DB.set('pers_birthdays',arr);renderBdays();setTimeout(()=>toggleBdayBody(id),10);} }
-function togBdayItem(bid,iid){ const arr=DB.get('pers_birthdays',[]); const o=arr.find(x=>x.id===bid); if(o){const i=o.items.find(x=>x.id===iid);if(i)i.d=!i.d;DB.set('pers_birthdays',arr);renderBdays();setTimeout(()=>toggleBdayBody(bid),10);} }
-function delBdayItem(bid,iid){ const arr=DB.get('pers_birthdays',[]); const o=arr.find(x=>x.id===bid); if(o){o.items=o.items.filter(x=>x.id!==iid);DB.set('pers_birthdays',arr);renderBdays();setTimeout(()=>toggleBdayBody(bid),10);} }
-function renderBdays() { const arr=DB.get('pers_birthdays',[]); const el=document.getElementById('bday-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} const ty=new Date().getFullYear(); arr.forEach(x=>{let n=new Date(ty,x.month-1,x.day);if(n.getTime()<new Date().getTime())n=new Date(ty+1,x.month-1,x.day);x._n=n.getTime();}); arr.sort((a,b)=>a._n-b._n); el.innerHTML=arr.map(x=>{const nDate=new Date(x._n);const cd=getBdayCD(x.month,x.day);const dStr=`${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;const items=(x.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togBdayItem('${x.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delBdayItem('${x.id}','${i.id}')">✕</button></div>`).join('');return `<div class="card"><div class="acc-header" onclick="toggleBdayBody('${x.id}')"><div style="display:flex;align-items:center;gap:14px;"><div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div><div><div style="font-weight:700;font-size:16px;">${esc(x.name)}</div><div class="card-meta" style="margin-top:2px;">${x.day} ${MONTHS_TR[x.month]}</div><div style="margin-top:6px;"><span class="badge ${cd.c}" style="margin:0;">${cd.t}</span></div></div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${x.name} D.Günü','${dStr}',null,'Kutlama')">&#128197;</button><span class="chevron" id="bc-${x.id}">▼</span></div></div><div class="acc-body" id="bb-${x.id}">${x.note?`<div class="card-note" style="margin-bottom:10px;">${esc(x.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="bi-${x.id}" placeholder="Hediye veya sürpriz planı..." onkeydown="if(event.key==='Enter')addBdayItem('${x.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addBdayItem('${x.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delBday('${x.id}')">Kişiyi Sil</button></div></div>`;}).join(''); }
+function getBdayCD(m,d) { 
+  const t = new Date(); t.setHours(0,0,0,0); 
+  const ty = t.getFullYear(); 
+  let n = new Date(ty, m-1, d); 
+  if(n < t) n = new Date(ty+1, m-1, d); 
+  const ms = n - t; 
+  const diff = Math.round(ms / 86400000); 
+  if(diff === 0) return {t: currentLang==='tr'?'Bugün!':'Today!', c:'badge-danger'}; 
+  if(diff <= 7) return {t: `${diff} ${currentLang==='tr'?'gün':'days'}`, c:'badge-warning'}; 
+  return {t: `${diff} ${currentLang==='tr'?'gün':'days'}`, c:'badge-safe'}; 
+}
 
+// DÜZELTME: (Odak ve Titreme - Birthdays)
+function addBdayItem(bid){ 
+  const v=document.getElementById('bi-'+bid).value.trim(); 
+  if(!v)return; 
+  const arr=DB.get('pers_birthdays',[]); 
+  const o=arr.find(x=>x.id===bid); 
+  if(o){
+    o.items=o.items||[];
+    // Artık parametre adı 'bid' olduğu için global id() fonksiyonu sorunsuz çalışır
+    o.items.push({id:id(),t:v,d:false});
+    DB.set('pers_birthdays',arr);
+    renderBdays();
+    document.getElementById('bb-'+bid).classList.add('open');
+    document.getElementById('bc-'+bid).classList.add('open');
+    document.getElementById('bi-'+bid).focus();
+  } 
+}
+function togBdayItem(bid,iid){ 
+  const arr=DB.get('pers_birthdays',[]); 
+  const o=arr.find(x=>x.id===bid); 
+  if(o){
+    const i=o.items.find(x=>x.id===iid);
+    if(i)i.d=!i.d;
+    DB.set('pers_birthdays',arr);
+    renderBdays();
+    document.getElementById('bb-'+bid).classList.add('open');
+    document.getElementById('bc-'+bid).classList.add('open');
+  } 
+}
+function delBdayItem(bid,iid){ 
+  const arr=DB.get('pers_birthdays',[]); 
+  const o=arr.find(x=>x.id===bid); 
+  if(o){
+    o.items=o.items.filter(x=>x.id!==iid);
+    DB.set('pers_birthdays',arr);
+    renderBdays();
+    document.getElementById('bb-'+bid).classList.add('open');
+    document.getElementById('bc-'+bid).classList.add('open');
+  } 
+}
+function renderBdays() { 
+  const arr=DB.get('pers_birthdays',[]); 
+  const el=document.getElementById('bday-list'); 
+  if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} 
+  const t = new Date(); t.setHours(0,0,0,0);
+  const ty = t.getFullYear(); 
+  arr.forEach(x => {
+    let n = new Date(ty, x.month-1, x.day);
+    if(n.getTime() < t.getTime()) n = new Date(ty+1, x.month-1, x.day);
+    x._n = n.getTime();
+  }); 
+  arr.sort((a,b)=>a._n-b._n); 
+  el.innerHTML=arr.map(x=>{const nDate=new Date(x._n);const cd=getBdayCD(x.month,x.day);const dStr=`${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;const items=(x.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togBdayItem('${x.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delBdayItem('${x.id}','${i.id}')">✕</button></div>`).join('');return `<div class="card"><div class="acc-header" onclick="toggleBdayBody('${x.id}')"><div style="display:flex;align-items:center;gap:14px;"><div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div><div><div style="font-weight:700;font-size:16px;">${esc(x.name)}</div><div class="card-meta" style="margin-top:2px;">${x.day} ${MONTHS_TR[x.month]}</div><div style="margin-top:6px;"><span class="badge ${cd.c}" style="margin:0;">${cd.t}</span></div></div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${x.name} D.Günü','${dStr}',null,'Kutlama')">&#128197;</button><span class="chevron" id="bc-${x.id}">▼</span></div></div><div class="acc-body" id="bb-${x.id}">${x.note?`<div class="card-note" style="margin-bottom:10px;">${esc(x.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="bi-${x.id}" placeholder="Hediye veya sürpriz planı..." onkeydown="if(event.key==='Enter')addBdayItem('${x.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addBdayItem('${x.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delBday('${x.id}')">Kişiyi Sil</button></div></div>`;}).join(''); 
+}
 // ==================== 8. NOTES ====================
 function getNoteKey() { return currentContext+'_notes'; }
 function parseMD(t) { return esc(t).replace(/^### (.*$)/gim,'<h3>$1</h3>').replace(/^## (.*$)/gim,'<h2>$1</h2>').replace(/^# (.*$)/gim,'<h1>$1</h1>').replace(/\*\*(.*?)\*\*/gim,'<strong>$1</strong>').replace(/\*(.*?)\*/gim,'<em>$1</em>').replace(/^\- (.*$)/gim,'<ul><li>$1</li></ul>').replace(/<\/ul>\n<ul>/gim,'').replace(/\n/gim,'<br>'); }
