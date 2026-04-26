@@ -239,9 +239,18 @@
   .notif-bar-dismiss { background: var(--border); color: var(--muted); }
 
   /* ================= MODÜL SPESİFİK ================= */
-  .summary-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; cursor: pointer; box-shadow: var(--shadow); transition: transform 0.2s; }
+  .summary-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; cursor: pointer; box-shadow: var(--shadow); transition: transform 0.2s; border-left: 4px solid var(--border); }
   .summary-item:hover { transform: translateX(6px); border-color: var(--muted); }
+  .summary-item.ctx-work { border-left-color: #5C8BB8; }
+  .summary-item.ctx-pers { border-left-color: #5C9E78; }
+  .summary-item.ctx-past { opacity: 0.55; border-left-color: var(--border); }
   .sum-icon { font-size: 22px; width: 44px; height: 44px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); flex-shrink: 0; }
+  .sum-icon.ctx-work { background: rgba(92,139,184,0.18); border-color: rgba(92,139,184,0.35); }
+  .sum-icon.ctx-pers { background: rgba(92,158,120,0.18); border-color: rgba(92,158,120,0.35); }
+  .sum-past-toggle { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; border-radius: 12px; border: 1px dashed var(--border); background: none; width: 100%; color: var(--muted); font-size: 13px; font-weight: 700; font-family: inherit; transition: background 0.2s; margin-top: 8px; }
+  .sum-past-toggle:hover { background: var(--surface); }
+  .sum-past-list { overflow: hidden; max-height: 0; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1); }
+  .sum-past-list.open { max-height: 2000px; }
   .todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; transition: opacity 0.2s; border-left: 4px solid var(--border); box-shadow: var(--shadow); }
   .todo-item.priority-high { border-left-color: var(--accent-danger); }
   .todo-item.done { opacity: 0.4; } .todo-item.done .todo-text { text-decoration: line-through; }
@@ -1012,19 +1021,94 @@ function exportData() { const d={}; for(let i=0;i<localStorage.length;i++){let k
 function importData(e) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>{try{const d=JSON.parse(ev.target.result);Object.keys(d).forEach(k=>{if(k.startsWith('planner_'))localStorage.setItem(k,d[k]);});location.reload();}catch(err){alert("Format error");}};r.readAsText(f); }
 
 // ==================== 1. SUMMARY ====================
+let pastOpen = false;
+
+function togglePastSection() {
+  pastOpen = !pastOpen;
+  const list = document.getElementById('sum-past-list');
+  const arrow = document.getElementById('sum-past-arrow');
+  const count = document.getElementById('sum-past-count');
+  list.classList.toggle('open', pastOpen);
+  arrow.style.transform = pastOpen ? 'rotate(180deg)' : '';
+}
+
 function renderSummary() {
-  const el=document.getElementById('summary-list'); let evs=[]; const tMs=new Date(new Date().setHours(0,0,0,0)).getTime();
-  const pushEv=(key,icon,extractFn)=>{ DB.get(key,[]).forEach(i=>{const e=extractFn(i);if(e&&e.t>=tMs-86400000)evs.push({...e,icon,ctx:key.includes('work')?'work':'pers',mod:key.split('_')[1]});}); };
-  pushEv('work_appts','🗓️',i=>i.date?{t:new Date(i.date+'T00:00').getTime(),tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')),title:i.title,sub:formatDate(i.date)+(i.time?' '+i.time:'')}:null);
-  pushEv('pers_appts','📍',i=>i.date?{t:new Date(i.date+'T00:00').getTime(),tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')),title:i.title,sub:formatDate(i.date)+(i.time?' '+i.time:'')}:null);
-  pushEv('work_travels','✈️',i=>i.start?{t:new Date(i.start+'T00:00').getTime(),tObj:new Date(i.start+'T23:59:59'),title:i.dest,sub:formatDate(i.start)}:null);
-  pushEv('pers_travels','🎒',i=>i.start?{t:new Date(i.start+'T00:00').getTime(),tObj:new Date(i.start+'T23:59:59'),title:i.dest,sub:formatDate(i.start)}:null);
-  pushEv('work_todos','💼',i=>(i.date&&!i.done)?{t:new Date(i.date+'T00:00').getTime(),tObj:new Date(i.date+'T23:59:59'),title:i.title,sub:formatDate(i.date)}:null);
-  pushEv('pers_todos','✅',i=>(i.date&&!i.done)?{t:new Date(i.date+'T00:00').getTime(),tObj:new Date(i.date+'T23:59:59'),title:i.title,sub:formatDate(i.date)}:null);
-  const ty=new Date().getFullYear(); DB.get('pers_birthdays',[]).forEach(b=>{let n=new Date(ty,b.month-1,b.day);if(n.getTime()<tMs)n=new Date(ty+1,b.month-1,b.day);evs.push({t:n.getTime(),tObj:new Date(n.getFullYear(),b.month-1,b.day,23,59,59),title:b.name,sub:`${b.day} ${MONTHS_TR[b.month]}`,icon:'🎂',ctx:'pers',mod:'birthdays'});});
-  evs.sort((a,b)=>a.t-b.t);
-  if(!evs.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
-  el.innerHTML=evs.map(e=>{const dStr=e.tObj.toISOString().split('T')[0];const tStr=e.tObj.toISOString().split('T')[1].substring(0,5);const cd=getCountdown(dStr,tStr==='23:59'?null:tStr);return `<div class="summary-item" onclick="switchModule('${e.mod}','${e.ctx}')"><div class="sum-icon">${e.icon}</div><div style="flex:1;"><div class="card-title" style="font-size:15px;margin:0;">${esc(e.title)}</div><div class="card-meta" style="font-size:12px;margin-top:2px;">${e.sub}</div></div>${cd?`<span class="badge ${cd.c}" style="margin:0;">${cd.t}`:''}</span></div>`;}).join('');
+  const el = document.getElementById('summary-list');
+  const now = new Date();
+  const tMs = new Date(now.setHours(0,0,0,0)).getTime();
+  const nowMs = Date.now();
+
+  let active = [], past = [];
+
+  const pushEv = (key, icon, extractFn) => {
+    DB.get(key,[]).forEach(i => {
+      const e = extractFn(i);
+      if (!e) return;
+      const isPast = e.tObj.getTime() < nowMs;
+      const ev = { ...e, icon, ctx: key.includes('work') ? 'work' : 'pers', mod: key.split('_')[1] };
+      if (isPast) past.push(ev);
+      else active.push(ev);
+    });
+  };
+
+  pushEv('work_appts',  '🗓️', i => i.date ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title: i.title, sub: formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('pers_appts',  '📍', i => i.date ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title: i.title, sub: formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('work_travels','✈️', i => i.start ? { t: new Date(i.start+'T00:00').getTime(), tObj: new Date(i.start+'T23:59:59'), title: i.dest, sub: formatDate(i.start) } : null);
+  pushEv('pers_travels','🎒', i => i.start ? { t: new Date(i.start+'T00:00').getTime(), tObj: new Date(i.start+'T23:59:59'), title: i.dest, sub: formatDate(i.start) } : null);
+  pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+'T23:59:59'), title: i.title, sub: formatDate(i.date) } : null);
+  pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+'T23:59:59'), title: i.title, sub: formatDate(i.date) } : null);
+
+  // Doğum günleri — her zaman aktif (gelecek tarihli)
+  const ty = new Date().getFullYear();
+  DB.get('pers_birthdays',[]).forEach(b => {
+    let n = new Date(ty, b.month-1, b.day);
+    if (n.getTime() < tMs) n = new Date(ty+1, b.month-1, b.day);
+    active.push({ t: n.getTime(), tObj: new Date(n.getFullYear(), b.month-1, b.day, 23, 59, 59), title: b.name, sub: `${b.day} ${MONTHS_TR[b.month]}`, icon: '🎂', ctx: 'pers', mod: 'birthdays' });
+  });
+
+  active.sort((a,b) => a.t - b.t);
+  past.sort((a,b) => b.t - a.t); // Geçmişi ters sıra (en yakın geçmiş önce)
+
+  const cardHTML = (e, isPast=false) => {
+    const dStr = e.tObj.toISOString().split('T')[0];
+    const tStr = e.tObj.toISOString().split('T')[1].substring(0,5);
+    const cd   = getCountdown(dStr, tStr==='23:59'?null:tStr);
+    const ctxClass = isPast ? 'ctx-past' : `ctx-${e.ctx}`;
+    const iconClass = isPast ? '' : `ctx-${e.ctx}`;
+    return `
+      <div class="summary-item ${ctxClass}" onclick="switchModule('${e.mod}','${e.ctx}')">
+        <div class="sum-icon ${iconClass}">${e.icon}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="card-title" style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.title)}</div>
+          <div class="card-meta" style="font-size:12px;margin-top:2px;">${e.sub}</div>
+        </div>
+        ${cd ? `<span class="badge ${cd.c}" style="margin:0;flex-shrink:0;">${cd.t}</span>` : ''}
+      </div>`;
+  };
+
+  let html = '';
+
+  if (!active.length && !past.length) {
+    html = `<div class="empty">${translations[currentLang].empty}</div>`;
+  } else {
+    html = active.map(e => cardHTML(e, false)).join('');
+
+    if (past.length) {
+      html += `
+        <button class="sum-past-toggle" onclick="togglePastSection()">
+          <span style="flex:1;text-align:left;">🗂️ Geçmiş Kayıtlar</span>
+          <span id="sum-past-count" style="background:var(--border);padding:2px 8px;border-radius:6px;font-size:11px;">${past.length}</span>
+          <span id="sum-past-arrow" style="font-size:11px;transition:transform 0.3s;">▼</span>
+        </button>
+        <div class="sum-past-list ${pastOpen?'open':''}" id="sum-past-list">
+          <div style="padding-top:8px;">
+            ${past.map(e => cardHTML(e, true)).join('')}
+          </div>
+        </div>`;
+    }
+  }
+
+  el.innerHTML = html;
 }
 
 // ==================== 2. APPOINTMENTS ====================
