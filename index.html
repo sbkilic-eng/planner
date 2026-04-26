@@ -279,6 +279,49 @@
   .modal-overlay.open { display: flex; }
   .modal { background: var(--surface); width: 90%; max-width: 500px; border-radius: 20px; padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
   .modal-title { font-size: 24px; font-weight:700; margin-bottom: 20px; }
+
+  /* ================= YAZDIR ================= */
+  #print-area { display: none; }
+
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .app-shell, .fab-container, .search-overlay, .modal-overlay, .note-editor { display: none !important; }
+    #print-area { display: block !important; font-family: 'DM Sans', Georgia, serif; color: #111; background: #fff; }
+    .pr-page { max-width: 720px; margin: 0 auto; padding: 40px 48px; }
+    .pr-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 14px; margin-bottom: 28px; }
+    .pr-logo-text { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #111; }
+    .pr-logo-sub { font-size: 10px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #555; margin-top: 2px; }
+    .pr-header-meta { text-align: right; font-size: 12px; color: #555; line-height: 1.6; }
+    .pr-header-meta strong { font-size: 15px; color: #111; display: block; font-weight: 700; }
+    .pr-section-title { font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 6px; margin: 28px 0 14px; }
+    .pr-section-title:first-of-type { margin-top: 0; }
+    .pr-row { display: flex; align-items: flex-start; gap: 12px; padding: 9px 0; border-bottom: 1px solid #eee; }
+    .pr-row:last-child { border-bottom: none; }
+    .pr-checkbox { width: 14px; height: 14px; border: 1.5px solid #999; border-radius: 3px; flex-shrink: 0; margin-top: 2px; }
+    .pr-checkbox.checked { background: #333; }
+    .pr-row-main { flex: 1; }
+    .pr-row-title { font-size: 13.5px; font-weight: 600; color: #111; }
+    .pr-row-title.done { text-decoration: line-through; color: #aaa; }
+    .pr-row-meta { font-size: 11px; color: #666; margin-top: 2px; }
+    .pr-row-right { font-size: 11px; color: #666; text-align: right; white-space: nowrap; flex-shrink: 0; }
+    .pr-tag { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; border: 1px solid #bbb; color: #555; margin-left: 6px; letter-spacing: 0.3px; }
+    .pr-priority { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #c0392b; margin-right: 5px; vertical-align: middle; }
+    .pr-note-card { border: 1px solid #ddd; border-radius: 6px; padding: 14px 16px; margin-bottom: 12px; page-break-inside: avoid; }
+    .pr-note-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+    .pr-note-body { font-size: 12.5px; color: #333; line-height: 1.65; }
+    .pr-note-body h1,.pr-note-body h2,.pr-note-body h3 { font-size:13px; font-weight:700; margin:10px 0 4px; }
+    .pr-note-body ul { margin-left:16px; }
+    .pr-travel-card { border: 1px solid #ddd; border-radius: 6px; padding: 14px 16px; margin-bottom: 14px; page-break-inside: avoid; }
+    .pr-travel-dest { font-size: 18px; font-weight: 800; }
+    .pr-travel-dates { font-size: 12px; color: #555; margin: 3px 0 10px; }
+    .pr-checklist-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 12.5px; }
+    .pr-checklist-item:last-child { border-bottom: none; }
+    .pr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .pr-table th { text-align: left; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #555; padding: 6px 8px; border-bottom: 2px solid #ddd; }
+    .pr-table td { padding: 8px; border-bottom: 1px solid #eee; color: #111; vertical-align: top; }
+    .pr-table tr:last-child td { border-bottom: none; }
+    .pr-footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; font-size: 10px; color: #aaa; }
+  }
 </style>
 </head>
 <body data-theme="dark">
@@ -422,6 +465,7 @@
       </div>
       <div class="header-right">
         <button class="btn-header-icon" onclick="openSearch()" title="Ara">🔍</button>
+        <button class="btn-header-icon" onclick="printPage()" title="Yazdır / PDF">🖨️</button>
         <button class="btn-header-icon btn-settings" onclick="openModal('modal-settings')" title="Ayarlar">⚙️</button>
       </div>
     </header>
@@ -475,6 +519,9 @@
     </div>
   </main>
 </div>
+
+<!-- YAZDIR ALANI -->
+<div id="print-area"></div>
 
 <!-- FAB -->
 <div class="fab-container" id="fab-container">
@@ -693,7 +740,6 @@ function toggleFanGroup(group) {
   // Open clicked if was closed
   if (!wasOpen) {
     fanState[group] = true;
-    document.getElementById('fan-'+g).classList.add('open');
     const header = document.getElementById('fan-'+group);
     const items = document.getElementById('fan-items-'+group);
     header.classList.add('open');
@@ -1097,6 +1143,160 @@ function registerSW() {
     const swURL = URL.createObjectURL(blob);
     navigator.serviceWorker.register(swURL).catch(()=>{});
   }
+}
+
+// ==================== YAZDIR ====================
+function printPage() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('tr-TR', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  const timeStr = now.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+
+  const modLabels = {
+    summary:      { tr: 'Günlük Özet',         en: 'Daily Overview' },
+    appointments: { tr: currentContext==='work' ? 'Toplantı & Takvim' : 'Randevular', en: currentContext==='work' ? 'Meetings' : 'Appointments' },
+    todos:        { tr: currentContext==='work' ? 'İş Görevleri' : 'Görevler',          en: currentContext==='work' ? 'Work Tasks' : 'Tasks' },
+    travels:      { tr: currentContext==='work' ? 'İş Seyahati' : 'Seyahat Planı',      en: currentContext==='work' ? 'Business Trip' : 'Travel Plan' },
+    habits:       { tr: 'Gelişim & Rutin',     en: 'Habits & Routine' },
+    lists:        { tr: 'Hedefler & Listeler', en: 'Goals & Lists' },
+    birthdays:    { tr: 'Doğum Günleri',       en: 'Birthdays' },
+    notes:        { tr: currentContext==='work' ? 'Şirket Notları' : 'Kişisel Notlar',  en: currentContext==='work' ? 'Work Notes' : 'Personal Notes' },
+  };
+  const moduleLabel = (modLabels[currentModule]||{tr:currentModule})[currentLang];
+  const ctxLabel = currentContext==='work' ? (currentLang==='tr'?'İş Dünyası':'Business') : currentContext==='pers' ? (currentLang==='tr'?'Kişisel Yaşam':'Personal') : '';
+
+  let body = '';
+
+  // ---- ÖZET ----
+  if (currentModule === 'summary') {
+    const tMs = new Date(new Date().setHours(0,0,0,0)).getTime();
+    let evs = [];
+    const pushEv = (key, icon, extractFn) => { DB.get(key,[]).forEach(i => { const e=extractFn(i); if(e && e.t >= tMs-86400000) evs.push({...e, icon, ctx: key.includes('work')?'İş':'Kişisel'}); }); };
+    pushEv('work_appts',  '📅', i => i.date?{t:new Date(i.date+'T00:00').getTime(), title:i.title, date:formatDate(i.date), time:i.time||''}:null);
+    pushEv('pers_appts',  '📍', i => i.date?{t:new Date(i.date+'T00:00').getTime(), title:i.title, date:formatDate(i.date), time:i.time||''}:null);
+    pushEv('work_todos',  '💼', i => (i.date&&!i.done)?{t:new Date(i.date+'T00:00').getTime(), title:i.title, date:formatDate(i.date), time:''}:null);
+    pushEv('pers_todos',  '✅', i => (i.date&&!i.done)?{t:new Date(i.date+'T00:00').getTime(), title:i.title, date:formatDate(i.date), time:''}:null);
+    pushEv('work_travels','✈️', i => i.start?{t:new Date(i.start+'T00:00').getTime(), title:i.dest, date:formatDate(i.start), time:''}:null);
+    pushEv('pers_travels','🎒', i => i.start?{t:new Date(i.start+'T00:00').getTime(), title:i.dest, date:formatDate(i.start), time:''}:null);
+    const ty=new Date().getFullYear(); DB.get('pers_birthdays',[]).forEach(b=>{let n=new Date(ty,b.month-1,b.day);if(n.getTime()<tMs)n=new Date(ty+1,b.month-1,b.day);evs.push({t:n.getTime(),title:b.name,date:`${b.day} ${MONTHS_TR[b.month]}`,time:'',icon:'🎂',ctx:'Kişisel'});});
+    evs.sort((a,b)=>a.t-b.t);
+    body = `<div class="pr-section-title">Yaklaşan Etkinlikler</div>` +
+      (evs.length ? evs.map(e=>`
+        <div class="pr-row">
+          <div class="pr-checkbox"></div>
+          <div class="pr-row-main">
+            <div class="pr-row-title">${esc(e.title)}</div>
+            <div class="pr-row-meta">${e.date}${e.time?' · '+e.time:''} &nbsp;·&nbsp; ${e.ctx}</div>
+          </div>
+        </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0;">Yaklaşan etkinlik yok.</p>');
+  }
+
+  // ---- RANDEVULAR ----
+  else if (currentModule === 'appointments') {
+    const arr = DB.get(currentContext+'_appts', []);
+    body = `<div class="pr-section-title">${moduleLabel}</div>` +
+      (arr.length ? arr.map(a=>`
+        <div class="pr-row">
+          <div class="pr-checkbox"></div>
+          <div class="pr-row-main">
+            <div class="pr-row-title">${esc(a.title)}</div>
+            ${a.note?`<div class="pr-row-meta">${esc(a.note)}</div>`:''}
+          </div>
+          <div class="pr-row-right">${formatDate(a.date)}${a.time?'<br>'+a.time:''}</div>
+        </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0;">Kayıt yok.</p>');
+  }
+
+  // ---- GÖREVLER ----
+  else if (currentModule === 'todos') {
+    const arr = DB.get(currentContext+'_todos', []);
+    const un = arr.filter(t=>!t.done).sort((a,b)=>(a.pri==='high'?0:1)-(b.pri==='high'?0:1));
+    const dn = arr.filter(t=>t.done);
+    const row = t => `
+      <div class="pr-row">
+        ${t.pri==='high'?'<span class="pr-priority"></span>':'<div class="pr-checkbox'+(t.done?' checked':'')+'"></div>'}
+        <div class="pr-row-main">
+          <div class="pr-row-title ${t.done?'done':''}">${esc(t.title)}${t.tag?`<span class="pr-tag">#${esc(t.tag)}</span>`:''}</div>
+          ${t.note?`<div class="pr-row-meta">${esc(t.note)}</div>`:''}
+        </div>
+        <div class="pr-row-right">${formatDate(t.date)}</div>
+      </div>`;
+    body = `<div class="pr-section-title">Yapılacaklar (${un.length})</div>${un.length?un.map(row).join(''):'<p style="color:#999;font-size:13px;">Tümü tamamlandı!</p>'}`;
+    if(dn.length) body += `<div class="pr-section-title">Tamamlananlar (${dn.length})</div>${dn.map(row).join('')}`;
+  }
+
+  // ---- SEYAHAT ----
+  else if (currentModule === 'travels') {
+    const arr = DB.get(currentContext+'_travels', []);
+    body = arr.length ? arr.map(a=>`
+      <div class="pr-travel-card">
+        <div class="pr-travel-dest">${esc(a.dest)}</div>
+        <div class="pr-travel-dates">${formatDate(a.start)}${a.end?' — '+formatDate(a.end):''}</div>
+        ${a.note?`<div style="font-size:12px;color:#555;margin-bottom:8px;">${esc(a.note)}</div>`:''}
+        ${(a.items||[]).map(i=>`<div class="pr-checklist-item"><div class="pr-checkbox ${i.d?'checked':''}"></div><span style="${i.d?'text-decoration:line-through;color:#aaa':''}">${esc(i.t)}</span></div>`).join('')}
+      </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0;">Kayıt yok.</p>';
+  }
+
+  // ---- RUTINLER ----
+  else if (currentModule === 'habits') {
+    const arr = DB.get('pers_habits', []);
+    const wDays = (()=>{ const t=new Date();t.setHours(0,0,0,0);const m=new Date(t);m.setDate(t.getDate()-((t.getDay()+6)%7));const d=[];for(let i=0;i<7;i++){const x=new Date(m);x.setDate(m.getDate()+i);d.push({ds:x.toISOString().split('T')[0],lb:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'][i]});}return d;})();
+    body = `<div class="pr-section-title">Bu Haftanın Rutinleri</div>` +
+      `<table class="pr-table"><thead><tr><th>Alışkanlık</th><th>Hedef</th>${wDays.map(d=>`<th style="text-align:center">${d.lb}</th>`).join('')}<th>%</th></tr></thead><tbody>` +
+      arr.map(h=>{const ch=h.c||{};const dw=wDays.filter(d=>ch[d.ds]).length;const pct=Math.min(100,Math.round((dw/h.tg)*100));return `<tr><td>${esc(h.n)}</td><td>${h.tg} gün</td>${wDays.map(d=>`<td style="text-align:center">${ch[d.ds]?'✓':'·'}</td>`).join('')}<td>${pct}%</td></tr>`;}).join('') +
+      `</tbody></table>`;
+  }
+
+  // ---- DOĞUM GÜNLERİ ----
+  else if (currentModule === 'birthdays') {
+    const ty=new Date().getFullYear(); const arr=DB.get('pers_birthdays',[]);
+    arr.forEach(x=>{let n=new Date(ty,x.month-1,x.day);if(n.getTime()<new Date().getTime())n=new Date(ty+1,x.month-1,x.day);x._n=n.getTime();}); arr.sort((a,b)=>a._n-b._n);
+    body = `<div class="pr-section-title">Doğum Günleri</div><table class="pr-table"><thead><tr><th>İsim</th><th>Tarih</th><th>Kalan Gün</th><th>Not</th></tr></thead><tbody>` +
+      arr.map(b=>{const cd=getBdayCD(b.month,b.day);const days=Math.floor((b._n-Date.now())/86400000);return `<tr><td>${esc(b.name)}</td><td>${b.day} ${MONTHS_TR[b.month]}</td><td>${days===0?'Bugün!':days+' gün'}</td><td style="color:#777;font-size:12px;">${esc(b.note||'')}</td></tr>`;}).join('') +
+      `</tbody></table>`;
+  }
+
+  // ---- NOTLAR ----
+  else if (currentModule === 'notes') {
+    const arr = DB.get(currentContext+'_notes', []);
+    body = arr.length ? arr.map(n=>`
+      <div class="pr-note-card">
+        <div class="pr-note-title">${esc(n.title)}</div>
+        <div class="pr-note-body">${parseMD(n.body)}</div>
+      </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0;">Not yok.</p>';
+  }
+
+  // ---- LİSTELER ----
+  else if (currentModule === 'lists') {
+    const cats = getCatKeys();
+    body = cats.map(cat => {
+      const items = DB.get('pers_list_'+cat, []);
+      const un = items.filter(i=>!i.d); const dn = items.filter(i=>i.d);
+      const row = i => `<div class="pr-row"><div class="pr-checkbox ${i.d?'checked':''}"></div><div class="pr-row-main"><div class="pr-row-title ${i.d?'done':''}">${esc(i.t)}</div>${i.p?`<div class="pr-row-meta">${esc(i.p)}</div>`:''}</div></div>`;
+      return `<div class="pr-section-title">${esc(cat)}</div>${un.map(row).join('')}${dn.length?`<div style="margin-top:6px;font-size:10px;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Tamamlananlar</div>${dn.map(row).join('')}`:''}`;
+    }).join('');
+  }
+
+  // HTML oluştur
+  const html = `
+    <div class="pr-page">
+      <div class="pr-header">
+        <div>
+          <div class="pr-logo-text">Planner</div>
+          <div class="pr-logo-sub">PRO</div>
+        </div>
+        <div class="pr-header-meta">
+          <strong>${moduleLabel}</strong>
+          ${ctxLabel ? ctxLabel+'<br>' : ''}${dateStr}<br>${timeStr}
+        </div>
+      </div>
+      ${body}
+      <div class="pr-footer">
+        <span>Planner Pro · planner.app</span>
+        <span>${dateStr} ${timeStr}</span>
+      </div>
+    </div>`;
+
+  document.getElementById('print-area').innerHTML = html;
+  window.print();
 }
 
 // ==================== BAŞLATMA ====================
