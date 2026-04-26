@@ -546,7 +546,7 @@
       </div>
 
       <div class="section" id="sec-birthdays">
-        <button class="btn-add" onclick="openModal('modal-bday')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+        <button class="btn-add" onclick="openBdayForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
         <div id="bday-list"></div>
       </div>
 
@@ -585,6 +585,24 @@
     <button class="search-close" onclick="closeSearch()">✕</button>
   </div>
   <div class="search-results" id="search-results"></div>
+</div>
+
+<div class="modal-overlay" id="modal-fab-ctx">
+  <div class="modal" style="max-width:320px;text-align:center;">
+    <div class="modal-title" style="font-size:18px;margin-bottom:8px;">Nereye ekleyelim?</div>
+    <div style="color:var(--muted);font-size:14px;margin-bottom:24px;">Bu kaydı hangi bağlama kaydetmek istersin?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <button class="btn-ghost" style="padding:16px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:8px;" onclick="fabCtxSelect('work')">
+        <span style="font-size:28px;">💼</span>
+        <span style="font-size:13px;font-weight:700;">İş Dünyası</span>
+      </button>
+      <button class="btn-ghost" style="padding:16px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:8px;" onclick="fabCtxSelect('pers')">
+        <span style="font-size:28px;">🌿</span>
+        <span style="font-size:13px;font-weight:700;">Kişisel Yaşam</span>
+      </button>
+    </div>
+    <button class="btn-icon" style="margin-top:16px;font-size:13px;color:var(--muted);" onclick="closeModal('modal-fab-ctx')">İptal</button>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal-settings">
@@ -765,19 +783,15 @@ let fanState = { work: false, pers: false };
 
 function toggleFanGroup(group) {
   const wasOpen = fanState[group];
-  // Close all
   Object.keys(fanState).forEach(g => {
     fanState[g] = false;
     document.getElementById('fan-'+g).classList.remove('open');
     document.getElementById('fan-items-'+g).classList.remove('open');
   });
-  // Open clicked if was closed
   if (!wasOpen) {
     fanState[group] = true;
-    const header = document.getElementById('fan-'+group);
-    const items = document.getElementById('fan-items-'+group);
-    header.classList.add('open');
-    items.classList.add('open');
+    document.getElementById('fan-'+group).classList.add('open');
+    document.getElementById('fan-items-'+group).classList.add('open');
   }
 }
 
@@ -785,8 +799,7 @@ function updateFanActiveState(mod, ctx) {
   document.querySelectorAll('.fan-item').forEach(el => el.classList.remove('active','active-work'));
   if (mod !== 'summary' && ctx) {
     const el = document.getElementById(`fani-${ctx}-${mod}`);
-    if (el) { el.classList.add(ctx === 'work' ? 'active-work' : 'active'); }
-    // Auto-open the fan group
+    if (el) el.classList.add(ctx === 'work' ? 'active-work' : 'active');
     const group = ctx;
     if (!fanState[group]) {
       fanState[group] = true;
@@ -794,9 +807,7 @@ function updateFanActiveState(mod, ctx) {
       document.getElementById('fan-items-'+group).classList.add('open');
     }
   }
-  // Summary nav
-  const sumNav = document.getElementById('nav-summary');
-  sumNav.classList.toggle('active', mod === 'summary');
+  document.getElementById('nav-summary').classList.toggle('active', mod === 'summary');
 }
 
 // ==================== THEME & LANG ====================
@@ -857,10 +868,27 @@ function toggleFAB() {
 function fabAction(type) {
   toggleFAB();
   setTimeout(() => {
-    if(type==='appt') { openApptForm(); }
-    else if(type==='todo') { openTodoForm(); }
-    else if(type==='note') { openNoteEditor(); }
+    if (type === 'note') { openNoteEditor(); return; }
+    // Özet ekranında context yok — seçtir
+    if (!currentContext) {
+      pendingFabType = type;
+      openModal('modal-fab-ctx');
+      return;
+    }
+    if (type === 'appt') openApptForm();
+    else if (type === 'todo') openTodoForm();
   }, 200);
+}
+let pendingFabType = '';
+function fabCtxSelect(ctx) {
+  currentContext = ctx;
+  updateThemeColors();
+  closeModal('modal-fab-ctx');
+  setTimeout(() => {
+    if (pendingFabType === 'appt') openApptForm();
+    else if (pendingFabType === 'todo') openTodoForm();
+    pendingFabType = '';
+  }, 150);
 }
 document.addEventListener('click', function(e) {
   if(fabOpen && !e.target.closest('.fab-container')) toggleFAB();
@@ -882,47 +910,75 @@ function performSearch() {
   const q = document.getElementById('search-input').value.trim().toLowerCase();
   const el = document.getElementById('search-results');
   
-  // DÜZELTME: Arama kutusu tamamen boşsa sonuçları da temizle
   if(q.length === 0) { el.innerHTML = ''; return; }
-  
   if(q.length < 2) { el.innerHTML = '<div class="search-empty">En az 2 karakter girin...</div>'; return; }
 
   const results = [];
-  const push = (items, icon, ctx, mod, getTitle, getSub) => {
+  const push = (items, icon, ctx, mod, getTitle, getSub, getId) => {
     (items||[]).forEach(i => {
       const t = getTitle(i); const s = getSub(i);
-      if((t+' '+s).toLowerCase().includes(q)) results.push({icon, ctx, mod, title:t, sub:s});
+      if((t+' '+s).toLowerCase().includes(q)) results.push({icon, ctx, mod, title:t, sub:s, id: getId ? getId(i) : null});
     });
   };
-  push(DB.get('work_appts',[]),'🗓️','work','appointments',i=>i.title,i=>formatDate(i.date)+(i.time?' '+i.time:''));
-  push(DB.get('pers_appts',[]),'📍','pers','appointments',i=>i.title,i=>formatDate(i.date));
-  push(DB.get('work_todos',[]),'💼','work','todos',i=>i.title,i=>i.note||'');
-  push(DB.get('pers_todos',[]),'✅','pers','todos',i=>i.title,i=>i.note||'');
-  push(DB.get('work_travels',[]),'✈️','work','travels',i=>i.dest,i=>formatDate(i.start));
-  push(DB.get('pers_travels',[]),'🎒','pers','travels',i=>i.dest,i=>formatDate(i.start));
-  push(DB.get('pers_birthdays',[]),'🎂','pers','birthdays',i=>i.name,i=>`${i.day} ${MONTHS_TR[i.month]}`);
-  push(DB.get('pers_habits',[]),'⚡','pers','habits',i=>i.n,i=>'');
+  push(DB.get('work_appts',[]),'🗓️','work','appointments',i=>i.title,i=>formatDate(i.date)+(i.time?' '+i.time:''),i=>i.id);
+  push(DB.get('pers_appts',[]),'📍','pers','appointments',i=>i.title,i=>formatDate(i.date),i=>i.id);
+  push(DB.get('work_todos',[]),'💼','work','todos',i=>i.title,i=>i.note||'',i=>i.id);
+  push(DB.get('pers_todos',[]),'✅','pers','todos',i=>i.title,i=>i.note||'',i=>i.id);
+  push(DB.get('work_travels',[]),'✈️','work','travels',i=>i.dest,i=>formatDate(i.start),i=>i.id);
+  push(DB.get('pers_travels',[]),'🎒','pers','travels',i=>i.dest,i=>formatDate(i.start),i=>i.id);
+  push(DB.get('pers_birthdays',[]),'🎂','pers','birthdays',i=>i.name,i=>`${i.day} ${MONTHS_TR[i.month]}`,i=>i.id);
+  push(DB.get('pers_habits',[]),'⚡','pers','habits',i=>i.n,i=>'',i=>i.id);
 
-  // Search notes
   ['work_notes','pers_notes'].forEach(key => {
     const ctx = key.includes('work')?'work':'pers';
     (DB.get(key,[])||[]).forEach(n => {
       if((n.title+' '+n.body).toLowerCase().includes(q))
-        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:n.body.slice(0,60)});
+        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:n.body.slice(0,60), id:n.id});
     });
   });
 
   if(!results.length) { el.innerHTML='<div class="search-empty">Sonuç bulunamadı.</div>'; return; }
 
   el.innerHTML = results.slice(0,12).map(r => `
-    <div class="search-result-item" onclick="closeSearch();switchModule('${r.mod}','${r.ctx}')">
+    <div class="search-result-item" onclick="searchNavigate('${r.mod}','${r.ctx}','${r.id||''}')">
       <div class="search-result-icon">${r.icon}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-weight:700;font-size:15px;">${esc(r.title)}</div>
         <div class="search-result-meta">${r.sub}</div>
       </div>
+      <span style="font-size:11px;color:var(--muted);">→</span>
     </div>
   `).join('');
+}
+
+function searchNavigate(mod, ctx, recordId) {
+  closeSearch();
+  // Notlar için direkt editör aç
+  if (mod === 'notes' && recordId) {
+    currentContext = ctx;
+    updateThemeColors();
+    switchModule(mod, ctx);
+    setTimeout(() => openNoteEditor(recordId), 350);
+    return;
+  }
+  switchModule(mod, ctx);
+  if (recordId) {
+    setTimeout(() => scrollToRecord(recordId), 350);
+  }
+}
+
+function scrollToRecord(id) {
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Flash animasyonu
+  el.style.transition = 'box-shadow 0.3s, outline 0.3s';
+  el.style.outline = '2px solid var(--accent)';
+  el.style.boxShadow = '0 0 0 4px rgba(92,158,120,0.25)';
+  setTimeout(() => {
+    el.style.outline = '';
+    el.style.boxShadow = '';
+  }, 1800);
 }
 
 // ==================== BİLDİRİMLER ====================
@@ -931,12 +987,8 @@ function initNotifications() {
   if(Notification.permission === 'default' && !localStorage.getItem('planner_notif_dismissed')) {
     document.getElementById('notif-bar').classList.add('visible');
   }
-  if(Notification.permission === 'granted') {
-    checkAndNotify();
-    updateNotifSettingsBtn();
-  }
+  if(Notification.permission === 'granted') { checkAndNotify(); updateNotifSettingsBtn(); }
 }
-
 function allowNotifications() {
   if(!('Notification' in window)) return;
   Notification.requestPermission().then(p => {
@@ -944,19 +996,13 @@ function allowNotifications() {
     if(p === 'granted') { checkAndNotify(); updateNotifSettingsBtn(); }
   });
 }
-
-function dismissNotifBar() {
-  document.getElementById('notif-bar').classList.remove('visible');
-  localStorage.setItem('planner_notif_dismissed', '1');
-}
-
+function dismissNotifBar() { document.getElementById('notif-bar').classList.remove('visible'); localStorage.setItem('planner_notif_dismissed', '1'); }
 function updateNotifSettingsBtn() {
   const btn = document.getElementById('notif-settings-btn');
   if(!btn) return;
   if(Notification.permission === 'granted') btn.textContent = '✅ Bildirimler Açık';
   else if(Notification.permission === 'denied') btn.textContent = '🚫 Bildirimler Engellendi (Tarayıcı ayarından aç)';
 }
-
 function checkAndNotify() {
   if(Notification.permission !== 'granted') return;
   const now = new Date();
@@ -965,19 +1011,15 @@ function checkAndNotify() {
   const notified = DB.get('notif_sent', {});
 
   const tryNotify = (key, title, body) => {
-    if(notified[key]) return;
-    notified[key] = true;
-    DB.set('notif_sent', notified);
+    if(notified[key]) return; notified[key] = true; DB.set('notif_sent', notified);
     new Notification('Planner Pro — ' + title, { body, icon: 'logo.svg', badge: 'logo.svg' });
   };
 
-  // Appointments
   [...DB.get('work_appts',[]), ...DB.get('pers_appts',[])].forEach(a => {
     if(a.date === todayStr) tryNotify('appt_'+a.id+'_today', 'Bugün!', `${a.title} — ${a.time||'Tüm gün'}`);
     if(a.date === tomorrowStr) tryNotify('appt_'+a.id+'_tmr', 'Yarın', `${a.title} yarın`);
   });
 
-  // Birthdays
   const ty = now.getFullYear();
   DB.get('pers_birthdays',[]).forEach(b => {
     const bStr = `${ty}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`;
@@ -985,48 +1027,26 @@ function checkAndNotify() {
     if(bStr === tomorrowStr) tryNotify('bday_'+b.id+'_tmr_'+ty, '🎂 Yarın Doğum Günü', `${b.name} yarın doğum günü!`);
   });
 
-  // Due todos
   [...DB.get('work_todos',[]), ...DB.get('pers_todos',[])].filter(t=>!t.done&&t.date).forEach(t => {
     if(t.date === todayStr) tryNotify('todo_'+t.id+'_today', 'Bugün Son Gün!', t.title);
   });
 
-  // Clear old keys daily
-  if(!notified['_date'] || notified['_date'] !== todayStr) {
-    DB.set('notif_sent', { _date: todayStr });
-  }
+  if(!notified['_date'] || notified['_date'] !== todayStr) DB.set('notif_sent', { _date: todayStr });
 }
 
-// ==================== ETİKETLER ====================
-function selectTagColor(color, el) {
-  selectedTagColor = color;
-  document.querySelectorAll('.tag-color-swatch').forEach(s => s.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function tagPill(tag, color) {
-  if(!tag) return '';
-  return `<span class="tag-pill tag-${color||'blue'}">#${esc(tag)}</span>`;
-}
-
+// ==================== ETİKETLER & ARAÇLAR ====================
+function selectTagColor(color, el) { selectedTagColor = color; document.querySelectorAll('.tag-color-swatch').forEach(s => s.classList.remove('selected')); el.classList.add('selected'); }
+function tagPill(tag, color) { if(!tag) return ''; return `<span class="tag-pill tag-${color||'blue'}">#${esc(tag)}</span>`; }
 function renderTodoTagFilter() {
   const arr = DB.get(getTodoKey(), []);
   const tags = [...new Set(arr.filter(t=>t.tag).map(t=>t.tag+':'+t.tagColor))];
   const el = document.getElementById('todo-tag-filter');
   if(!tags.length) { el.innerHTML=''; return; }
   el.innerHTML = `<button class="tag-filter-btn ${activeTagFilter===''?'active':''}" onclick="setTagFilter('')">Tümü</button>` +
-    tags.map(tc => {
-      const [tag,color] = tc.split(':');
-      return `<button class="tag-filter-btn ${activeTagFilter===tag?'active':''}" onclick="setTagFilter('${esc(tag)}')">#${esc(tag)}</button>`;
-    }).join('');
+    tags.map(tc => { const [tag,color] = tc.split(':'); return `<button class="tag-filter-btn ${activeTagFilter===tag?'active':''}" onclick="setTagFilter('${esc(tag)}')">#${esc(tag)}</button>`; }).join('');
 }
+function setTagFilter(tag) { activeTagFilter = tag; renderTodoTagFilter(); renderTodos(); }
 
-function setTagFilter(tag) {
-  activeTagFilter = tag;
-  renderTodoTagFilter();
-  renderTodos();
-}
-
-// ==================== TIME & EXPORT UTILS ====================
 function getCountdown(dateStr, timeStr) {
   if(!dateStr) return null;
   const t=new Date(dateStr+(timeStr?'T'+timeStr:'T23:59:59')); const ms=t-new Date();
@@ -1038,8 +1058,7 @@ function getCountdown(dateStr, timeStr) {
 }
 function downloadICS(title, dStr, tStr, note, endStr=null) {
   if(!dStr) return;
-  const fmt=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
-  const fmtAll=d=>d.toISOString().split('T')[0].replace(/-/g,'');
+  const fmt=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z'; const fmtAll=d=>d.toISOString().split('T')[0].replace(/-/g,'');
   let ics=`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDESCRIPTION:${note||''}\n`;
   if(endStr&&!tStr){ const s=new Date(dStr); const e=new Date(endStr); if(e>=s){e.setDate(e.getDate()+1);ics+=`DTSTART;VALUE=DATE:${fmtAll(s)}\nDTEND;VALUE=DATE:${fmtAll(e)}\n`;}else{ics+=`DTSTART;VALUE=DATE:${fmtAll(s)}\nDTEND;VALUE=DATE:${fmtAll(s)}\n`;} }
   else { const s=new Date(dStr+(tStr?'T'+tStr:'T00:00')); let e=new Date(s.getTime()+(tStr?3600000:86400000)); ics+=`DTSTART:${fmt(s)}\nDTEND:${fmt(e)}\n`; }
@@ -1051,44 +1070,28 @@ function importData(e) { const f=e.target.files[0]; if(!f)return; const r=new Fi
 
 // ==================== 1. SUMMARY ====================
 let pastOpen = false;
-
 function togglePastSection() {
   pastOpen = !pastOpen;
-  const list  = document.getElementById('sum-past-list');
-  const inner = document.getElementById('sum-past-inner');
-  const arrow = document.getElementById('sum-past-arrow');
-  if (pastOpen) {
-    list.style.height = inner.scrollHeight + 'px';
-    arrow.style.transform = 'rotate(180deg)';
-    list.addEventListener('transitionend', function onEnd() {
-      list.style.height = 'auto';
-      list.removeEventListener('transitionend', onEnd);
-    });
-  } else {
-    list.style.height = inner.scrollHeight + 'px';
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => { list.style.height = '0'; });
-    });
-    arrow.style.transform = '';
-  }
+  const list  = document.getElementById('sum-past-list'); const inner = document.getElementById('sum-past-inner'); const arrow = document.getElementById('sum-past-arrow');
+  if (pastOpen) { list.style.height = inner.scrollHeight + 'px'; arrow.style.transform = 'rotate(180deg)'; list.addEventListener('transitionend', function onEnd() { list.style.height = 'auto'; list.removeEventListener('transitionend', onEnd); }); } 
+  else { list.style.height = inner.scrollHeight + 'px'; requestAnimationFrame(() => { requestAnimationFrame(() => { list.style.height = '0'; }); }); arrow.style.transform = ''; }
 }
 
 function renderSummary() {
   const el = document.getElementById('summary-list');
-  const now = new Date();
-  const tMs = new Date(now.setHours(0,0,0,0)).getTime();
-  const nowMs = Date.now();
-
+  const now = new Date(); const tMs = new Date(now.setHours(0,0,0,0)).getTime(); const nowMs = Date.now();
   let active = [], past = [];
+
+  const MOD_MAP = { appts:'appointments', todos:'todos', travels:'travels', habits:'habits', birthdays:'birthdays', notes:'notes' };
 
   const pushEv = (key, icon, extractFn) => {
     DB.get(key,[]).forEach(i => {
-      const e = extractFn(i);
-      if (!e) return;
+      const e = extractFn(i); if (!e) return;
       const isPast = e.tObj.getTime() < nowMs;
-      const ev = { ...e, icon, ctx: key.includes('work') ? 'work' : 'pers', mod: key.split('_')[1] };
-      if (isPast) past.push(ev);
-      else active.push(ev);
+      const rawMod = key.split('_').slice(1).join('_');
+      const mod = MOD_MAP[rawMod] || rawMod;
+      const ev = { ...e, icon, ctx: key.includes('work') ? 'work' : 'pers', mod };
+      if (isPast) past.push(ev); else active.push(ev);
     });
   };
 
@@ -1099,7 +1102,6 @@ function renderSummary() {
   pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+'T23:59:59'), title: i.title, sub: formatDate(i.date) } : null);
   pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+'T23:59:59'), title: i.title, sub: formatDate(i.date) } : null);
 
-  // Doğum günleri — her zaman aktif (gelecek tarihli)
   const ty = new Date().getFullYear();
   DB.get('pers_birthdays',[]).forEach(b => {
     let n = new Date(ty, b.month-1, b.day);
@@ -1107,8 +1109,7 @@ function renderSummary() {
     active.push({ t: n.getTime(), tObj: new Date(n.getFullYear(), b.month-1, b.day, 23, 59, 59), title: b.name, sub: `${b.day} ${MONTHS_TR[b.month]}`, icon: '🎂', ctx: 'pers', mod: 'birthdays' });
   });
 
-  active.sort((a,b) => a.t - b.t);
-  past.sort((a,b) => b.t - a.t); // Geçmişi ters sıra (en yakın geçmiş önce)
+  active.sort((a,b) => a.t - b.t); past.sort((a,b) => b.t - a.t); 
 
   const cardHTML = (e, isPast=false) => {
     const dStr = e.tObj.toISOString().split('T')[0];
@@ -1116,63 +1117,39 @@ function renderSummary() {
     const cd   = getCountdown(dStr, tStr==='23:59'?null:tStr);
     const ctxClass = isPast ? 'ctx-past' : `ctx-${e.ctx}`;
     const iconClass = isPast ? '' : `ctx-${e.ctx}`;
-    return `
-      <div class="summary-item ${ctxClass}" onclick="switchModule('${e.mod}','${e.ctx}')">
-        <div class="sum-icon ${iconClass}">${e.icon}</div>
-        <div style="flex:1;min-width:0;">
-          <div class="card-title" style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.title)}</div>
-          <div class="card-meta" style="font-size:12px;margin-top:2px;">${e.sub}</div>
-        </div>
-        ${cd ? `<span class="badge ${cd.c}" style="margin:0;flex-shrink:0;">${cd.t}</span>` : ''}
-      </div>`;
+    return `<div class="summary-item ${ctxClass}" onclick="switchModule('${e.mod}','${e.ctx}')"><div class="sum-icon ${iconClass}">${e.icon}</div><div style="flex:1;min-width:0;"><div class="card-title" style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.title)}</div><div class="card-meta" style="font-size:12px;margin-top:2px;">${e.sub}</div></div>${cd ? `<span class="badge ${cd.c}" style="margin:0;flex-shrink:0;">${cd.t}</span>` : ''}</div>`;
   };
 
   let html = '';
-
-  if (!active.length && !past.length) {
-    html = `<div class="empty">${translations[currentLang].empty}</div>`;
-  } else {
+  if (!active.length && !past.length) { html = `<div class="empty">${translations[currentLang].empty}</div>`; } 
+  else {
     html = active.map(e => cardHTML(e, false)).join('');
-
     if (past.length) {
-      html += `
-        <button class="sum-past-toggle" onclick="togglePastSection()">
-          <span style="flex:1;text-align:left;">🗂️ Geçmiş Kayıtlar</span>
-          <span id="sum-past-count" style="background:var(--border);padding:2px 8px;border-radius:6px;font-size:11px;">${past.length}</span>
-          <span id="sum-past-arrow" style="font-size:11px;transition:transform 0.3s;">▼</span>
-        </button>
-        <div class="sum-past-list" id="sum-past-list" style="height:0;">
-          <div class="sum-past-list-inner" id="sum-past-inner">
-            ${past.map(e => cardHTML(e, true)).join('')}
-          </div>
-        </div>`;
+      html += `<button class="sum-past-toggle" onclick="togglePastSection()"><span style="flex:1;text-align:left;">🗂️ Geçmiş Kayıtlar</span><span id="sum-past-count" style="background:var(--border);padding:2px 8px;border-radius:6px;font-size:11px;">${past.length}</span><span id="sum-past-arrow" style="font-size:11px;transition:transform 0.3s;">▼</span></button><div class="sum-past-list" id="sum-past-list" style="height:0;"><div class="sum-past-list-inner" id="sum-past-inner">${past.map(e => cardHTML(e, true)).join('')}</div></div>`;
     }
   }
-
   el.innerHTML = html;
+
+  // pastOpen durumu yeniden renderdan sonra geri yükle
+  if (pastOpen) {
+    const list  = document.getElementById('sum-past-list');
+    const inner = document.getElementById('sum-past-inner');
+    const arrow = document.getElementById('sum-past-arrow');
+    if (list && inner) {
+      list.style.transition = 'none';
+      list.style.height = inner.scrollHeight + 'px';
+      if (arrow) arrow.style.transform = 'rotate(180deg)';
+      requestAnimationFrame(() => { list.style.transition = ''; });
+    }
+  }
 }
 
 // ==================== 2. APPOINTMENTS ====================
 function getApptKey() { return currentContext+'_appts'; }
 function openApptForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getApptKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-appt-title').value=d?d.title:''; document.getElementById('m-appt-date').value=d?d.date:new Date().toISOString().split('T')[0]; document.getElementById('m-appt-time').value=d?d.time||'':''; document.getElementById('m-appt-note').value=d?d.note||'':''; openModal('modal-appt'); }
-function saveAppt() { 
-  const t=document.getElementById('m-appt-title').value.trim(); 
-  if(!t)return; 
-  const k=getApptKey(); 
-  const arr=DB.get(k,[]); 
-  const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; 
-  if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} 
-  
-  // DÜZELTME: (Sort Bug) Null check eklendi time için
-  arr.sort((a,b)=>(a.date+(a.time||''))<(b.date+(b.time||''))?-1:1); 
-  
-  DB.set(k,arr); 
-  closeModal('modal-appt'); 
-  renderAppts(); 
-  checkAndNotify(); 
-}
+function saveAppt() { const t=document.getElementById('m-appt-title').value.trim(); if(!t)return; const k=getApptKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} arr.sort((a,b)=>(a.date+(a.time||''))<(b.date+(b.time||''))?-1:1); DB.set(k,arr); closeModal('modal-appt'); renderAppts(); checkAndNotify(); }
 function delAppt(id) { if(!confirm("Silinsin mi?"))return; const k=getApptKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderAppts(); }
-function renderAppts() { const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.date,a.time);return `<div class="card">${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}</div>`;}).join(''); }
+function renderAppts() { const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.date,a.time);return `<div class="card" data-id="${a.id}">${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}</div>`;}).join(''); }
 
 // ==================== 3. TODOS ====================
 function getTodoKey() { return currentContext+'_todos'; }
@@ -1204,7 +1181,7 @@ function renderTodos() {
   if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
   const po={high:0,normal:1}; const un=arr.filter(t=>!t.done).sort((a,b)=>po[a.pri]-po[b.pri]||(a.date>b.date?1:-1)); const dn=arr.filter(t=>t.done);
   const r=(t)=>{ const cd=getCountdown(t.date,null); const rl=t.rec===1?'1 Gün':t.rec===7?'1 Hafta':t.rec===30?'1 Ay':'';
-    return `<div class="todo-item priority-${t.pri} ${t.done?'done':''}"><div class="list-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div><div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}${t.tag?tagPill(t.tag,t.tagColor):''}</div><div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div><button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button><button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button></div>`; };
+    return `<div class="todo-item priority-${t.pri} ${t.done?'done':''}" data-id="${t.id}"><div class="list-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div><div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}${t.tag?tagPill(t.tag,t.tagColor):''}</div><div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div><button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button><button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button></div>`; };
   el.innerHTML=(un.length?un.map(r).join(''):'<div class="empty">Tüm görevler tamam! 🎉</div>')+(dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:'');
 }
 
@@ -1213,48 +1190,19 @@ function getTravKey() { return currentContext+'_travels'; }
 function openTravelForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getTravKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-travel-dest').value=d?d.dest:''; document.getElementById('m-travel-start').value=d?d.start:''; document.getElementById('m-travel-end').value=d?d.end:''; document.getElementById('m-travel-note').value=d?d.note||'':''; openModal('modal-travel'); }
 function saveTravel() { const t=document.getElementById('m-travel-dest').value.trim(); if(!t)return; const k=getTravKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),dest:t,start:document.getElementById('m-travel-start').value,end:document.getElementById('m-travel-end').value,note:document.getElementById('m-travel-note').value.trim(),items:[]}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.items=arr[i].items;arr[i]=p;}}else{arr.push(p);} DB.set(k,arr); closeModal('modal-travel'); renderTravels(); }
 function toggleTravelBody(id) { document.getElementById('tb-'+id).classList.toggle('open'); document.getElementById('tc-'+id).classList.toggle('open'); }
-
-// DÜZELTME: (Odak ve Titreme - Travels)
 function addTravItem(tid){ 
   const v=document.getElementById('ti-'+tid).value.trim(); 
   if(!v)return; 
-  const k=getTravKey(); 
-  const arr=DB.get(k,[]); 
-  const o=arr.find(x=>x.id===tid); 
-  if(o){
-    // Artık parametre adı 'tid' olduğu için global id() fonksiyonu sorunsuz çalışır
-    o.items.push({id:id(),t:v,d:false});
-    DB.set(k,arr);
-    renderTravels();
-    document.getElementById('tb-'+tid).classList.add('open');
-    document.getElementById('tc-'+tid).classList.add('open');
-    document.getElementById('ti-'+tid).focus();
-  } 
+  const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); 
+  if(o){ o.items.push({id:id(),t:v,d:false}); DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); document.getElementById('ti-'+tid).focus(); } 
 }
 function togTravItem(tid,iid){ 
-  const k=getTravKey(); 
-  const arr=DB.get(k,[]); 
-  const o=arr.find(x=>x.id===tid); 
-  if(o){
-    const i=o.items.find(x=>x.id===iid);
-    if(i)i.d=!i.d;
-    DB.set(k,arr);
-    renderTravels();
-    document.getElementById('tb-'+tid).classList.add('open');
-    document.getElementById('tc-'+tid).classList.add('open');
-  } 
+  const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); 
+  if(o){ const i=o.items.find(x=>x.id===iid); if(i)i.d=!i.d; DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); } 
 }
 function delTravItem(tid,iid){ 
-  const k=getTravKey(); 
-  const arr=DB.get(k,[]); 
-  const o=arr.find(x=>x.id===tid); 
-  if(o){
-    o.items=o.items.filter(x=>x.id!==iid);
-    DB.set(k,arr);
-    renderTravels();
-    document.getElementById('tb-'+tid).classList.add('open');
-    document.getElementById('tc-'+tid).classList.add('open');
-  } 
+  const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); 
+  if(o){ o.items=o.items.filter(x=>x.id!==iid); DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); } 
 }
 function delTrav(id){ if(confirm("Silinsin mi?")){const k=getTravKey();DB.set(k,DB.get(k,[]).filter(x=>x.id!==id));renderTravels();} }
 function renderTravels() { const arr=DB.get(getTravKey(),[]); const el=document.getElementById('travel-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.start,null);const dr=[a.start&&formatDate(a.start),a.end&&formatDate(a.end)].filter(Boolean).join(' - ');const items=(a.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togTravItem('${a.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delTravItem('${a.id}','${i.id}')">✕</button></div>`).join('');return `<div class="card"><div class="acc-header" onclick="toggleTravelBody('${a.id}')"><div>${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-title" style="font-size:22px;margin:0;">${esc(a.dest)}</div><div class="card-meta" style="margin-top:4px;">${dr}</div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openTravelForm('${a.id}')">&#9998;</button><span class="chevron" id="tc-${a.id}">▼</span></div></div><div class="acc-body" id="tb-${a.id}">${a.note?`<div class="card-note" style="margin-bottom:10px;">${esc(a.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="ti-${a.id}" placeholder="Not veya rota ekle..." onkeydown="if(event.key==='Enter')addTravItem('${a.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addTravItem('${a.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delTrav('${a.id}')">Seyahati Sil</button></div></div>`;}).join(''); }
@@ -1273,16 +1221,11 @@ function renderHabits() {
 // ==================== 6. LISTS & GOALS ====================
 function renderGoal() { const g=DB.get('pers_goal',null); const c=document.getElementById('goal-container'); if(!g){c.innerHTML=`<button class="btn-add" style="border-style:solid;" onclick="editGoal()">+ ${currentLang==='tr'?'Finansal Hedef Ekle':'Add Financial Goal'}</button>`;return;} const pct=g.tg>0?Math.min(100,Math.round((g.cr/g.tg)*100)):0; c.innerHTML=`<div class="goal-card"><div style="display:flex;justify-content:space-between;align-items:flex-end;"><div style="font-weight:700;font-size:16px;">${esc(g.t)}</div><div style="font-size:14px;color:var(--muted)"><strong style="color:var(--accent);font-size:16px;">${g.cr.toLocaleString()}</strong> / ${g.tg.toLocaleString()}</div></div><div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${pct}%"></div></div><div style="display:flex;gap:8px;margin-top:12px;"><input type="number" id="goal-val" placeholder="${currentLang==='tr'?'Miktar':'Amount'}" style="padding:8px;font-size:14px;"><button class="btn-primary" style="padding:8px 16px;" onclick="addGoal()">+</button><button class="btn-ghost" style="padding:8px 12px;" onclick="editGoal()">&#9998;</button><button class="btn-ghost" style="padding:8px 12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="if(confirm('Silinsin mi?')){DB.set('pers_goal',null);renderGoal();}">&#10005;</button></div></div>`; }
 function addGoal(){ const v=parseInt(document.getElementById('goal-val').value); if(!v||v<=0)return; const g=DB.get('pers_goal',null); if(g){g.cr+=v;DB.set('pers_goal',g);renderGoal();} }
-
-// DÜZELTME: (Hedef Modal İptal Mantığı - Promptlar)
 function editGoal(){ 
   const g=DB.get('pers_goal',{t:'Hedef',cr:0,tg:0}); 
-  let t=prompt("Başlık / Title:",g.t); 
-  if(t===null) t=g.t; 
-  let tg=prompt("Hedef / Target:",g.tg); 
-  if(tg===null) tg=g.tg; 
-  let c=prompt("Mevcut / Current:",g.cr); 
-  if(c===null) c=g.cr; 
+  let t=prompt("Başlık / Title:",g.t); if(t===null) t=g.t; 
+  let tg=prompt("Hedef / Target:",g.tg); if(tg===null) tg=g.tg; 
+  let c=prompt("Mevcut / Current:",g.cr); if(c===null) c=g.cr; 
   DB.set('pers_goal',{t:t,tg:parseInt(tg)||0,cr:parseInt(c)||0}); 
   renderGoal(); 
 }
@@ -1292,8 +1235,6 @@ function getActiveCat() { return DB.get('pers_activecat',getCatKeys()[0]); }
 function safe(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
 function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); }
 function saveNewListCat(){ const n=document.getElementById('m-newlist-name').value.trim(); if(!n)return; const c=getCatKeys(); if(!c.includes(n))c.push(n); DB.set('pers_listcats',c); DB.set('pers_activecat',n); closeModal('modal-newlist'); renderLists(); }
-
-// DÜZELTME: (Odak Kaybı - Lists)
 function addLItem(cat){ 
   const inputId = 'li-' + safe(cat);
   const v=document.getElementById(inputId).value.trim(); 
@@ -1304,20 +1245,21 @@ function addLItem(cat){
   renderLists(); 
   document.getElementById(inputId).focus();
 }
-
 function togLItem(cat, lid){ 
-  const arr=DB.get('pers_list_'+cat,[]); 
-  const o=arr.find(x=>x.id===lid); 
+  const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===lid); 
   if(o){
-    o.d=!o.d;
-    DB.set('pers_list_'+cat,arr);
-    renderLists();
-    // Akordeonun kapanmasını engelle
-    const body = document.getElementById('lb-'+lid);
-    const chevron = document.getElementById('lc-'+lid);
-    if(body) body.classList.add('open');
-    if(chevron) chevron.classList.add('open');
+    o.d=!o.d; DB.set('pers_list_'+cat,arr); renderLists();
+    const body = document.getElementById('lb-'+lid); const chevron = document.getElementById('lc-'+lid);
+    if(body) body.classList.add('open'); if(chevron) chevron.classList.add('open');
   } 
+}
+function delLItem(cat, lid){ DB.set('pers_list_'+cat,DB.get('pers_list_'+cat,[]).filter(x=>x.id!==lid)); renderLists(); }
+function delListCat(cat){
+  if(confirm(currentLang==='tr' ? "Bu listeyi tamamen silmek istediğinize emin misiniz?" : "Delete this list entirely?")){
+    let cats = getCatKeys().filter(c => c !== cat); DB.set('pers_listcats', cats);
+    localStorage.removeItem('planner_pers_list_' + cat);
+    DB.set('pers_activecat', cats.length ? cats[0] : ''); renderLists();
+  }
 }
 function updLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.p=document.getElementById('lp-'+id).value.trim();o.n=document.getElementById('ln-'+id).value.trim();DB.set('pers_list_'+cat,arr);} }
 function togLBody(id){ document.getElementById('lb-'+id).classList.toggle('open'); document.getElementById('lc-'+id).classList.toggle('open'); }
@@ -1328,30 +1270,42 @@ function renderListItems(cat) {
   const r=(i)=>`<div class="card" style="padding:12px 16px;margin-bottom:8px;${i.d?'opacity:0.5;box-shadow:none;':''}"><div class="acc-header" onclick="togLBody('${i.id}')"><div class="list-check ${i.d?'checked':''}" style="width:20px;height:20px;" onclick="event.stopPropagation();togLItem('${esc(cat)}','${i.id}')">${i.d?'✓':''}</div><div style="flex:1;font-weight:600;font-size:15px;margin-left:12px;${i.d?'text-decoration:line-through':''}">${esc(i.t)}</div>${i.p&&!i.d?`<span style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border);margin-right:10px;color:var(--muted)">${esc(i.p)}</span>`:''}<span class="chevron" id="lc-${i.id}">▼</span></div><div class="acc-body" id="lb-${i.id}"><input type="text" id="lp-${i.id}" value="${esc(i.p)}" placeholder="${currentLang==='tr'?'İlerleme (Örn: Sayfa 4)':'Progress'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;margin-bottom:8px;"><textarea id="ln-${i.id}" placeholder="${currentLang==='tr'?'Link veya Not':'Note or Link'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;min-height:50px;margin-bottom:8px;">${esc(i.n)}</textarea><div style="text-align:right"><button class="btn-icon" style="color:var(--accent-danger)" onclick="delLItem('${esc(cat)}','${i.id}')">Sil</button></div></div></div>`;
   const un=arr.filter(i=>!i.d); const dn=arr.filter(i=>i.d);
   
-  // ARAYÜZ DEĞİŞİKLİĞİ: Silme butonu input barının yanına eklendi
-  el.innerHTML=`
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
-      <input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')">
-      <button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button>
-      <button class="btn-ghost" style="padding:8px 12px; border-color:var(--accent-danger); color:var(--accent-danger);" onclick="delListCat('${esc(cat)}')">🗑️</button>
-    </div>
-    ${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}
-    ${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
+  el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:16px;"><input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')"><button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button><button class="btn-ghost" style="padding:8px 12px; border-color:var(--accent-danger); color:var(--accent-danger);" onclick="delListCat('${esc(cat)}')">🗑️</button></div>${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
 }
 
-// YENİ FONKSİYON: Listeyi Komple Silme
-function delListCat(cat){
-  if(confirm(currentLang==='tr' ? "Bu listeyi tamamen silmek istediğinize emin misiniz?" : "Delete this list entirely?")){
-    let cats = getCatKeys().filter(c => c !== cat);
-    DB.set('pers_listcats', cats);
-    localStorage.removeItem('planner_pers_list_' + cat); // Alt elemanları localStorage'dan temizler
-    DB.set('pers_activecat', cats.length ? cats[0] : '');
-    renderLists();
-  }
-}
 // ==================== 7. BIRTHDAYS ====================
-function saveBday() { const n=document.getElementById('m-bday-name').value.trim(); const m=parseInt(document.getElementById('m-bday-month').value); const d=parseInt(document.getElementById('m-bday-day').value); if(!n||!m||!d)return; const arr=DB.get('pers_birthdays',[]); arr.push({id:id(),name:n,month:m,day:d,note:document.getElementById('m-bday-note').value.trim(),items:[]}); DB.set('pers_birthdays',arr); closeModal('modal-bday'); renderBdays(); checkAndNotify(); }
-function delBday(id) { if(confirm("Silinsin mi?")){DB.set('pers_birthdays',DB.get('pers_birthdays',[]).filter(x=>x.id!==id));renderBdays();} }
+function openBdayForm(eid=null) {
+    currentEditId = eid;
+    const d = eid ? DB.get('pers_birthdays',[]).find(x=>x.id===eid) : null;
+    document.getElementById('m-bday-name').value = d ? d.name : '';
+    document.getElementById('m-bday-month').value = d ? d.month : '1';
+    document.getElementById('m-bday-day').value = d ? d.day : '';
+    document.getElementById('m-bday-note').value = d ? (d.note || '') : '';
+    document.getElementById('bday-modal-title').innerText = d ? 'Kişiyi Düzenle' : 'Kişi Ekle';
+    openModal('modal-bday');
+}
+
+function saveBday() { 
+    const n = document.getElementById('m-bday-name').value.trim(); 
+    const m = parseInt(document.getElementById('m-bday-month').value); 
+    const d = parseInt(document.getElementById('m-bday-day').value); 
+    if(!n || !m || !d) return; 
+    
+    const arr = DB.get('pers_birthdays',[]); 
+    const p = { id: currentEditId || id(), name: n, month: m, day: d, note: document.getElementById('m-bday-note').value.trim(), items: [] };
+    
+    if(currentEditId) {
+        const i = arr.findIndex(x=>x.id===currentEditId);
+        if(i > -1) { p.items = arr[i].items || []; arr[i] = p; }
+    } else {
+        arr.push(p);
+    }
+    
+    DB.set('pers_birthdays', arr); closeModal('modal-bday'); renderBdays(); checkAndNotify(); 
+}
+
+function delBday(id) { if(confirm("Silinsin mi?")){ DB.set('pers_birthdays', DB.get('pers_birthdays',[]).filter(x=>x.id!==id)); renderBdays(); } }
+
 function getBdayCD(m,d) { 
   const t = new Date(); t.setHours(0,0,0,0); 
   const ty = t.getFullYear(); 
@@ -1364,60 +1318,83 @@ function getBdayCD(m,d) {
   return {t: `${diff} ${currentLang==='tr'?'gün':'days'}`, c:'badge-safe'}; 
 }
 
-// DÜZELTME: (Odak ve Titreme - Birthdays)
+function toggleBdayBody(bid) { 
+  const b = document.getElementById('bb-'+bid); const c = document.getElementById('bc-'+bid);
+  if(b) b.classList.toggle('open'); if(c) c.classList.toggle('open'); 
+}
+
 function addBdayItem(bid){ 
   const v=document.getElementById('bi-'+bid).value.trim(); 
   if(!v)return; 
-  const arr=DB.get('pers_birthdays',[]); 
-  const o=arr.find(x=>x.id===bid); 
+  const arr=DB.get('pers_birthdays',[]); const o=arr.find(x=>x.id===bid); 
   if(o){
-    o.items=o.items||[];
-    // Artık parametre adı 'bid' olduğu için global id() fonksiyonu sorunsuz çalışır
-    o.items.push({id:id(),t:v,d:false});
-    DB.set('pers_birthdays',arr);
-    renderBdays();
-    document.getElementById('bb-'+bid).classList.add('open');
-    document.getElementById('bc-'+bid).classList.add('open');
+    o.items=o.items||[]; o.items.push({id:id(),t:v,d:false}); DB.set('pers_birthdays',arr); renderBdays();
+    const b = document.getElementById('bb-'+bid); const c = document.getElementById('bc-'+bid);
+    if(b) b.classList.add('open'); if(c) c.classList.add('open');
     document.getElementById('bi-'+bid).focus();
   } 
 }
 function togBdayItem(bid,iid){ 
-  const arr=DB.get('pers_birthdays',[]); 
-  const o=arr.find(x=>x.id===bid); 
+  const arr=DB.get('pers_birthdays',[]); const o=arr.find(x=>x.id===bid); 
   if(o){
-    const i=o.items.find(x=>x.id===iid);
-    if(i)i.d=!i.d;
-    DB.set('pers_birthdays',arr);
-    renderBdays();
-    document.getElementById('bb-'+bid).classList.add('open');
-    document.getElementById('bc-'+bid).classList.add('open');
+    const i=o.items.find(x=>x.id===iid); if(i)i.d=!i.d; DB.set('pers_birthdays',arr); renderBdays();
+    const b = document.getElementById('bb-'+bid); const c = document.getElementById('bc-'+bid);
+    if(b) b.classList.add('open'); if(c) c.classList.add('open');
   } 
 }
 function delBdayItem(bid,iid){ 
-  const arr=DB.get('pers_birthdays',[]); 
-  const o=arr.find(x=>x.id===bid); 
+  const arr=DB.get('pers_birthdays',[]); const o=arr.find(x=>x.id===bid); 
   if(o){
-    o.items=o.items.filter(x=>x.id!==iid);
-    DB.set('pers_birthdays',arr);
-    renderBdays();
-    document.getElementById('bb-'+bid).classList.add('open');
-    document.getElementById('bc-'+bid).classList.add('open');
+    o.items=o.items.filter(x=>x.id!==iid); DB.set('pers_birthdays',arr); renderBdays();
+    const b = document.getElementById('bb-'+bid); const c = document.getElementById('bc-'+bid);
+    if(b) b.classList.add('open'); if(c) c.classList.add('open');
   } 
 }
+
 function renderBdays() { 
-  const arr=DB.get('pers_birthdays',[]); 
-  const el=document.getElementById('bday-list'); 
-  if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} 
-  const t = new Date(); t.setHours(0,0,0,0);
-  const ty = t.getFullYear(); 
-  arr.forEach(x => {
-    let n = new Date(ty, x.month-1, x.day);
-    if(n.getTime() < t.getTime()) n = new Date(ty+1, x.month-1, x.day);
-    x._n = n.getTime();
-  }); 
-  arr.sort((a,b)=>a._n-b._n); 
-  el.innerHTML=arr.map(x=>{const nDate=new Date(x._n);const cd=getBdayCD(x.month,x.day);const dStr=`${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;const items=(x.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togBdayItem('${x.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delBdayItem('${x.id}','${i.id}')">✕</button></div>`).join('');return `<div class="card"><div class="acc-header" onclick="toggleBdayBody('${x.id}')"><div style="display:flex;align-items:center;gap:14px;"><div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div><div><div style="font-weight:700;font-size:16px;">${esc(x.name)}</div><div class="card-meta" style="margin-top:2px;">${x.day} ${MONTHS_TR[x.month]}</div><div style="margin-top:6px;"><span class="badge ${cd.c}" style="margin:0;">${cd.t}</span></div></div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${x.name} D.Günü','${dStr}',null,'Kutlama')">&#128197;</button><span class="chevron" id="bc-${x.id}">▼</span></div></div><div class="acc-body" id="bb-${x.id}">${x.note?`<div class="card-note" style="margin-bottom:10px;">${esc(x.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="bi-${x.id}" placeholder="Hediye veya sürpriz planı..." onkeydown="if(event.key==='Enter')addBdayItem('${x.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addBdayItem('${x.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delBday('${x.id}')">Kişiyi Sil</button></div></div>`;}).join(''); 
+  const arr = DB.get('pers_birthdays',[]); 
+  const el = document.getElementById('bday-list'); 
+  if(!arr.length){ el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`; return; } 
+  
+  const t = new Date(); t.setHours(0,0,0,0); const ty = t.getFullYear(); 
+  arr.forEach(x => { let n = new Date(ty, x.month-1, x.day); if(n.getTime() < t.getTime()) n = new Date(ty+1, x.month-1, x.day); x._n = n.getTime(); }); 
+  arr.sort((a,b) => a._n - b._n); 
+  
+  el.innerHTML = arr.map(x => {
+      const nDate = new Date(x._n);
+      const cd = getBdayCD(x.month, x.day);
+      const dStr = `${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;
+      const items = (x.items||[]).map(i => `<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togBdayItem('${x.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delBdayItem('${x.id}','${i.id}')">✕</button></div>`).join('');
+      
+      return `<div class="card" data-id="${x.id}">
+          <div class="acc-header" onclick="toggleBdayBody('${x.id}')">
+              <div style="display:flex;align-items:center;gap:14px;">
+                  <div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div>
+                  <div>
+                      <div style="font-weight:700;font-size:16px;">${esc(x.name)}</div>
+                      <div class="card-meta" style="margin-top:2px;">${x.day} ${MONTHS_TR[x.month]}</div>
+                      <div style="margin-top:6px;"><span class="badge ${cd.c}" style="margin:0;">${cd.t}</span></div>
+                  </div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:center;">
+                  <button class="btn-icon" onclick="event.stopPropagation();openBdayForm('${x.id}')" title="Düzenle">&#9998;</button>
+                  <button class="btn-icon" onclick="event.stopPropagation();downloadICS('${x.name} D.Günü','${dStr}',null,'Kutlama')" title="Takvime Ekle">&#128197;</button>
+                  <span class="chevron" id="bc-${x.id}">▼</span>
+              </div>
+          </div>
+          <div class="acc-body" id="bb-${x.id}">
+              ${x.note ? `<div class="card-note" style="margin-bottom:10px;">${esc(x.note)}</div>` : ''}
+              <div>${items}</div>
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                  <input type="text" id="bi-${x.id}" placeholder="Hediye veya sürpriz planı..." onkeydown="if(event.key==='Enter')addBdayItem('${x.id}')" style="padding:8px;font-size:13px;">
+                  <button class="btn-primary" style="padding:8px 12px;" onclick="addBdayItem('${x.id}')">+</button>
+              </div>
+              <button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delBday('${x.id}')">Kişiyi Sil</button>
+          </div>
+      </div>`;
+  }).join(''); 
 }
+
 // ==================== 8. NOTES ====================
 function getNoteKey() { return currentContext+'_notes'; }
 function parseMD(t) { return esc(t).replace(/^### (.*$)/gim,'<h3>$1</h3>').replace(/^## (.*$)/gim,'<h2>$1</h2>').replace(/^# (.*$)/gim,'<h1>$1</h1>').replace(/\*\*(.*?)\*\*/gim,'<strong>$1</strong>').replace(/\*(.*?)\*/gim,'<em>$1</em>').replace(/^\- (.*$)/gim,'<ul><li>$1</li></ul>').replace(/<\/ul>\n<ul>/gim,'').replace(/\n/gim,'<br>'); }
