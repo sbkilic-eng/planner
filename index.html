@@ -178,7 +178,7 @@
   .cal-day.other-month { opacity: 0.3; pointer-events: none; }
   
   /* HAFTA SONU VE TATİL RENKLERİ */
-  .cal-day.weekend { color: var(--accent2); background: rgba(224,123,84, 0.05); }
+  .cal-day.weekend { color: var(--accent2); background: rgba(224,123,84, 0.08); font-weight: 700; }
   .cal-day.holiday { color: var(--accent-danger) !important; background: rgba(216,109,109,0.08) !important; }
   
   .cal-dots { display: flex; gap: 4px; position: absolute; bottom: 8px; }
@@ -224,7 +224,7 @@
     
     /* Mobilde Takvim Görünümü */
     .calendar-sidebar { display: none; position: fixed; top: auto; bottom: 160px; right: 20px; width: calc(100vw - 40px); max-width: 360px; z-index: 999; }
-    .calendar-sidebar.mobile-open { display: block; animation: slideUpFade 0.3s cubic-bezier(0.4,0,0.2,1); }
+    .calendar-sidebar.mobile-open { display: block !important; animation: slideUpFade 0.3s cubic-bezier(0.4,0,0.2,1); }
     .calendar-sidebar .cal-widget { box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 1px solid var(--accent); }
   }
   @keyframes slideUpFade {
@@ -696,7 +696,7 @@
 
 <div id="print-area"></div>
 
-<button class="mobile-cal-toggle" id="mobile-cal-btn" onclick="toggleMobileCal()">
+<button class="mobile-cal-toggle" id="mobile-cal-btn" onclick="toggleMobileCal(event)">
   <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
     <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -953,12 +953,17 @@ function toggleSidebar() {
 }
 
 // MOBİL TAKVİM AÇ/KAPA İŞLEMİ
-function toggleMobileCal() {
+function toggleMobileCal(e) {
+    if(e) e.stopPropagation(); // Butona tıklanıldığında döküman click olayının tetiklenmesini engeller
     const cal = document.getElementById('calendar-sidebar');
     const btn = document.getElementById('mobile-cal-btn');
-    cal.classList.toggle('mobile-open');
-    btn.classList.toggle('active');
-    if(cal.classList.contains('mobile-open')){
+    
+    if(cal.classList.contains('mobile-open')) {
+        cal.classList.remove('mobile-open');
+        btn.classList.remove('active');
+    } else {
+        cal.classList.add('mobile-open');
+        btn.classList.add('active');
         renderCalendar();
     }
 }
@@ -975,11 +980,10 @@ document.addEventListener('click', function(e) {
     const calSide = document.getElementById('calendar-sidebar');
     if(calSide && calSide.classList.contains('mobile-open')) {
         const clickedInsideCal = e.target.closest('#calendar-sidebar');
-        const clickedCalBtn = e.target.closest('#mobile-cal-btn');
-        const clickedModal = e.target.closest('.modal-overlay'); // Gün detayı vb. açılırsa kapanmasın
-        
-        if(!clickedInsideCal && !clickedCalBtn && !clickedModal) {
-            toggleMobileCal();
+        // Eğer takvimin içine veya açılan bir modala tıklanmadıysa takvimi kapat
+        if(!clickedInsideCal && !e.target.closest('.modal-overlay')) {
+            calSide.classList.remove('mobile-open');
+            document.getElementById('mobile-cal-btn').classList.remove('active');
         }
     }
 });
