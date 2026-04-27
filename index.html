@@ -164,18 +164,23 @@
   .tag-personal { background: rgba(92,158,120,0.15); color: #5C9E78; }
   .tag-warning { background: rgba(224,123,84,0.15); color: #E07B54; }
 
-  /* ================= MASAÜSTÜ TAKVİMİ ================= */
+  /* ================= MASAÜSTÜ & MOBİL TAKVİMİ ================= */
   .calendar-sidebar { width: 320px; flex-shrink: 0; display: none; position: sticky; top: 90px; }
   .cal-widget { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
   .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
   .cal-title { font-weight: 700; font-size: 15px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
   .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
   .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  
   .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 8px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text); transition: all 0.2s; position: relative; border: 1px solid transparent; background: rgba(126,136,153,0.03); }
   .cal-day:hover { background: rgba(126,136,153,0.15); transform: translateY(-2px); }
   .cal-day.today { border-color: var(--accent); color: var(--accent); font-weight: 700; background: var(--accent-light); }
   .cal-day.other-month { opacity: 0.3; pointer-events: none; }
-  .cal-day.holiday { color: var(--accent-danger); }
+  
+  /* HAFTA SONU VE TATİL RENKLERİ */
+  .cal-day.weekend { color: var(--accent2); background: rgba(224,123,84, 0.05); }
+  .cal-day.holiday { color: var(--accent-danger) !important; background: rgba(216,109,109,0.08) !important; }
+  
   .cal-dots { display: flex; gap: 4px; position: absolute; bottom: 8px; }
   .cal-dot { width: 5px; height: 5px; border-radius: 50%; }
   .cal-dot.work { background: var(--accent-work); }
@@ -198,11 +203,35 @@
   .search-result-meta { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
   .search-empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 16px; font-style: italic; }
 
-  /* ================= MOBİL ================= */
+  /* ================= MOBİL & MOBİL TAKVİM ================= */
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(2px); }
+  
+  .mobile-cal-toggle {
+      display: none; position: fixed; bottom: 100px; right: 33px;
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      box-shadow: var(--shadow); color: var(--text);
+      align-items: center; justify-content: center;
+      z-index: 190; cursor: pointer;
+      transition: transform 0.2s, background 0.2s, opacity 0.3s;
+  }
+  .mobile-cal-toggle:active { transform: scale(0.9); }
+  .mobile-cal-toggle.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
   @media (max-width: 1024px) {
     .main-layout { padding: 0 16px 100px; }
+    .mobile-cal-toggle { display: flex; }
+    
+    /* Mobilde Takvim Görünümü */
+    .calendar-sidebar { display: none; position: fixed; top: auto; bottom: 160px; right: 20px; width: calc(100vw - 40px); max-width: 360px; z-index: 999; }
+    .calendar-sidebar.mobile-open { display: block; animation: slideUpFade 0.3s cubic-bezier(0.4,0,0.2,1); }
+    .calendar-sidebar .cal-widget { box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 1px solid var(--accent); }
   }
+  @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+  }
+
   @media (max-width: 768px) {
     .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); width: 285px; box-shadow: var(--shadow); }
     .sidebar.open { transform: translateX(0); }
@@ -340,7 +369,7 @@
 
   @media print {
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .app-shell, .fab-container, .search-overlay, .modal-overlay, .note-editor { display: none !important; }
+    .app-shell, .fab-container, .mobile-cal-toggle, .search-overlay, .modal-overlay, .note-editor { display: none !important; }
     #print-area { display: block !important; font-family: 'DM Sans', Georgia, serif; color: #111; background: #fff; }
     .pr-page { max-width: 720px; margin: 0 auto; padding: 40px 48px; }
     .pr-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 14px; margin-bottom: 28px; }
@@ -667,6 +696,15 @@
 
 <div id="print-area"></div>
 
+<button class="mobile-cal-toggle" id="mobile-cal-btn" onclick="toggleMobileCal()">
+  <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+    <line x1="16" y1="2" x2="16" y2="6"></line>
+    <line x1="8" y1="2" x2="8" y2="6"></line>
+    <line x1="3" y1="10" x2="21" y2="10"></line>
+  </svg>
+</button>
+
 <div class="fab-container" id="fab-container">
   <button class="fab" id="fab-main">+</button>
   <div class="fab-menu" id="fab-menu">
@@ -900,20 +938,52 @@ function showToast(msg) {
     setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2000);
 }
 
-// Tüm arayüz güncellemelerini tek bir fonksiyondan tetikleyelim
+// Tüm arayüz güncellemelerini tetikler
 function updateAppUI() {
-    if(window.innerWidth > 1024) renderCalendar();
+    renderCalendar();
 }
 
 // ==================== MODALS & SIDEBAR ====================
 function openModal(mid) { document.getElementById(mid).classList.add('open'); }
 function closeModal(mid) { document.getElementById(mid).classList.remove('open'); currentEditId=null; }
-document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e) { if(e.target===this) closeModal(this.id); }));
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebar-overlay').classList.toggle('open');
 }
+
+// MOBİL TAKVİM AÇ/KAPA İŞLEMİ
+function toggleMobileCal() {
+    const cal = document.getElementById('calendar-sidebar');
+    const btn = document.getElementById('mobile-cal-btn');
+    cal.classList.toggle('mobile-open');
+    btn.classList.toggle('active');
+    if(cal.classList.contains('mobile-open')){
+        renderCalendar();
+    }
+}
+
+// GENEL TIKLAMA DİNLEYİCİSİ (Dışarıya tıklayınca kapatma işlemleri)
+document.addEventListener('click', function(e) {
+    // Modalları kapat
+    if(e.target.classList.contains('modal-overlay')) closeModal(e.target.id);
+    
+    // FAB menüyü kapat
+    if(fabOpen && !e.target.closest('.fab-container')) toggleFAB();
+    
+    // Mobil takvimi dışa tıklanınca kapat
+    const calSide = document.getElementById('calendar-sidebar');
+    if(calSide && calSide.classList.contains('mobile-open')) {
+        const clickedInsideCal = e.target.closest('#calendar-sidebar');
+        const clickedCalBtn = e.target.closest('#mobile-cal-btn');
+        const clickedModal = e.target.closest('.modal-overlay'); // Gün detayı vb. açılırsa kapanmasın
+        
+        if(!clickedInsideCal && !clickedCalBtn && !clickedModal) {
+            toggleMobileCal();
+        }
+    }
+});
+
 
 // ==================== FAN MENU ====================
 let fanState = { work: false, pers: false };
@@ -1116,6 +1186,11 @@ function renderCalendar() {
         const shortDStr = `${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         const isToday = dStr === todayStr ? 'today' : '';
         
+        // Hafta Sonu Kontrolü (Pazar = 0, Cumartesi = 6)
+        const dateObj = new Date(year, month, i);
+        const dayOfWeek = dateObj.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6) ? 'weekend' : '';
+        
         let holidayName = HOLIDAYS[dStr] || HOLIDAYS[shortDStr] || null;
         let isHoliday = holidayName ? 'holiday' : '';
         
@@ -1124,7 +1199,7 @@ function renderCalendar() {
         if(evs.hasWork) dotsHTML += `<div class="cal-dot work"></div>`;
         if(evs.hasPers) dotsHTML += `<div class="cal-dot pers"></div>`;
         
-        html += `<div class="cal-day ${isToday} ${isHoliday}" onclick="openDayDetails('${dStr}', ${month+1}, ${i}, ${holidayName ? true : false}, '${holidayName ? esc(holidayName) : ''}')">
+        html += `<div class="cal-day ${isWeekend} ${isToday} ${isHoliday}" onclick="openDayDetails('${dStr}', ${month+1}, ${i}, ${holidayName ? true : false}, '${holidayName ? esc(holidayName) : ''}')">
             ${i}
             ${holidayName ? `<div class="cal-holiday-text">${esc(holidayName.split(' ')[0])}</div>` : ''}
             <div class="cal-dots">${dotsHTML}</div>
@@ -1145,10 +1220,19 @@ function renderCalendar() {
 function toggleFAB() {
   fabOpen = !fabOpen;
   document.getElementById('fab-main').classList.toggle('open', fabOpen);
+  
+  // Mobil takvim butonuyla FAB menüsünün çakışmasını engellemek için gizle
+  const calBtn = document.getElementById('mobile-cal-btn');
+  if(calBtn) {
+      calBtn.style.opacity = fabOpen ? '0' : '1';
+      calBtn.style.pointerEvents = fabOpen ? 'none' : 'auto';
+  }
+
   document.querySelectorAll('.fab-option').forEach((el,i) => {
     setTimeout(() => el.classList.toggle('visible', fabOpen), fabOpen ? i*40 : (2-i)*40);
   });
 }
+
 function fabAction(type) {
   toggleFAB();
   setTimeout(() => {
@@ -1157,9 +1241,6 @@ function fabAction(type) {
     else if(type==='note') { openNoteEditor(null, 'quick'); }
   }, 200);
 }
-document.addEventListener('click', function(e) {
-  if(fabOpen && !e.target.closest('.fab-container')) toggleFAB();
-});
 
 let fabTimer;
 let isFabLongPress = false;
@@ -1192,8 +1273,6 @@ function closeSearch() {
   document.getElementById('search-input').value = '';
   document.getElementById('search-results').innerHTML = '';
 }
-document.getElementById('search-overlay').addEventListener('click', function(e) { if(e.target===this) closeSearch(); });
-
 function performSearch() {
   const q = document.getElementById('search-input').value.trim().toLowerCase();
   const el = document.getElementById('search-results');
@@ -1930,7 +2009,7 @@ function init() {
   initNotifications();
   initFAB(); 
   registerSW();
-  updateAppUI(); // Takvimi başlat
+  updateAppUI(); 
   setInterval(() => { if(currentModule==='summary') { renderSummary(); updateAppUI(); } }, 60000);
 }
 
