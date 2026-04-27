@@ -125,7 +125,10 @@
   .main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   header { padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; background: var(--bg); position: sticky; top: 0; z-index: 90; gap: 12px; }
   .header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-  .hamburger { display: none; font-size: 24px; color: var(--text); background: none; border: none; cursor: pointer; padding: 4px; flex-shrink: 0; }
+  .btn-back { display: none; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 700; font-family: inherit; padding: 6px 10px 6px 4px; border-radius: 10px; transition: color 0.2s, background 0.2s; flex-shrink: 0; }
+  .btn-back:hover { color: var(--text); background: rgba(126,136,153,0.08); }
+  .btn-back.visible { display: flex; }
+  .btn-back-arrow { font-size: 20px; line-height: 1; }
   .app-date { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 4px; white-space: nowrap; }
   .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .btn-header-icon { background: var(--surface); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 18px; flex-shrink: 0; }
@@ -385,7 +388,7 @@
 
     <div class="sidebar-scroll-area">
       <button class="nav-item active" id="nav-summary" onclick="switchModule('summary')">
-        <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Özet</span>
+        <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Ana Sayfa</span>
       </button>
 
       <div class="fan-group">
@@ -470,6 +473,10 @@
     <header>
       <div class="header-left">
         <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <button class="btn-back" id="btn-back" onclick="switchModule('summary')">
+          <span class="btn-back-arrow">←</span>
+          <span>Ana Sayfa</span>
+        </button>
         <div class="mobile-logo-wrap">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="mobile-logo-img">
             <defs><linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3A6EA8"/><stop offset="100%" stop-color="#1A3A5C"/></linearGradient></defs>
@@ -585,24 +592,6 @@
     <button class="search-close" onclick="closeSearch()">✕</button>
   </div>
   <div class="search-results" id="search-results"></div>
-</div>
-
-<div class="modal-overlay" id="modal-fab-ctx">
-  <div class="modal" style="max-width:320px;text-align:center;">
-    <div class="modal-title" style="font-size:18px;margin-bottom:8px;">Nereye ekleyelim?</div>
-    <div style="color:var(--muted);font-size:14px;margin-bottom:24px;">Bu kaydı hangi bağlama kaydetmek istersin?</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <button class="btn-ghost" style="padding:16px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:8px;" onclick="fabCtxSelect('work')">
-        <span style="font-size:28px;">💼</span>
-        <span style="font-size:13px;font-weight:700;">İş Dünyası</span>
-      </button>
-      <button class="btn-ghost" style="padding:16px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:8px;" onclick="fabCtxSelect('pers')">
-        <span style="font-size:28px;">🌿</span>
-        <span style="font-size:13px;font-weight:700;">Kişisel Yaşam</span>
-      </button>
-    </div>
-    <button class="btn-icon" style="margin-top:16px;font-size:13px;color:var(--muted);" onclick="closeModal('modal-fab-ctx')">İptal</button>
-  </div>
 </div>
 
 <div class="modal-overlay" id="modal-settings">
@@ -737,12 +726,12 @@
 // ==================== DİL & ÇEVİRİ ====================
 const translations = {
   tr: {
-    nav_summary:"Özet", nav_work:"İş Dünyası", nav_work_cal:"Toplantı & Takvim", nav_work_todo:"İş Görevleri", nav_work_travel:"İş Seyahati", nav_work_notes:"Şirket Notları",
+    nav_summary:"Ana Sayfa", nav_work:"İş Dünyası", nav_work_cal:"Toplantı & Takvim", nav_work_todo:"İş Görevleri", nav_work_travel:"İş Seyahati", nav_work_notes:"Şirket Notları",
     nav_personal:"Kişisel Yaşam", nav_pers_cal:"Randevular", nav_pers_todo:"Görevler", nav_pers_habits:"Gelişim & Rutin", nav_pers_lists:"Hedef & Listeler", nav_pers_travel:"Seyahat", nav_pers_bday:"Doğum Günleri", nav_pers_notes:"Kişisel Notlar",
     settings:"Ayarlar", theme:"Görünüm Teması", language:"Dil / Language", export:"Yedekle (TXT)", import:"Veri Yükle", add_new:"Yeni Ekle", title:"Başlık", date:"Tarih", time:"Saat", empty:"Şu an planlanmış bir şey yok."
   },
   en: {
-    nav_summary:"Overview", nav_work:"Business", nav_work_cal:"Meetings", nav_work_todo:"Work Tasks", nav_work_travel:"Business Trip", nav_work_notes:"Work Notes",
+    nav_summary:"Home", nav_work:"Business", nav_work_cal:"Meetings", nav_work_todo:"Work Tasks", nav_work_travel:"Business Trip", nav_work_notes:"Work Notes",
     nav_personal:"Personal", nav_pers_cal:"Appointments", nav_pers_todo:"Tasks", nav_pers_habits:"Habits", nav_pers_lists:"Goals & Lists", nav_pers_travel:"Travel", nav_pers_bday:"Birthdays", nav_pers_notes:"Notes",
     settings:"Settings", theme:"Theme", language:"Language", export:"Export (TXT)", import:"Import", add_new:"Add New", title:"Title", date:"Date", time:"Time", empty:"Nothing here yet."
   }
@@ -837,6 +826,9 @@ function switchModule(mod, ctx='') {
   updateFanActiveState(mod, ctx);
   updateThemeColors();
 
+  const backBtn = document.getElementById('btn-back');
+  if (backBtn) backBtn.classList.toggle('visible', mod !== 'summary');
+
   const header=document.getElementById('module-header');
   if(mod==='summary') { header.style.display='none'; renderSummary(); return; }
 
@@ -868,27 +860,10 @@ function toggleFAB() {
 function fabAction(type) {
   toggleFAB();
   setTimeout(() => {
-    if (type === 'note') { openNoteEditor(); return; }
-    // Özet ekranında context yok — seçtir
-    if (!currentContext) {
-      pendingFabType = type;
-      openModal('modal-fab-ctx');
-      return;
-    }
-    if (type === 'appt') openApptForm();
-    else if (type === 'todo') openTodoForm();
+    if(type==='appt') { openApptForm(); }
+    else if(type==='todo') { openTodoForm(); }
+    else if(type==='note') { openNoteEditor(); }
   }, 200);
-}
-let pendingFabType = '';
-function fabCtxSelect(ctx) {
-  currentContext = ctx;
-  updateThemeColors();
-  closeModal('modal-fab-ctx');
-  setTimeout(() => {
-    if (pendingFabType === 'appt') openApptForm();
-    else if (pendingFabType === 'todo') openTodoForm();
-    pendingFabType = '';
-  }, 150);
 }
 document.addEventListener('click', function(e) {
   if(fabOpen && !e.target.closest('.fab-container')) toggleFAB();
@@ -914,71 +889,40 @@ function performSearch() {
   if(q.length < 2) { el.innerHTML = '<div class="search-empty">En az 2 karakter girin...</div>'; return; }
 
   const results = [];
-  const push = (items, icon, ctx, mod, getTitle, getSub, getId) => {
+  const push = (items, icon, ctx, mod, getTitle, getSub) => {
     (items||[]).forEach(i => {
       const t = getTitle(i); const s = getSub(i);
-      if((t+' '+s).toLowerCase().includes(q)) results.push({icon, ctx, mod, title:t, sub:s, id: getId ? getId(i) : null});
+      if((t+' '+s).toLowerCase().includes(q)) results.push({icon, ctx, mod, title:t, sub:s});
     });
   };
-  push(DB.get('work_appts',[]),'🗓️','work','appointments',i=>i.title,i=>formatDate(i.date)+(i.time?' '+i.time:''),i=>i.id);
-  push(DB.get('pers_appts',[]),'📍','pers','appointments',i=>i.title,i=>formatDate(i.date),i=>i.id);
-  push(DB.get('work_todos',[]),'💼','work','todos',i=>i.title,i=>i.note||'',i=>i.id);
-  push(DB.get('pers_todos',[]),'✅','pers','todos',i=>i.title,i=>i.note||'',i=>i.id);
-  push(DB.get('work_travels',[]),'✈️','work','travels',i=>i.dest,i=>formatDate(i.start),i=>i.id);
-  push(DB.get('pers_travels',[]),'🎒','pers','travels',i=>i.dest,i=>formatDate(i.start),i=>i.id);
-  push(DB.get('pers_birthdays',[]),'🎂','pers','birthdays',i=>i.name,i=>`${i.day} ${MONTHS_TR[i.month]}`,i=>i.id);
-  push(DB.get('pers_habits',[]),'⚡','pers','habits',i=>i.n,i=>'',i=>i.id);
+  push(DB.get('work_appts',[]),'🗓️','work','appointments',i=>i.title,i=>formatDate(i.date)+(i.time?' '+i.time:''));
+  push(DB.get('pers_appts',[]),'📍','pers','appointments',i=>i.title,i=>formatDate(i.date));
+  push(DB.get('work_todos',[]),'💼','work','todos',i=>i.title,i=>i.note||'');
+  push(DB.get('pers_todos',[]),'✅','pers','todos',i=>i.title,i=>i.note||'');
+  push(DB.get('work_travels',[]),'✈️','work','travels',i=>i.dest,i=>formatDate(i.start));
+  push(DB.get('pers_travels',[]),'🎒','pers','travels',i=>i.dest,i=>formatDate(i.start));
+  push(DB.get('pers_birthdays',[]),'🎂','pers','birthdays',i=>i.name,i=>`${i.day} ${MONTHS_TR[i.month]}`);
+  push(DB.get('pers_habits',[]),'⚡','pers','habits',i=>i.n,i=>'');
 
   ['work_notes','pers_notes'].forEach(key => {
     const ctx = key.includes('work')?'work':'pers';
     (DB.get(key,[])||[]).forEach(n => {
       if((n.title+' '+n.body).toLowerCase().includes(q))
-        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:n.body.slice(0,60), id:n.id});
+        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:n.body.slice(0,60)});
     });
   });
 
   if(!results.length) { el.innerHTML='<div class="search-empty">Sonuç bulunamadı.</div>'; return; }
 
   el.innerHTML = results.slice(0,12).map(r => `
-    <div class="search-result-item" onclick="searchNavigate('${r.mod}','${r.ctx}','${r.id||''}')">
+    <div class="search-result-item" onclick="closeSearch();switchModule('${r.mod}','${r.ctx}')">
       <div class="search-result-icon">${r.icon}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-weight:700;font-size:15px;">${esc(r.title)}</div>
         <div class="search-result-meta">${r.sub}</div>
       </div>
-      <span style="font-size:11px;color:var(--muted);">→</span>
     </div>
   `).join('');
-}
-
-function searchNavigate(mod, ctx, recordId) {
-  closeSearch();
-  // Notlar için direkt editör aç
-  if (mod === 'notes' && recordId) {
-    currentContext = ctx;
-    updateThemeColors();
-    switchModule(mod, ctx);
-    setTimeout(() => openNoteEditor(recordId), 350);
-    return;
-  }
-  switchModule(mod, ctx);
-  if (recordId) {
-    setTimeout(() => scrollToRecord(recordId), 350);
-  }
-}
-
-function scrollToRecord(id) {
-  const el = document.querySelector(`[data-id="${id}"]`);
-  if (!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  // Flash animasyonu
-  el.style.transition = 'box-shadow 0.3s, outline 0.3s';
-  el.style.outline = '2px solid var(--accent)';
-  el.style.boxShadow = '0 0 0 4px rgba(92,158,120,0.25)';
-  setTimeout(() => {
-    el.style.outline = '';
-    el.style.boxShadow = '';
-  }, 1800);
 }
 
 // ==================== BİLDİRİMLER ====================
@@ -1082,15 +1026,11 @@ function renderSummary() {
   const now = new Date(); const tMs = new Date(now.setHours(0,0,0,0)).getTime(); const nowMs = Date.now();
   let active = [], past = [];
 
-  const MOD_MAP = { appts:'appointments', todos:'todos', travels:'travels', habits:'habits', birthdays:'birthdays', notes:'notes' };
-
   const pushEv = (key, icon, extractFn) => {
     DB.get(key,[]).forEach(i => {
       const e = extractFn(i); if (!e) return;
       const isPast = e.tObj.getTime() < nowMs;
-      const rawMod = key.split('_').slice(1).join('_');
-      const mod = MOD_MAP[rawMod] || rawMod;
-      const ev = { ...e, icon, ctx: key.includes('work') ? 'work' : 'pers', mod };
+      const ev = { ...e, icon, ctx: key.includes('work') ? 'work' : 'pers', mod: key.split('_')[1] };
       if (isPast) past.push(ev); else active.push(ev);
     });
   };
@@ -1129,19 +1069,6 @@ function renderSummary() {
     }
   }
   el.innerHTML = html;
-
-  // pastOpen durumu yeniden renderdan sonra geri yükle
-  if (pastOpen) {
-    const list  = document.getElementById('sum-past-list');
-    const inner = document.getElementById('sum-past-inner');
-    const arrow = document.getElementById('sum-past-arrow');
-    if (list && inner) {
-      list.style.transition = 'none';
-      list.style.height = inner.scrollHeight + 'px';
-      if (arrow) arrow.style.transform = 'rotate(180deg)';
-      requestAnimationFrame(() => { list.style.transition = ''; });
-    }
-  }
 }
 
 // ==================== 2. APPOINTMENTS ====================
@@ -1149,7 +1076,7 @@ function getApptKey() { return currentContext+'_appts'; }
 function openApptForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getApptKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-appt-title').value=d?d.title:''; document.getElementById('m-appt-date').value=d?d.date:new Date().toISOString().split('T')[0]; document.getElementById('m-appt-time').value=d?d.time||'':''; document.getElementById('m-appt-note').value=d?d.note||'':''; openModal('modal-appt'); }
 function saveAppt() { const t=document.getElementById('m-appt-title').value.trim(); if(!t)return; const k=getApptKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} arr.sort((a,b)=>(a.date+(a.time||''))<(b.date+(b.time||''))?-1:1); DB.set(k,arr); closeModal('modal-appt'); renderAppts(); checkAndNotify(); }
 function delAppt(id) { if(!confirm("Silinsin mi?"))return; const k=getApptKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderAppts(); }
-function renderAppts() { const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.date,a.time);return `<div class="card" data-id="${a.id}">${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}</div>`;}).join(''); }
+function renderAppts() { const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.date,a.time);return `<div class="card">${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}</div>`;}).join(''); }
 
 // ==================== 3. TODOS ====================
 function getTodoKey() { return currentContext+'_todos'; }
@@ -1181,7 +1108,7 @@ function renderTodos() {
   if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
   const po={high:0,normal:1}; const un=arr.filter(t=>!t.done).sort((a,b)=>po[a.pri]-po[b.pri]||(a.date>b.date?1:-1)); const dn=arr.filter(t=>t.done);
   const r=(t)=>{ const cd=getCountdown(t.date,null); const rl=t.rec===1?'1 Gün':t.rec===7?'1 Hafta':t.rec===30?'1 Ay':'';
-    return `<div class="todo-item priority-${t.pri} ${t.done?'done':''}" data-id="${t.id}"><div class="list-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div><div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}${t.tag?tagPill(t.tag,t.tagColor):''}</div><div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div><button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button><button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button></div>`; };
+    return `<div class="todo-item priority-${t.pri} ${t.done?'done':''}"><div class="list-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div><div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}${t.tag?tagPill(t.tag,t.tagColor):''}</div><div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div><button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button><button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button></div>`; };
   el.innerHTML=(un.length?un.map(r).join(''):'<div class="empty">Tüm görevler tamam! 🎉</div>')+(dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:'');
 }
 
@@ -1366,7 +1293,7 @@ function renderBdays() {
       const dStr = `${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;
       const items = (x.items||[]).map(i => `<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togBdayItem('${x.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delBdayItem('${x.id}','${i.id}')">✕</button></div>`).join('');
       
-      return `<div class="card" data-id="${x.id}">
+      return `<div class="card">
           <div class="acc-header" onclick="toggleBdayBody('${x.id}')">
               <div style="display:flex;align-items:center;gap:14px;">
                   <div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div>
