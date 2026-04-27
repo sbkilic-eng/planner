@@ -28,9 +28,11 @@
     --accent-danger: #D86D6D;
     --shadow: 0 4px 20px rgba(0,0,0,0.2);
   }
-  [data-theme="light"] { --bg: #F5F5F7; --surface: #FFFFFF; --border: #E5E5E7; --text: #1D1D1F; --muted: #86868B; --shadow: 0 4px 15px rgba(0,0,0,0.05); }
-  [data-theme="sepia"] { --bg: #F4ECD8; --surface: #FCF5E5; --border: #E6D8B8; --text: #433422; --muted: #8B7E66; --shadow: 0 4px 15px rgba(67,52,34,0.08); }
-  [data-theme="midnight"] { --bg: #000000; --surface: #121212; --border: #1F1F1F; --text: #E1E1E1; --muted: #666666; --shadow: none; }
+  [data-theme="light"]     { --bg: #F5F5F7; --surface: #FFFFFF; --border: #E5E5E7; --text: #1D1D1F; --muted: #86868B; --shadow: 0 4px 15px rgba(0,0,0,0.05); }
+  [data-theme="sepia"]     { --bg: #F4ECD8; --surface: #FCF5E5; --border: #E6D8B8; --text: #433422; --muted: #8B7E66; --shadow: 0 4px 15px rgba(67,52,34,0.08); }
+  [data-theme="midnight"]  { --bg: #000000; --surface: #121212; --border: #1F1F1F; --text: #E1E1E1; --muted: #666666; --shadow: none; }
+  [data-theme="sutkopu"]   { --bg: #FAFAF8; --surface: #FFFFFF; --border: #EDEDEA; --text: #2C2C2A; --muted: #9C9C96; --shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  [data-theme="turkkahve"] { --bg: #1C2018; --surface: #252B20; --border: #343D2D; --text: #D4DBC8; --muted: #7A8A6A; --shadow: 0 4px 20px rgba(0,0,0,0.25); }
 
   /* ================= GENEL YAPI ================= */
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -125,10 +127,7 @@
   .main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   header { padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; background: var(--bg); position: sticky; top: 0; z-index: 90; gap: 12px; }
   .header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-  .btn-back { display: none; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 700; font-family: inherit; padding: 6px 10px 6px 4px; border-radius: 10px; transition: color 0.2s, background 0.2s; flex-shrink: 0; }
-  .btn-back:hover { color: var(--text); background: rgba(126,136,153,0.08); }
-  .btn-back.visible { display: flex; }
-  .btn-back-arrow { font-size: 20px; line-height: 1; }
+  .hamburger { display: none; font-size: 24px; color: var(--text); background: none; border: none; cursor: pointer; padding: 4px; flex-shrink: 0; }
   .app-date { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 4px; white-space: nowrap; }
   .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .btn-header-icon { background: var(--surface); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 18px; flex-shrink: 0; }
@@ -388,7 +387,7 @@
 
     <div class="sidebar-scroll-area">
       <button class="nav-item active" id="nav-summary" onclick="switchModule('summary')">
-        <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Ana Sayfa</span>
+        <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Özet</span>
       </button>
 
       <div class="fan-group">
@@ -473,10 +472,6 @@
     <header>
       <div class="header-left">
         <button class="hamburger" onclick="toggleSidebar()">☰</button>
-        <button class="btn-back" id="btn-back" onclick="switchModule('summary')">
-          <span class="btn-back-arrow">←</span>
-          <span>Ana Sayfa</span>
-        </button>
         <div class="mobile-logo-wrap">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="mobile-logo-img">
             <defs><linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3A6EA8"/><stop offset="100%" stop-color="#1A3A5C"/></linearGradient></defs>
@@ -603,10 +598,12 @@
     <div class="form-row">
       <label data-i18n="theme">Görünüm Teması</label>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <button class="btn-ghost theme-btn" onclick="setTheme('dark')" id="t-dark">Koyu</button>
-        <button class="btn-ghost theme-btn" onclick="setTheme('light')" id="t-light">Aydınlık</button>
-        <button class="btn-ghost theme-btn" onclick="setTheme('sepia')" id="t-sepia">Bej</button>
-        <button class="btn-ghost theme-btn" onclick="setTheme('midnight')" id="t-midnight">Gece</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('dark')"      id="t-dark">☕ Espresso</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('midnight')"  id="t-midnight">🍫 Mocha</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('sepia')"     id="t-sepia">🍮 Cappuccino</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('light')"     id="t-light">🥛 Latte</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('sutkopu')"   id="t-sutkopu">🫧 Süt Köpüğü</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('turkkahve')" id="t-turkkahve">🌿 Türk Kahvesi</button>
       </div>
     </div>
     <div class="form-row" style="margin-top:20px;">
@@ -726,12 +723,12 @@
 // ==================== DİL & ÇEVİRİ ====================
 const translations = {
   tr: {
-    nav_summary:"Ana Sayfa", nav_work:"İş Dünyası", nav_work_cal:"Toplantı & Takvim", nav_work_todo:"İş Görevleri", nav_work_travel:"İş Seyahati", nav_work_notes:"Şirket Notları",
+    nav_summary:"Özet", nav_work:"İş Dünyası", nav_work_cal:"Toplantı & Takvim", nav_work_todo:"İş Görevleri", nav_work_travel:"İş Seyahati", nav_work_notes:"Şirket Notları",
     nav_personal:"Kişisel Yaşam", nav_pers_cal:"Randevular", nav_pers_todo:"Görevler", nav_pers_habits:"Gelişim & Rutin", nav_pers_lists:"Hedef & Listeler", nav_pers_travel:"Seyahat", nav_pers_bday:"Doğum Günleri", nav_pers_notes:"Kişisel Notlar",
     settings:"Ayarlar", theme:"Görünüm Teması", language:"Dil / Language", export:"Yedekle (TXT)", import:"Veri Yükle", add_new:"Yeni Ekle", title:"Başlık", date:"Tarih", time:"Saat", empty:"Şu an planlanmış bir şey yok."
   },
   en: {
-    nav_summary:"Home", nav_work:"Business", nav_work_cal:"Meetings", nav_work_todo:"Work Tasks", nav_work_travel:"Business Trip", nav_work_notes:"Work Notes",
+    nav_summary:"Overview", nav_work:"Business", nav_work_cal:"Meetings", nav_work_todo:"Work Tasks", nav_work_travel:"Business Trip", nav_work_notes:"Work Notes",
     nav_personal:"Personal", nav_pers_cal:"Appointments", nav_pers_todo:"Tasks", nav_pers_habits:"Habits", nav_pers_lists:"Goals & Lists", nav_pers_travel:"Travel", nav_pers_bday:"Birthdays", nav_pers_notes:"Notes",
     settings:"Settings", theme:"Theme", language:"Language", export:"Export (TXT)", import:"Import", add_new:"Add New", title:"Title", date:"Date", time:"Time", empty:"Nothing here yet."
   }
@@ -800,22 +797,54 @@ function updateFanActiveState(mod, ctx) {
 }
 
 // ==================== THEME & LANG ====================
-function setTheme(t) { currentTheme=t; document.body.setAttribute('data-theme',t); localStorage.setItem('planner_theme',t); document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active')); document.getElementById('t-'+t).classList.add('active'); updateThemeColors(); }
+function setTheme(t) {
+  currentTheme = t;
+  document.body.setAttribute('data-theme', t);
+  localStorage.setItem('planner_theme', t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('t-' + t);
+  if (btn) btn.classList.add('active');
+  updateThemeColors();
+}
+
+function updateThemeColors() {
+  const root = document.querySelector(':root');
+  // Türk Kahvesi teması için yeşilimsi accent
+  if (currentTheme === 'turkkahve') {
+    if (currentContext === 'work') {
+      root.style.setProperty('--accent', '#6A9E7A');
+      root.style.setProperty('--accent-light', 'rgba(106,158,122,0.18)');
+    } else {
+      root.style.setProperty('--accent', '#7AB87A');
+      root.style.setProperty('--accent-light', 'rgba(122,184,122,0.18)');
+    }
+    return;
+  }
+  // Cappuccino (sepia) teması için sıcak tonlar
+  if (currentTheme === 'sepia') {
+    if (currentContext === 'work') {
+      root.style.setProperty('--accent', '#7A6EA8');
+      root.style.setProperty('--accent-light', 'rgba(122,110,168,0.15)');
+    } else {
+      root.style.setProperty('--accent', '#8A6E3C');
+      root.style.setProperty('--accent-light', 'rgba(138,110,60,0.15)');
+    }
+    return;
+  }
+  // Diğer tüm temalar
+  if (currentContext === 'work') {
+    root.style.setProperty('--accent', '#5C8BB8');
+    root.style.setProperty('--accent-light', 'rgba(92,139,184,0.15)');
+  } else {
+    root.style.setProperty('--accent', '#5C9E78');
+    root.style.setProperty('--accent-light', 'rgba(92,158,120,0.15)');
+  }
+}
 function setLang(l) { currentLang=l; localStorage.setItem('planner_lang',l); applyTranslations(); updateHeaderDate(); switchModule(currentModule,currentContext); }
 function applyTranslations() { document.querySelectorAll('[data-i18n]').forEach(el => { const k=el.getAttribute('data-i18n'); el.innerText=translations[currentLang][k]||k; }); document.getElementById('lang-select').value=currentLang; }
 function updateHeaderDate() { const n=new Date(); const d={tr:['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']}; const m={tr:['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']}; document.getElementById('headerDate').textContent=`${d[currentLang][n.getDay()]}, ${n.getDate()} ${m[currentLang][n.getMonth()]}`; }
 
 // ==================== CORE NAVIGATION ====================
-function updateThemeColors() {
-  const root = document.querySelector(':root');
-  if(currentContext === 'work') {
-    root.style.setProperty('--accent','#5C8BB8');
-    root.style.setProperty('--accent-light','rgba(92,139,184,0.15)');
-  } else {
-    root.style.setProperty('--accent','#5C9E78');
-    root.style.setProperty('--accent-light','rgba(92,158,120,0.15)');
-  }
-}
 
 function switchModule(mod, ctx='') {
   currentModule=mod; currentContext=ctx;
@@ -825,9 +854,6 @@ function switchModule(mod, ctx='') {
 
   updateFanActiveState(mod, ctx);
   updateThemeColors();
-
-  const backBtn = document.getElementById('btn-back');
-  if (backBtn) backBtn.classList.toggle('visible', mod !== 'summary');
 
   const header=document.getElementById('module-header');
   if(mod==='summary') { header.style.display='none'; renderSummary(); return; }
