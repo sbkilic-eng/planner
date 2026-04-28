@@ -187,7 +187,10 @@
   .cal-dot.pers { background: var(--accent); }
   .cal-holiday-text { font-size: 8px; color: var(--accent-danger); position: absolute; bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%; text-align: center; font-weight: 700; }
 
-  @media (min-width: 1025px) { .calendar-sidebar { display: block; } }
+  @media (min-width: 1025px) { 
+  .calendar-sidebar { display: block; } 
+  #fab-opt-cal { display: none !important; } /* Bilgisayarda FAB içindeki takvimi gizle */
+}
 
   /* ================= ARAMA ================= */
   .search-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; backdrop-filter: blur(6px); padding: 80px 20px 20px; }
@@ -204,6 +207,30 @@
   .search-empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 16px; font-style: italic; }
 
   /* ================= MOBİL ================= */
+/* Mobilde Takvim Kapatma Butonu Stili */
+.cal-mobile-close { display: none; } /* Masaüstünde gizli kalsın */
+
+@media (max-width: 1024px) {
+  .calendar-sidebar.mobile-open .cal-mobile-close {
+      display: flex;
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 10;
+  }
+}
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(2px); }
 
   @media (max-width: 1024px) {
@@ -670,6 +697,8 @@
 
       <aside class="calendar-sidebar" id="calendar-sidebar">
         <div class="cal-widget">
+          <button class="cal-mobile-close" onclick="toggleMobileCal()">✕</button>
+
           <div class="cal-header">
             <button class="btn-icon" onclick="changeCalMonth(-1)">&#8592;</button>
             <div class="cal-title" id="cal-month-year">...</div>
@@ -1199,45 +1228,56 @@ function renderCalendar() {
 }
 
 // ==================== FAB ====================
-function toggleFAB() {
-  fabOpen = !fabOpen;
-  document.getElementById('fab-main').classList.toggle('open', fabOpen);
-
-  document.querySelectorAll('.fab-option').forEach((el,i) => {
-    setTimeout(() => el.classList.toggle('visible', fabOpen), fabOpen ? i*40 : (2-i)*40);
-  });
-}
-
-function fabAction(type) {
-  toggleFAB();
-  setTimeout(() => {
-    if(type==='appt') { openApptForm(); }
-    else if(type==='todo') { openTodoForm(); }
-    else if(type==='cal') { toggleMobileCal(); }
-  }, 200);
-}
-
 let fabTimer;
 let isFabLongPress = false;
 
 function initFAB() {
     const fab = document.getElementById('fab-main');
-    fab.oncontextmenu = e => { e.preventDefault(); if(!fabOpen) toggleFAB(); };
+    let justClosedCalendar = false;
+
+    // 1. Sadece sağ tık menüsünü aç
+    fab.oncontextmenu = e => { 
+        e.preventDefault(); 
+        if(!fabOpen) toggleFAB(); 
+    };
+
+    // 2. Tıklama Başlangıcı
     fab.onpointerdown = e => {
-        if(e.button !== 0 && e.button !== undefined) return; 
+        // Sol tık (0) veya dokunmatik harici her şeyi (sağ tık, orta tık) kesin engelle!
+        if (e.button !== undefined && e.button !== 0) return; 
+
+        justClosedCalendar = false;
         if(fabOpen) return;
+        
+        const cal = document.getElementById('calendar-sidebar');
+        if (cal && cal.classList.contains('mobile-open')) {
+            toggleMobileCal();
+            justClosedCalendar = true;
+            return; 
+        }
+
         isFabLongPress = false;
         fabTimer = setTimeout(() => { isFabLongPress = true; toggleFAB(); }, 400); 
     };
+
+    // 3. Tıklama Bitişi
     fab.onpointerup = e => {
+        // Sol tık (0) veya dokunmatik harici her şeyi (sağ tık, orta tık) kesin engelle!
+        if (e.button !== undefined && e.button !== 0) return; 
+
+        if (justClosedCalendar) {
+            justClosedCalendar = false;
+            return;
+        }
+
         clearTimeout(fabTimer);
         if(fabOpen && !isFabLongPress) { toggleFAB(); return; } 
         if(!isFabLongPress && !fabOpen) { openNoteEditor(null, 'quick'); }
     };
+
     fab.onpointerleave = e => { clearTimeout(fabTimer); };
     fab.onpointercancel = e => { clearTimeout(fabTimer); };
 }
-
 // ==================== ARAMA ====================
 function openSearch() {
   document.getElementById('search-overlay').classList.add('open');
