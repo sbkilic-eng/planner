@@ -162,7 +162,10 @@
 
   /* ================= MOBİL ================= */
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(2px); }
+  .mobile-only { display: none !important; }
+  
   @media (max-width: 768px) {
+    .mobile-only { display: flex !important; }
     .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); width: 285px; box-shadow: var(--shadow); }
     .sidebar.open { transform: translateX(0); }
     .sidebar-overlay.open { display: block; }
@@ -187,7 +190,7 @@
   .badge-danger { background: rgba(216,109,109,0.15); color: var(--accent-danger); animation: pulse 2s infinite; }
   @keyframes pulse { 0%{opacity:1} 50%{opacity:0.7} 100%{opacity:1} }
 
-  .btn-add { display: flex; align-items: center; gap: 8px; width: 100%; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 14px 18px; color: var(--muted); cursor: pointer; font-weight: 600; font-size: 15px; margin-bottom: 16px; transition: all 0.2s; }
+  .btn-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 14px 18px; color: var(--muted); cursor: pointer; font-weight: 600; font-size: 15px; margin-bottom: 16px; transition: all 0.2s; }
   .btn-add:hover { border-color: var(--text); color: var(--text); }
   .btn-primary { background: var(--accent); color: #fff; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-family: inherit; transition: transform 0.1s; font-size: 14px; }
   .btn-primary:active { transform: scale(0.97); }
@@ -453,6 +456,12 @@
       <button class="mobile-close-btn" onclick="toggleSidebar()">✕</button>
     </div>
 
+    <div class="mobile-only" style="padding: 0 16px 12px; width: 100%;">
+        <button class="btn-add" style="margin:0; width:100%; border-style:solid; background:var(--accent-light); color:var(--accent); font-weight:bold; height: 45px; align-items: center; justify-content: center; gap: 8px;" onclick="switchModule('summary'); toggleSidebar();">
+            📅 Takvimi Göster
+        </button>
+    </div>
+
     <div class="sidebar-scroll-area">
       <button class="nav-item active" id="nav-summary" onclick="switchModule('summary')">
         <span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_summary">Ana Sayfa</span>
@@ -492,7 +501,7 @@
           <div class="fan-header-icon personal">🌿</div>
           <div class="fan-header-text">
             <div class="fan-header-title" data-i18n="nav_personal">KİŞİSEL YAŞAM</div>
-            <div class="fan-header-sub" id="fan-pers-sub">7 bölüm</div>
+            <div class="fan-header-sub" id="fan-pers-sub">6 bölüm</div>
           </div>
           <span class="fan-arrow">▼</span>
         </button>
@@ -527,7 +536,6 @@
           </button>
         </div>
       </div>
-      <!-- HIZLI NOTLAR ANA BAŞLIK -->
       <div style="padding: 8px 8px 4px;">
         <button class="fan-header" onclick="switchModule('quicknotes','pers')" id="fan-quicknotes" style="margin:0;width:100%;">
           <div style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,0.2);overflow:hidden;">
@@ -603,6 +611,7 @@
         <span class="app-date" id="headerDate"></span>
       </div>
       <div class="header-right">
+        <button class="btn-header-icon mobile-only" onclick="switchModule('summary')" title="Takvim">📅</button>
         <button class="btn-header-icon" onclick="openSearch()" title="Ara">🔍</button>
         <button class="btn-header-icon" onclick="printPage()" title="Yazdır / PDF">🖨️</button>
         <button class="btn-header-icon btn-settings" onclick="openModal('modal-settings')" title="Ayarlar">⚙️</button>
@@ -846,20 +855,18 @@
   </div>
 </div>
 
-<!-- Hızlı Not Editörü -->
 <div class="qnote-editor" id="qnote-editor">
   <div class="qnote-editor-header">
     <button class="btn-icon" onclick="closeQNoteEditor()" style="font-size:24px;">&#8592;</button>
     <span style="font-size:16px;font-weight:700;color:var(--text);flex:1;">⚡ Hızlı Not</span>
     <button class="btn-primary" onclick="saveQNote()" style="padding:8px 16px;font-size:13px;">💾 Kaydet</button>
-    <button class="btn-icon" onclick="deleteQNote()" style="color:var(--accent-danger);font-size:20px;margin-left:4px;">&#10005;</button>
+    <button class="btn-ghost" onclick="deleteQNote()" style="color:var(--accent-danger); border-color:var(--accent-danger); padding:8px 16px; font-size:13px; font-weight:700; margin-left:8px;">🗑️ Sil</button>
   </div>
   <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;background:var(--bg);">
     <textarea id="qnote-body" style="flex:1;min-height:200px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:15px;font-family:inherit;color:var(--text);resize:none;line-height:1.7;border-left:4px solid #D84040;" placeholder="Aklındaki her şeyi buraya yaz..."></textarea>
   </div>
 </div>
 
-<!-- Save Toast -->
 <div class="save-toast" id="save-toast">✓ Kaydedildi</div>
 
 <script>
@@ -993,7 +1000,11 @@ function switchModule(mod, ctx='') {
   currentModule=mod; currentContext=ctx;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+mod).classList.add('active');
-  if(window.innerWidth<=768) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+  
+  if(window.innerWidth<=768) { 
+      document.getElementById('sidebar').classList.remove('open'); 
+      document.getElementById('sidebar-overlay').classList.remove('open'); 
+  }
 
   updateFanActiveState(mod, ctx);
   updateThemeColors();
@@ -1002,7 +1013,17 @@ function switchModule(mod, ctx='') {
   if (backBtn) backBtn.classList.toggle('visible', mod !== 'summary');
 
   const header=document.getElementById('module-header');
-  if(mod==='summary') { header.style.display='none'; renderSummary(); return; }
+  if(mod==='summary') { 
+      header.style.display='none'; 
+      renderSummary(); 
+      if(window.innerWidth <= 768) {
+          setTimeout(() => {
+              const calPanel = document.getElementById('cal-panel');
+              if(calPanel) calPanel.scrollIntoView({behavior: 'smooth', block: 'start'});
+          }, 300);
+      }
+      return; 
+  }
 
   header.style.display='flex';
   const fanItem = ctx ? document.getElementById(`fani-${ctx}-${mod}`) : null;
@@ -2078,7 +2099,22 @@ function printPage() {
   document.getElementById('print-area').innerHTML = html;
   window.print();
 }
+// ==================== TAKVİM KAYDIRMA (SWIPE) ====================
+let touchStartX = 0;
+let touchEndX = 0;
+document.addEventListener('touchstart', e => {
+  if(e.target.closest('.cal-panel')) {
+    touchStartX = e.changedTouches[0].screenX;
+  }
+}, {passive: true});
 
+document.addEventListener('touchend', e => {
+  if(e.target.closest('.cal-panel')) {
+    touchEndX = e.changedTouches[0].screenX;
+    if(touchEndX < touchStartX - 40) calNav(1); // Sola kaydır -> Sonraki Ay
+    if(touchEndX > touchStartX + 40) calNav(-1); // Sağa kaydır -> Önceki Ay
+  }
+}, {passive: true});
 // ==================== BAŞLATMA ====================
 function init() {
   setTheme(currentTheme);
