@@ -123,8 +123,20 @@
   .fan-item.active .fan-item-label { color: var(--accent); }
   .fan-item.active-work .fan-item-label { color: var(--accent-work); }
 
-  /* ================= ANA ALAN ================= */
-  .main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  /* ================= HIZLI NOTLAR ÖZEL BUTON ================= */
+  .quick-nav-btn {
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px; margin: 0 8px;
+    border-radius: 14px; cursor: pointer; border: 1px solid transparent; background: transparent;
+    text-align: left; transition: all 0.2s; width: calc(100% - 16px);
+  }
+  .quick-nav-btn:hover { background: rgba(126,136,153,0.06); }
+  .quick-nav-btn.active { background: rgba(216,64,64,0.1); border-color: rgba(216,64,64,0.2); }
+  .wm-t { display: flex; flex-direction: column; line-height: 1; }
+  .wm-main { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.3px; }
+  .wm-sub { font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #D84040; margin-top: 2px; }
+
+  /* ================= ANA ALAN & LAYOUT ================= */
+  .main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow-y: auto; overflow-x: hidden; }
   header { padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; background: var(--bg); position: sticky; top: 0; z-index: 90; gap: 12px; }
   .header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
   .hamburger { display: none; font-size: 24px; color: var(--text); background: none; border: none; cursor: pointer; padding: 4px; flex-shrink: 0; }
@@ -140,11 +152,49 @@
   .notif-dot { width: 8px; height: 8px; background: var(--accent-danger); border-radius: 50%; position: absolute; top: 6px; right: 6px; display: none; animation: pulse 2s infinite; }
   .btn-header-icon { position: relative; }
 
-  .content { padding: 0 28px 100px; max-width: 820px; }
+  /* YENİ LAYOUT: İki Kolonlu Yapı */
+  .main-layout { display: flex; align-items: flex-start; gap: 24px; padding: 0 28px 100px; max-width: 1200px; margin: 0 auto; width: 100%; }
+  .content { flex: 1; min-width: 0; }
+  
   .section { display: none; animation: fadeIn 0.3s ease; } .section.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .section-main-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
   .context-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+  .tag-work { background: rgba(92,139,184,0.15); color: #5C8BB8; }
+  .tag-personal { background: rgba(92,158,120,0.15); color: #5C9E78; }
+  .tag-warning { background: rgba(224,123,84,0.15); color: #E07B54; }
+
+  /* ================= MASAÜSTÜ & MOBİL TAKVİMİ ================= */
+  .calendar-sidebar { width: 320px; flex-shrink: 0; display: none; position: sticky; top: 90px; }
+  .cal-widget { 
+      background: var(--surface); border: 1px solid var(--border); 
+      border-radius: 16px; padding: 20px; box-shadow: var(--shadow); 
+      position: relative; /* "X" işaretinin doğru konumlanması için BU SATIR ŞART */
+  }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .cal-title { font-weight: 700; font-size: 15px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
+  .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  
+  .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 8px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text); transition: all 0.2s; position: relative; border: 1px solid transparent; background: rgba(126,136,153,0.03); }
+  .cal-day:hover { background: rgba(126,136,153,0.15); transform: translateY(-2px); }
+  .cal-day.today { border-color: var(--accent); color: var(--accent); font-weight: 700; background: var(--accent-light); }
+  .cal-day.other-month { opacity: 0.3; pointer-events: none; }
+  
+  /* HAFTA SONU VE TATİL RENKLERİ */
+  .cal-day.weekend { color: var(--accent2); background: rgba(224,123,84, 0.08); font-weight: 700; }
+  .cal-day.holiday { color: var(--accent-danger) !important; background: rgba(216,109,109,0.08) !important; }
+  
+  .cal-dots { display: flex; gap: 4px; position: absolute; bottom: 8px; }
+  .cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .cal-dot.work { background: var(--accent-work); }
+  .cal-dot.pers { background: var(--accent); }
+  .cal-holiday-text { font-size: 8px; color: var(--accent-danger); position: absolute; bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%; text-align: center; font-weight: 700; }
+
+  @media (min-width: 1025px) { 
+  .calendar-sidebar { display: block; } 
+  #fab-opt-cal { display: none !important; } /* Bilgisayarda FAB içindeki takvimi gizle */
+}
 
   /* ================= ARAMA ================= */
   .search-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; backdrop-filter: blur(6px); padding: 80px 20px 20px; }
@@ -161,7 +211,45 @@
   .search-empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 16px; font-style: italic; }
 
   /* ================= MOBİL ================= */
+/* Mobilde Takvim Kapatma Butonu Stili */
+.cal-mobile-close { display: none; } /* Masaüstünde gizli kalsın */
+
+@media (max-width: 1024px) {
+  .calendar-sidebar.mobile-open .cal-mobile-close {
+      display: flex;
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 10;
+  }
+}
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(2px); }
+
+  @media (max-width: 1024px) {
+    .main-layout { padding: 0 16px 100px; }
+    
+    /* Mobilde Takvim Görünümü */
+    .calendar-sidebar { display: none; position: fixed; top: auto; bottom: 100px; right: 28px; width: calc(100vw - 56px); max-width: 360px; z-index: 999; }
+    .calendar-sidebar.mobile-open { display: block !important; animation: slideUpFade 0.3s cubic-bezier(0.4,0,0.2,1); }
+    .calendar-sidebar .cal-widget { box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 1px solid var(--accent); }
+  }
+  @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+  }
+
   @media (max-width: 768px) {
     .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); width: 285px; box-shadow: var(--shadow); }
     .sidebar.open { transform: translateX(0); }
@@ -171,7 +259,6 @@
     .mobile-close-btn { display: block; }
     header { padding: 14px 16px; }
     .app-date { display: none; }
-    .content { padding: 0 16px 100px; }
   }
 
   /* ================= ORTAK BİLEŞENLER ================= */
@@ -222,7 +309,11 @@
 
   /* ================= FAB ================= */
   .fab-container { position: fixed; bottom: 28px; right: 28px; z-index: 200; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 10px; }
-  .fab { width: 58px; height: 58px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; color: white; font-size: 26px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 24px rgba(92,158,120,0.45); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s; }
+  .fab { 
+      width: 58px; height: 58px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; color: white; font-size: 26px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 24px rgba(92,158,120,0.45); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s; outline: none; -webkit-tap-highlight-color: transparent;
+      /* METİN SEÇİMİ VE UZUN BASMA MENÜSÜNÜ ENGELLEME */
+      -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+  }
   .fab:hover { transform: scale(1.08); }
   .fab.open { transform: rotate(45deg); background: var(--accent2); box-shadow: 0 6px 24px rgba(224,123,84,0.45); }
   .fab-menu { display: flex; flex-direction: column-reverse; gap: 10px; overflow: hidden; }
@@ -274,6 +365,7 @@
   .habit-day.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
   .habit-day.today { border-color: var(--accent-warning); }
   .bday-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent); flex-shrink: 0; font-weight:700; }
+  
   .note-editor { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; flex-direction: column; max-width: 820px; margin: 0 auto; }
   .note-editor.open { display: flex; animation: fadeIn 0.2s; }
   .note-editor-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
@@ -281,75 +373,21 @@
   .note-tabs { display:flex; border-bottom:1px solid var(--border); background:var(--surface); }
   .note-tab { flex:1; padding:12px; text-align:center; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); border-bottom: 2px solid transparent; }
   .note-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-
-  /* Kaydet toast */
-  .save-toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--accent); color:#fff; font-size:13px; font-weight:700; padding:10px 20px; border-radius:30px; opacity:0; transition:opacity 0.2s, transform 0.2s; pointer-events:none; z-index:9999; white-space:nowrap; }
-  .save-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-  /* Kişi sekmesi */
-  .contact-list { display:flex; flex-direction:column; gap:10px; }
-  .contact-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
-  .contact-avatar { width:40px; height:40px; border-radius:50%; background:var(--accent-light); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:var(--accent); flex-shrink:0; }
-  .contact-info { flex:1; min-width:0; }
-  .contact-name { font-size:14px; font-weight:700; color:var(--text); }
-  .contact-detail { font-size:12px; color:var(--muted); margin-top:2px; display:flex; gap:10px; flex-wrap:wrap; }
-  .contact-detail a { color:var(--accent); text-decoration:none; }
-
-  /* Hızlı not post-it */
-  .qnote-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:10px; cursor:pointer; transition:transform 0.15s; box-shadow:var(--shadow); border-left:4px solid #D84040; }
-  .qnote-card:hover { transform:translateX(5px); }
-  .qnote-text { font-size:14px; color:var(--text); line-height:1.6; white-space:pre-wrap; }
-  .qnote-date { font-size:11px; color:var(--muted); font-weight:700; margin-top:8px; }
-  .qnote-editor { display:none; position:fixed; inset:0; background:var(--bg); z-index:300; flex-direction:column; max-width:820px; margin:0 auto; }
-  .qnote-editor.open { display:flex; animation:fadeIn 0.2s; }
-  .qnote-editor-header { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); background:var(--surface); }
-
-  /* FAB tek buton */
-  .fab { width:58px; height:58px; border-radius:50%; background:#D84040; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 24px rgba(216,64,64,0.45); transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1); padding:0; overflow:hidden; }
-  .fab:hover { transform:scale(1.1); }
-  .fab:active { transform:scale(0.95); }
-
-  /* Takvim paneli */
-  .summary-layout { display:flex; gap:24px; align-items:flex-start; }
-  .summary-events { flex:1; min-width:0; }
-  .cal-panel { width:320px; flex-shrink:0; background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:20px; box-shadow:var(--shadow); position:sticky; top:80px; }
-  @media(max-width:900px) { .summary-layout { flex-direction:column; } .cal-panel { width:100%; position:static; } }
-  .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-  .cal-title { font-size:15px; font-weight:700; color:var(--text); }
-  .cal-nav { background:none; border:none; cursor:pointer; color:var(--muted); font-size:18px; padding:4px 8px; border-radius:8px; transition:background 0.15s; }
-  .cal-nav:hover { background:var(--border); color:var(--text); }
-  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-  .cal-dow { font-size:10px; font-weight:800; text-align:center; color:var(--muted); padding:4px 0 8px; text-transform:uppercase; letter-spacing:0.5px; }
-  .cal-day { aspect-ratio:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:background 0.15s; position:relative; gap:2px; }
-  .cal-day:hover { background:var(--border); }
-  .cal-day.today { background:var(--accent); }
-  .cal-day.today .cal-day-num { color:#fff; font-weight:800; }
-  .cal-day.today .cal-dots { filter:brightness(2); }
-  .cal-day.other-month { opacity:0.3; pointer-events:none; }
-  .cal-day.holiday { background:rgba(216,109,109,0.12); }
-  .cal-day.holiday .cal-day-num { color:var(--accent-danger); font-weight:800; }
-  .cal-day.weekend .cal-day-num { color:#D8A56D; }
-  .cal-day.weekend { background:rgba(216,165,109,0.07); }
-  .cal-day.holiday.weekend .cal-day-num { color:var(--accent-danger); }
-  .cal-day.selected { outline:2px solid var(--accent); outline-offset:1px; }
-  .cal-day-num { font-size:12px; font-weight:600; color:var(--text); line-height:1; }
-  .cal-dots { display:flex; gap:2px; justify-content:center; }
-  .cal-dot { width:4px; height:4px; border-radius:50%; flex-shrink:0; }
-  .cal-dot-work { background:#5C8BB8; }
-  .cal-dot-pers { background:#5C9E78; }
-  .cal-dot-holiday { background:#D86D6D; }
-  .cal-popup { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; margin-top:14px; animation:fadeIn 0.2s; }
-  .cal-popup-title { font-size:12px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
-  .cal-popup-item { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
-  .cal-popup-item:last-child { border-bottom:none; }
-  .cal-popup-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .cal-holiday-badge { font-size:10px; background:rgba(216,109,109,0.15); color:#D86D6D; padding:2px 6px; border-radius:5px; font-weight:700; }
-  .note-area { flex:1; padding:16px; overflow-y:auto; background:var(--bg); display:flex; flex-direction:column; }
-  .note-textarea { width:100%; flex:1; min-height:300px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; color:var(--text); resize:none; display:none; line-height:1.7; padding:16px; font-size:15px; font-family:inherit; outline:none; transition:border-color 0.2s; box-shadow:inset 0 1px 4px rgba(0,0,0,0.08); }
-  .note-textarea:focus { border-color:var(--accent); }
-  .note-preview { width:100%; flex:1; display:none; line-height:1.7; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:16px; font-size:15px; min-height:300px; overflow-y:auto; }
+  .note-area { flex:1; padding:20px; overflow-y:auto; background:var(--bg); }
+  .note-textarea { 
+    width:100%; height:100%; 
+    background:var(--surface); border:1px solid var(--border); 
+    border-radius:12px; padding:16px; color:var(--text); 
+    resize:none; display:none; line-height:1.6; 
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .note-preview { 
+    width:100%; height:100%; display:none; line-height:1.6; 
+    background:var(--surface); border:1px solid var(--border); 
+    border-radius:12px; padding:16px; 
+  }
   .note-textarea.active, .note-preview.active { display:block; }
-  .note-preview h1, .note-preview h2, .note-preview h3 { margin:15px 0 10px; font-weight:700; color:var(--text); }
+  .note-preview h1, .note-preview h2, .note-preview h3 { margin:15px 0 10px; font-weight:normal; }
   .note-preview ul { margin-left:20px; margin-bottom:10px; }
 
   /* ================= MODALS ================= */
@@ -525,62 +563,46 @@
             <span class="fan-item-icon">✍️</span>
             <span class="fan-item-label" data-i18n="nav_pers_notes">Kişisel Notlar</span>
           </button>
-          <button class="fan-item" onclick="switchModule('quicknotes','pers')" id="fani-pers-quicknotes">
-            <span class="fan-item-icon">
-              <svg viewBox="0 0 100 100" width="28" height="28" xmlns="http://www.w3.org/2000/svg" style="display:block;">
-                <defs><linearGradient id="fqg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D84040"/><stop offset="100%" stop-color="#901010"/></linearGradient></defs>
-                <rect width="100" height="100" rx="22" fill="url(#fqg)"/>
-                <rect x="14" y="33" width="3" height="16" rx="1" fill="white" opacity="0.9"/>
-                <rect x="10" y="33" width="13" height="3" rx="1" fill="white" opacity="0.9"/>
-                <path d="M78 61 L78 53 Q76 47 70 45 L57 43 Q51 37 43 36 L33 37 Q25 39 22 45 L18 53 L18 61 Z" fill="white" opacity="0.95"/>
-                <path d="M55 43 Q51 37 43 36 L37 37 Q41 43 47 44 Z" fill="#1A1A3A" opacity="0.75"/>
-                <ellipse cx="46" cy="40" rx="5" ry="4" fill="#FFD700" opacity="0.9"/>
-                <path d="M78 53 L90 57 L78 61" fill="white" opacity="0.85"/>
-                <path d="M84 61 L90 61 L90 63 L80 63" fill="white" opacity="0.85"/>
-                <path d="M18 61 L12 59 L12 63 L18 63" fill="white" opacity="0.7"/>
-                <circle cx="30" cy="64" r="8" fill="#1A1A2E"/>
-                <circle cx="30" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-                <circle cx="67" cy="64" r="8" fill="#1A1A2E"/>
-                <circle cx="67" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-                <line x1="4" y1="46" x2="9" y2="46" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
-                <line x1="3" y1="53" x2="9" y2="53" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
-                <line x1="4" y1="60" x2="9" y2="60" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.28"/>
-              </svg>
-            </span>
-            <span class="fan-item-label">Hızlı Notlar</span>
-          </button>
         </div>
       </div>
-      <!-- HIZLI NOTLAR ANA BAŞLIK -->
-      <div style="padding: 8px 8px 4px;">
-        <button class="fan-header" onclick="switchModule('quicknotes','pers')" id="fan-quicknotes" style="margin:0;width:100%;">
-          <div style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,0.2);overflow:hidden;">
-            <svg viewBox="0 0 100 100" width="46" height="46" xmlns="http://www.w3.org/2000/svg">
-              <defs><linearGradient id="fqn" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D84040"/><stop offset="100%" stop-color="#901010"/></linearGradient></defs>
-              <rect width="100" height="100" rx="22" fill="url(#fqn)"/>
-              <rect x="14" y="33" width="3" height="16" rx="1" fill="white" opacity="0.9"/>
-              <rect x="10" y="33" width="13" height="3" rx="1" fill="white" opacity="0.9"/>
-              <path d="M78 61 L78 53 Q76 47 70 45 L57 43 Q51 37 43 36 L33 37 Q25 39 22 45 L18 53 L18 61 Z" fill="white" opacity="0.95"/>
-              <path d="M55 43 Q51 37 43 36 L37 37 Q41 43 47 44 Z" fill="#1A1A3A" opacity="0.75"/>
-              <ellipse cx="46" cy="40" rx="5" ry="4" fill="#FFD700" opacity="0.9"/>
-              <path d="M78 53 L90 57 L78 61" fill="white" opacity="0.85"/>
-              <path d="M84 61 L90 61 L90 63 L80 63" fill="white" opacity="0.85"/>
-              <path d="M18 61 L12 59 L12 63 L18 63" fill="white" opacity="0.7"/>
-              <circle cx="30" cy="64" r="8" fill="#1A1A2E"/>
-              <circle cx="30" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-              <circle cx="67" cy="64" r="8" fill="#1A1A2E"/>
-              <circle cx="67" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-              <line x1="4" y1="46" x2="9" y2="46" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
-              <line x1="3" y1="53" x2="9" y2="53" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
-              <line x1="4" y1="60" x2="9" y2="60" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.28"/>
-            </svg>
-          </div>
-          <div class="fan-header-text">
-            <div class="fan-header-title">HIZLI NOTLAR</div>
-            <div class="fan-header-sub" id="fan-qnote-sub">Post-it tarzı notlar</div>
-          </div>
-        </button>
-      </div>
+
+      <button class="quick-nav-btn" id="nav-quicknotes" onclick="switchModule('quicknotes', 'quick')">
+        <svg viewBox="0 0 100 100" width="42" height="42" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0; box-shadow: 0 3px 10px rgba(216,64,64,0.25); border-radius:14px;">
+          <defs><linearGradient id="g-quick" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D84040"/><stop offset="100%" stop-color="#901010"/></linearGradient></defs>
+          <rect width="100" height="100" rx="22" fill="url(#g-quick)"/>
+          <line x1="76" y1="48" x2="96" y2="48" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+          <line x1="79" y1="55" x2="93" y2="55" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.38"/>
+          <line x1="82" y1="62" x2="93" y2="62" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.22"/>
+          <rect x="23" y="34" width="3" height="14" rx="1" fill="white" opacity="0.9"/>
+          <rect x="18" y="34" width="12" height="3" rx="1" fill="white" opacity="0.9"/>
+          <path d="M76 60 L76 54 Q74 48 68 46 L56 44 Q50 38 42 37 L32 38 Q24 40 22 46 L18 54 L18 60 Z" fill="white" opacity="0.95"/>
+          <path d="M54 44 Q50 38 42 37 L36 38 Q40 44 46 45 Z" fill="#1A1A3A" opacity="0.75"/>
+          <ellipse cx="45" cy="41" rx="5" ry="4" fill="#FFD700" opacity="0.9"/>
+          <ellipse cx="45" cy="41" rx="3.5" ry="2.5" fill="#333" opacity="0.7"/>
+          <path d="M76 54 L86 57 L76 60" fill="white" opacity="0.85"/>
+          <path d="M82 60 L86 60 L86 62 L78 62" fill="white" opacity="0.85"/>
+          <path d="M86 60 L86 58 L82 58" fill="white" opacity="0.6"/>
+          <path d="M20 60 L14 58 L14 62 L20 62" fill="white" opacity="0.75"/>
+          <circle cx="30" cy="63" r="8" fill="#1A1A2E"/>
+          <circle cx="30" cy="63" r="4.5" fill="#555" opacity="0.5"/>
+          <circle cx="30" cy="63" r="2" fill="white" opacity="0.6"/>
+          <circle cx="66" cy="63" r="8" fill="#1A1A2E"/>
+          <circle cx="66" cy="63" r="4.5" fill="#555" opacity="0.5"/>
+          <circle cx="66" cy="63" r="2" fill="white" opacity="0.6"/>
+          <rect x="12" y="12" width="18" height="18" rx="4" fill="white" opacity="0.95"/>
+          <line x1="15" y1="17" x2="27" y2="17" stroke="#D84040" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15" y1="21" x2="27" y2="21" stroke="#D84040" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15" y1="25" x2="22" y2="25" stroke="#D84040" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div class="wm-t">
+          <span class="wm-main" data-i18n="nav_quicknotes">Hızlı Notlar</span>
+          <span class="wm-sub">QUICK</span>
+        </div>
+      </button>
+      
+    </div>
+
+    <div class="sidebar-footer">
       <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="exportData()">💾 <span data-i18n="export">Yedekle (TXT)</span></button>
       <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="document.getElementById('imp').click()">📂 <span data-i18n="import">Veri Yükle</span></button>
       <input type="file" id="imp" style="display:none" onchange="importData(event)">
@@ -633,60 +655,75 @@
       </div>
     </header>
 
-    <div class="content">
-      <div class="section-main-title" id="module-header" style="display:none;">
-        <span id="module-title">Modül Adı</span>
-        <span id="module-badge" class="context-badge"></span>
-      </div>
+    <div class="main-layout">
+      <div class="content">
+        <div class="section-main-title" id="module-header" style="display:none;">
+          <span id="module-title">Modül Adı</span>
+          <span id="module-badge" class="context-badge"></span>
+        </div>
 
-      <div class="section active" id="sec-summary">
-        <div class="summary-layout">
-          <div class="summary-events" id="summary-list"></div>
-          <div class="cal-panel" id="cal-panel"></div>
+        <div class="section active" id="sec-summary">
+          <div id="summary-list"></div>
+        </div>
+
+        <div class="section" id="sec-quicknotes">
+          <button class="btn-add" onclick="openNoteEditor(null, 'quick')">+ Yeni Hızlı Not</button>
+          <div id="quicknotes-list"></div>
+        </div>
+
+        <div class="section" id="sec-appointments">
+          <button class="btn-add" onclick="openApptForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+          <div id="appt-list"></div>
+        </div>
+
+        <div class="section" id="sec-todos">
+          <button class="btn-add" onclick="openTodoForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+          <div class="tag-filter-bar" id="todo-tag-filter"></div>
+          <div id="todo-list"></div>
+        </div>
+
+        <div class="section" id="sec-travels">
+          <button class="btn-add" onclick="openTravelForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+          <div id="travel-list"></div>
+        </div>
+
+        <div class="section" id="sec-habits">
+          <button class="btn-add" onclick="openModal('modal-habit')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+          <div id="habit-list"></div>
+        </div>
+
+        <div class="section" id="sec-lists">
+          <div id="goal-container"></div>
+          <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px;" id="cat-tabs"></div>
+          <div id="list-content"></div>
+        </div>
+
+        <div class="section" id="sec-birthdays">
+          <button class="btn-add" onclick="openBdayForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+          <div id="bday-list"></div>
+        </div>
+
+        <div class="section" id="sec-notes">
+          <button class="btn-add" onclick="openNoteEditor()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
+          <div id="notes-list"></div>
         </div>
       </div>
 
-      <div class="section" id="sec-appointments">
-        <button class="btn-add" onclick="openApptForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
-        <div id="appt-list"></div>
-      </div>
+      <aside class="calendar-sidebar" id="calendar-sidebar">
+        <div class="cal-widget">
+          <button class="cal-mobile-close" onclick="toggleMobileCal()">✕</button>
 
-      <div class="section" id="sec-todos">
-        <button class="btn-add" onclick="openTodoForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
-        <div class="tag-filter-bar" id="todo-tag-filter"></div>
-        <div id="todo-list"></div>
-      </div>
-
-      <div class="section" id="sec-travels">
-        <button class="btn-add" onclick="openTravelForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
-        <div id="travel-list"></div>
-      </div>
-
-      <div class="section" id="sec-habits">
-        <button class="btn-add" onclick="openModal('modal-habit')">+ <span data-i18n="add_new">Yeni Ekle</span></button>
-        <div id="habit-list"></div>
-      </div>
-
-      <div class="section" id="sec-lists">
-        <div id="goal-container"></div>
-        <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px;" id="cat-tabs"></div>
-        <div id="list-content"></div>
-      </div>
-
-      <div class="section" id="sec-birthdays">
-        <button class="btn-add" onclick="openBdayForm()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
-        <div id="bday-list"></div>
-      </div>
-
-      <div class="section" id="sec-notes">
-        <button class="btn-add" onclick="openNoteEditor()">+ <span data-i18n="add_new">Yeni Ekle</span></button>
-        <div id="notes-list"></div>
-      </div>
-
-      <div class="section" id="sec-quicknotes">
-        <button class="btn-add" onclick="openQNoteEditor()">+ Hızlı Not Ekle</button>
-        <div id="qnotes-list"></div>
-      </div>
+          <div class="cal-header">
+            <button class="btn-icon" onclick="changeCalMonth(-1)">&#8592;</button>
+            <div class="cal-title" id="cal-month-year">...</div>
+            <button class="btn-icon" onclick="changeCalMonth(1)">&#8594;</button>
+          </div>
+          <div class="cal-weekdays">
+            <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span><span>Pz</span>
+          </div>
+          <div class="cal-days" id="cal-days"></div>
+        </div>
+      </aside>
     </div>
   </main>
 </div>
@@ -694,25 +731,21 @@
 <div id="print-area"></div>
 
 <div class="fab-container" id="fab-container">
-  <button class="fab" id="fab-main" onclick="openQNoteEditor()" title="Hızlı Not">
-    <svg viewBox="0 0 100 100" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
-      <rect x="14" y="33" width="3" height="16" rx="1" fill="white" opacity="0.9"/>
-      <rect x="10" y="33" width="13" height="3" rx="1" fill="white" opacity="0.9"/>
-      <path d="M78 61 L78 53 Q76 47 70 45 L57 43 Q51 37 43 36 L33 37 Q25 39 22 45 L18 53 L18 61 Z" fill="white" opacity="0.95"/>
-      <path d="M55 43 Q51 37 43 36 L37 37 Q41 43 47 44 Z" fill="#1A1A3A" opacity="0.75"/>
-      <ellipse cx="46" cy="40" rx="5" ry="4" fill="#FFD700" opacity="0.9"/>
-      <path d="M78 53 L90 57 L78 61" fill="white" opacity="0.85"/>
-      <path d="M84 61 L90 61 L90 63 L80 63" fill="white" opacity="0.85"/>
-      <path d="M18 61 L12 59 L12 63 L18 63" fill="white" opacity="0.7"/>
-      <circle cx="30" cy="64" r="8" fill="#1A1A2E"/>
-      <circle cx="30" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-      <circle cx="67" cy="64" r="8" fill="#1A1A2E"/>
-      <circle cx="67" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-      <line x1="4" y1="46" x2="9" y2="46" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
-      <line x1="3" y1="53" x2="9" y2="53" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
-      <line x1="4" y1="60" x2="9" y2="60" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.28"/>
-    </svg>
-  </button>
+  <button class="fab" id="fab-main">+</button>
+  <div class="fab-menu" id="fab-menu">
+    <div class="fab-option" id="fab-opt-appt">
+      <span class="fab-option-label">Randevu / Toplantı</span>
+      <button class="fab-option-btn" style="background:var(--accent-work);" onclick="fabAction('appt')">🗓️</button>
+    </div>
+    <div class="fab-option" id="fab-opt-todo">
+      <span class="fab-option-label">Görev Ekle</span>
+      <button class="fab-option-btn" style="background:var(--accent);" onclick="fabAction('todo')">✅</button>
+    </div>
+    <div class="fab-option" id="fab-opt-cal">
+      <span class="fab-option-label">Takvimi Gör</span>
+      <button class="fab-option-btn" style="background:var(--accent2);" onclick="fabAction('cal')">📅</button>
+    </div>
+  </div>
 </div>
 
 <div class="search-overlay" id="search-overlay">
@@ -722,6 +755,16 @@
     <button class="search-close" onclick="closeSearch()">✕</button>
   </div>
   <div class="search-results" id="search-results"></div>
+</div>
+
+<div class="modal-overlay" id="modal-day-details">
+  <div class="modal" style="max-width: 400px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2 class="modal-title" id="day-details-title" style="margin:0; font-size:18px;">Günlük Özet</h2>
+      <button class="btn-icon" onclick="closeModal('modal-day-details')" style="font-size:24px;">✕</button>
+    </div>
+    <div id="day-details-content" style="display:flex; flex-direction:column; gap:10px;"></div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal-settings">
@@ -743,18 +786,17 @@
     </div>
     <div class="form-row" style="margin-top:20px;">
       <label data-i18n="language">Dil / Language</label>
-      <select onchange="setLang(this.value)" id="lang-select">
-        <option value="tr">Türkçe</option><option value="en">English</option>
+      <div class="form-row" style="margin-top:20px;">
+      <label>Ana Sayfa Gösterim Süresi</label>
+      <select id="setting-summary-days" onchange="setSummaryDays(this.value)">
+        <option value="1">Sadece Bugün ve Yarın (1 Günlük)</option>
+        <option value="3">Önümüzdeki 3 Gün (Önerilen)</option>
+        <option value="7">Önümüzdeki 1 Hafta</option>
+        <option value="30">Önümüzdeki 1 Ay</option>
       </select>
     </div>
-    <div class="form-row" style="margin-top:20px;">
-      <label>Ana Sayfada Gösterilecek Yakın Gün Sayısı</label>
-      <select onchange="setHorizonDays(this.value)" id="horizon-select">
-        <option value="1">Bugün (1 gün)</option>
-        <option value="3">3 Gün</option>
-        <option value="7">1 Hafta</option>
-        <option value="14">2 Hafta</option>
-        <option value="30">1 Ay</option>
+      <select onchange="setLang(this.value)" id="lang-select">
+        <option value="tr">Türkçe</option><option value="en">English</option>
       </select>
     </div>
     <div class="form-row" style="margin-top:20px;">
@@ -850,57 +892,54 @@
 
 <div class="note-editor" id="note-editor">
   <div class="note-editor-header">
-    <button class="btn-icon" onclick="saveAndCloseNoteEditor()" style="font-size:24px;">&#8592;</button>
+    <button class="btn-icon" onclick="closeNoteEditor()" style="font-size:24px;">&#8592;</button>
     <input class="note-editor-title" id="m-note-title" placeholder="Başlık...">
-    <button class="btn-primary" onclick="saveNoteManual()" style="padding:8px 16px;font-size:13px;">💾 Kaydet</button>
-    <button class="btn-icon" onclick="deleteNote()" style="color:var(--accent-danger);font-size:20px;margin-left:4px;">&#10005;</button>
+    <button class="btn-primary" onclick="saveNoteExplicitly()" style="padding: 8px 16px; font-size: 13px; margin-right: 10px;">Kaydet</button>
+    <button class="btn-icon" onclick="deleteNote()" style="color:var(--accent-danger);font-size:20px;">&#10005;</button>
   </div>
   <div class="note-tabs">
-    <div class="note-tab active" id="tab-write"   onclick="switchNoteTab('write')">✏️ Düzenle</div>
-    <div class="note-tab"        id="tab-preview" onclick="switchNoteTab('preview')">👁️ Önizle</div>
-    <div class="note-tab"        id="tab-contacts" onclick="switchNoteTab('contacts')">👤 Kişiler</div>
+    <div class="note-tab active" id="tab-write" onclick="switchNoteTab('write')">✏️ Düzenle</div>
+    <div class="note-tab" id="tab-contacts" onclick="switchNoteTab('contacts')">👤 İlgili Kişiler</div>
+    <div class="note-tab" id="tab-preview" onclick="switchNoteTab('preview')">👁️ Önizle</div>
   </div>
   <div class="note-area">
     <textarea class="note-textarea active" id="m-note-body" placeholder="# Markdown Destekli Not&#10;- Madde 1&#10;- **Kalın** veya *Eğik*..."></textarea>
     <div class="note-preview" id="m-note-preview"></div>
-    <div class="note-contacts" id="m-note-contacts" style="display:none;padding:4px 0;">
-      <div id="contacts-list" class="contact-list"></div>
-      <button class="btn-add" style="margin-top:12px;" onclick="addContactRow()">+ Kişi Ekle</button>
+    <div class="note-contacts" id="m-note-contacts" style="display:none; height:100%;">
+        <div class="form-row-2" style="grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; margin-bottom: 16px;">
+            <input type="text" id="nc-name" placeholder="İsim Soyisim">
+            <input type="text" id="nc-role" placeholder="Rol / Şirket">
+            <input type="text" id="nc-contact" placeholder="Tel / E-posta">
+            <button class="btn-primary" onclick="addNoteContact()" style="padding: 10px;">Ekle</button>
+        </div>
+        <div id="note-contacts-list"></div>
     </div>
   </div>
 </div>
-
-<!-- Hızlı Not Editörü -->
-<div class="qnote-editor" id="qnote-editor">
-  <div class="qnote-editor-header">
-    <button class="btn-icon" onclick="closeQNoteEditor()" style="font-size:24px;">&#8592;</button>
-    <span style="font-size:16px;font-weight:700;color:var(--text);flex:1;">⚡ Hızlı Not</span>
-    <button class="btn-primary" onclick="saveQNote()" style="padding:8px 16px;font-size:13px;">💾 Kaydet</button>
-    <button class="btn-icon" onclick="deleteQNote()" style="color:var(--accent-danger);font-size:20px;margin-left:4px;">&#10005;</button>
-  </div>
-  <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;background:var(--bg);">
-    <textarea id="qnote-body" style="flex:1;min-height:200px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:15px;font-family:inherit;color:var(--text);resize:none;line-height:1.7;border-left:4px solid #D84040;" placeholder="Aklındaki her şeyi buraya yaz..."></textarea>
-  </div>
-</div>
-
-<!-- Save Toast -->
-<div class="save-toast" id="save-toast">✓ Kaydedildi</div>
 
 <script>
 // ==================== DİL & ÇEVİRİ ====================
 const translations = {
   tr: {
-    nav_summary:"Ana Sayfa", nav_work:"İş Dünyası", nav_work_cal:"Toplantı & Takvim", nav_work_todo:"İş Görevleri", nav_work_travel:"İş Seyahati", nav_work_notes:"Şirket Notları",
+    nav_summary:"Ana Sayfa", nav_quicknotes:"Hızlı Notlar", nav_work:"İş Dünyası", nav_work_cal:"Toplantı & Takvim", nav_work_todo:"İş Görevleri", nav_work_travel:"İş Seyahati", nav_work_notes:"Şirket Notları",
     nav_personal:"Kişisel Yaşam", nav_pers_cal:"Randevular", nav_pers_todo:"Görevler", nav_pers_habits:"Gelişim & Rutin", nav_pers_lists:"Hedef & Listeler", nav_pers_travel:"Seyahat", nav_pers_bday:"Doğum Günleri", nav_pers_notes:"Kişisel Notlar",
     settings:"Ayarlar", theme:"Görünüm Teması", language:"Dil / Language", export:"Yedekle (TXT)", import:"Veri Yükle", add_new:"Yeni Ekle", title:"Başlık", date:"Tarih", time:"Saat", empty:"Şu an planlanmış bir şey yok."
   },
   en: {
-    nav_summary:"Home", nav_work:"Business", nav_work_cal:"Meetings", nav_work_todo:"Work Tasks", nav_work_travel:"Business Trip", nav_work_notes:"Work Notes",
+    nav_summary:"Home", nav_quicknotes:"Quick Notes", nav_work:"Business", nav_work_cal:"Meetings", nav_work_todo:"Work Tasks", nav_work_travel:"Business Trip", nav_work_notes:"Work Notes",
     nav_personal:"Personal", nav_pers_cal:"Appointments", nav_pers_todo:"Tasks", nav_pers_habits:"Habits", nav_pers_lists:"Goals & Lists", nav_pers_travel:"Travel", nav_pers_bday:"Birthdays", nav_pers_notes:"Notes",
     settings:"Settings", theme:"Theme", language:"Language", export:"Export (TXT)", import:"Import", add_new:"Add New", title:"Title", date:"Date", time:"Time", empty:"Nothing here yet."
   }
 };
 const MONTHS_TR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+// SABİT TATİLLER (2026 - 2028 Dini & Milli)
+const HOLIDAYS = {
+  "01-01": "Yılbaşı", "04-23": "Ulusal Egemenlik ve Çocuk Bayramı", "05-01": "Emek ve Dayanışma Günü", "05-19": "Atatürk'ü Anma, Gençlik ve Spor Bayramı", "07-15": "Demokrasi ve Milli Birlik Günü", "08-30": "Zafer Bayramı", "10-29": "Cumhuriyet Bayramı",
+  "2026-03-19": "Ramazan Bayramı Arifesi", "2026-03-20": "Ramazan Bayramı", "2026-03-21": "Ramazan Bayramı", "2026-03-22": "Ramazan Bayramı", "2026-05-26": "Kurban Bayramı Arifesi", "2026-05-27": "Kurban Bayramı", "2026-05-28": "Kurban Bayramı", "2026-05-29": "Kurban Bayramı", "2026-05-30": "Kurban Bayramı",
+  "2027-03-08": "Ramazan Bayramı Arifesi", "2027-03-09": "Ramazan Bayramı", "2027-03-10": "Ramazan Bayramı", "2027-03-11": "Ramazan Bayramı", "2027-05-15": "Kurban Bayramı Arifesi", "2027-05-16": "Kurban Bayramı", "2027-05-17": "Kurban Bayramı", "2027-05-18": "Kurban Bayramı", "2027-05-19": "Kurban Bayramı",
+  "2028-02-25": "Ramazan Bayramı Arifesi", "2028-02-26": "Ramazan Bayramı", "2028-02-27": "Ramazan Bayramı", "2028-02-28": "Ramazan Bayramı", "2028-05-04": "Kurban Bayramı Arifesi", "2028-05-05": "Kurban Bayramı", "2028-05-06": "Kurban Bayramı", "2028-05-07": "Kurban Bayramı", "2028-05-08": "Kurban Bayramı"
+};
 
 // ==================== GLOBAL STATE ====================
 let currentLang = localStorage.getItem('planner_lang') || 'tr';
@@ -911,6 +950,9 @@ let currentEditId = null;
 let selectedTagColor = 'blue';
 let activeTagFilter = '';
 let fabOpen = false;
+let currentNoteContacts = []; 
+let activeNoteContext = ''; 
+let currentCalDate = new Date();
 
 const DB = {
   get: (k, def) => { try { return JSON.parse(localStorage.getItem('planner_' + k)) || def; } catch(e) { return def; } },
@@ -921,15 +963,61 @@ function id() { return Date.now().toString(36) + Math.random().toString(36).slic
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function formatDate(d) { if(!d) return ''; const p=d.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; }
 
+function showToast(msg) {
+    const t = document.createElement('div');
+    t.innerText = msg;
+    t.style.cssText = 'position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:10px 20px; border-radius:20px; font-size:14px; font-weight:700; z-index:9999; opacity:0; transition:opacity 0.3s; box-shadow:var(--shadow);';
+    document.body.appendChild(t);
+    setTimeout(() => t.style.opacity = '1', 10);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2000);
+}
+
+// Tüm arayüz güncellemelerini tetikler
+function updateAppUI() {
+    renderCalendar();
+}
+
 // ==================== MODALS & SIDEBAR ====================
 function openModal(mid) { document.getElementById(mid).classList.add('open'); }
 function closeModal(mid) { document.getElementById(mid).classList.remove('open'); currentEditId=null; }
-document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e) { if(e.target===this) closeModal(this.id); }));
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebar-overlay').classList.toggle('open');
 }
+
+// MOBİL TAKVİM AÇ/KAPA İŞLEMİ
+function toggleMobileCal(e) {
+    if(e) e.stopPropagation();
+    const cal = document.getElementById('calendar-sidebar');
+    
+    if(cal.classList.contains('mobile-open')) {
+        cal.classList.remove('mobile-open');
+    } else {
+        cal.classList.add('mobile-open');
+        renderCalendar();
+    }
+}
+
+// GENEL TIKLAMA DİNLEYİCİSİ
+document.addEventListener('click', function(e) {
+    // Modalları kapat
+    if(e.target.classList.contains('modal-overlay')) closeModal(e.target.id);
+    
+    // FAB menüyü kapat
+    if(fabOpen && !e.target.closest('.fab-container')) toggleFAB();
+    
+    // Mobil takvimi dışa tıklanınca kapat
+    const calSide = document.getElementById('calendar-sidebar');
+    if(calSide && calSide.classList.contains('mobile-open')) {
+        const clickedInsideCal = e.target.closest('#calendar-sidebar');
+        const clickedFab = e.target.closest('.fab-container'); // FAB'a tıklandıysa kapanmasın (çünkü FAB'dan açılıyor)
+        if(!clickedInsideCal && !e.target.closest('.modal-overlay') && !clickedFab) {
+            calSide.classList.remove('mobile-open');
+        }
+    }
+});
+
 
 // ==================== FAN MENU ====================
 let fanState = { work: false, pers: false };
@@ -950,7 +1038,7 @@ function toggleFanGroup(group) {
 
 function updateFanActiveState(mod, ctx) {
   document.querySelectorAll('.fan-item').forEach(el => el.classList.remove('active','active-work'));
-  if (mod !== 'summary' && ctx) {
+  if (mod !== 'summary' && mod !== 'quicknotes' && ctx) {
     const el = document.getElementById(`fani-${ctx}-${mod}`);
     if (el) el.classList.add(ctx === 'work' ? 'active-work' : 'active');
     const group = ctx;
@@ -961,9 +1049,36 @@ function updateFanActiveState(mod, ctx) {
     }
   }
   document.getElementById('nav-summary').classList.toggle('active', mod === 'summary');
+  const quickNav = document.getElementById('nav-quicknotes');
+  if(quickNav) quickNav.classList.toggle('active', mod === 'quicknotes');
 }
 
 // ==================== THEME & LANG ====================
+// GÖSTERİM SÜRESİ AYARI VE SONRAKİ KAYITLAR FONKSİYONU
+let summaryDays = DB.get('summaryDays', 3); // Varsayılan: 3 gün
+
+function setSummaryDays(val) {
+    summaryDays = parseInt(val);
+    DB.set('summaryDays', summaryDays);
+    if(currentModule === 'summary') { renderSummary(); updateAppUI(); }
+}
+
+let upcomingOpen = false;
+function toggleUpcomingSection() {
+  upcomingOpen = !upcomingOpen;
+  const list  = document.getElementById('sum-upcoming-list'); 
+  const inner = document.getElementById('sum-upcoming-inner'); 
+  const arrow = document.getElementById('sum-upcoming-arrow');
+  if (upcomingOpen) { 
+      list.style.height = inner.scrollHeight + 'px'; 
+      arrow.style.transform = 'rotate(180deg)'; 
+      list.addEventListener('transitionend', function onEnd() { list.style.height = 'auto'; list.removeEventListener('transitionend', onEnd); }); 
+  } else { 
+      list.style.height = inner.scrollHeight + 'px'; 
+      requestAnimationFrame(() => { requestAnimationFrame(() => { list.style.height = '0'; }); }); 
+      arrow.style.transform = ''; 
+  }
+}
 function setTheme(t) {
   currentTheme = t;
   document.body.setAttribute('data-theme', t);
@@ -976,43 +1091,24 @@ function setTheme(t) {
 
 function updateThemeColors() {
   const root = document.querySelector(':root');
-  // Türk Kahvesi teması için yeşilimsi accent
   if (currentTheme === 'turkkahve') {
-    if (currentContext === 'work') {
-      root.style.setProperty('--accent', '#6A9E7A');
-      root.style.setProperty('--accent-light', 'rgba(106,158,122,0.18)');
-    } else {
-      root.style.setProperty('--accent', '#7AB87A');
-      root.style.setProperty('--accent-light', 'rgba(122,184,122,0.18)');
-    }
+    if (currentContext === 'work') { root.style.setProperty('--accent', '#6A9E7A'); root.style.setProperty('--accent-light', 'rgba(106,158,122,0.18)'); } 
+    else { root.style.setProperty('--accent', '#7AB87A'); root.style.setProperty('--accent-light', 'rgba(122,184,122,0.18)'); }
     return;
   }
-  // Cappuccino (sepia) teması için sıcak tonlar
   if (currentTheme === 'sepia') {
-    if (currentContext === 'work') {
-      root.style.setProperty('--accent', '#7A6EA8');
-      root.style.setProperty('--accent-light', 'rgba(122,110,168,0.15)');
-    } else {
-      root.style.setProperty('--accent', '#8A6E3C');
-      root.style.setProperty('--accent-light', 'rgba(138,110,60,0.15)');
-    }
+    if (currentContext === 'work') { root.style.setProperty('--accent', '#7A6EA8'); root.style.setProperty('--accent-light', 'rgba(122,110,168,0.15)'); } 
+    else { root.style.setProperty('--accent', '#8A6E3C'); root.style.setProperty('--accent-light', 'rgba(138,110,60,0.15)'); }
     return;
   }
-  // Diğer tüm temalar
-  if (currentContext === 'work') {
-    root.style.setProperty('--accent', '#5C8BB8');
-    root.style.setProperty('--accent-light', 'rgba(92,139,184,0.15)');
-  } else {
-    root.style.setProperty('--accent', '#5C9E78');
-    root.style.setProperty('--accent-light', 'rgba(92,158,120,0.15)');
-  }
+  if (currentContext === 'work') { root.style.setProperty('--accent', '#5C8BB8'); root.style.setProperty('--accent-light', 'rgba(92,139,184,0.15)'); } 
+  else { root.style.setProperty('--accent', '#5C9E78'); root.style.setProperty('--accent-light', 'rgba(92,158,120,0.15)'); }
 }
-function setLang(l) { currentLang=l; localStorage.setItem('planner_lang',l); applyTranslations(); updateHeaderDate(); switchModule(currentModule,currentContext); }
+function setLang(l) { currentLang=l; localStorage.setItem('planner_lang',l); applyTranslations(); updateHeaderDate(); switchModule(currentModule,currentContext); updateAppUI(); }
 function applyTranslations() { document.querySelectorAll('[data-i18n]').forEach(el => { const k=el.getAttribute('data-i18n'); el.innerText=translations[currentLang][k]||k; }); document.getElementById('lang-select').value=currentLang; }
 function updateHeaderDate() { const n=new Date(); const d={tr:['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']}; const m={tr:['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']}; document.getElementById('headerDate').textContent=`${d[currentLang][n.getDay()]}, ${n.getDate()} ${m[currentLang][n.getMonth()]}`; }
 
 // ==================== CORE NAVIGATION ====================
-
 function switchModule(mod, ctx='') {
   currentModule=mod; currentContext=ctx;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -1026,46 +1122,210 @@ function switchModule(mod, ctx='') {
   if (backBtn) backBtn.classList.toggle('visible', mod !== 'summary');
 
   const header=document.getElementById('module-header');
-  if(mod==='summary') { header.style.display='none'; renderSummary(); return; }
+  if(mod==='summary') { header.style.display='none'; renderSummary(); updateAppUI(); return; }
 
   header.style.display='flex';
-  const fanItem = ctx ? document.getElementById(`fani-${ctx}-${mod}`) : null;
-  document.getElementById('module-title').innerText = fanItem ? fanItem.querySelector('.fan-item-label').innerText : mod;
+  let titleText = mod;
+  if(mod === 'quicknotes') titleText = currentLang === 'tr' ? 'Hızlı Notlar' : 'Quick Notes';
+  else { const fanItem = ctx ? document.getElementById(`fani-${ctx}-${mod}`) : null; titleText = fanItem ? fanItem.querySelector('.fan-item-label').innerText : mod; }
+  document.getElementById('module-title').innerText = titleText;
+  
   const badge=document.getElementById('module-badge');
-  badge.innerText=ctx==='work'?(currentLang==='tr'?'İŞ':'WORK'):(currentLang==='tr'?'KİŞİSEL':'PERSONAL');
-  badge.className='context-badge '+(ctx==='work'?'tag-work':'tag-personal');
+  badge.innerText = ctx==='work' ? (currentLang==='tr'?'İŞ':'WORK') : ctx==='pers' ? (currentLang==='tr'?'KİŞİSEL':'PERSONAL') : ctx==='quick' ? (currentLang==='tr'?'HIZLI':'QUICK') : '';
+  badge.className='context-badge '+(ctx==='work'?'tag-work':ctx==='quick'?'tag-warning':'tag-personal');
 
   activeTagFilter = '';
   if(mod==='appointments') renderAppts();
   if(mod==='todos') { renderTodoTagFilter(); renderTodos(); }
   if(mod==='travels') renderTravels();
   if(mod==='notes') renderNotes();
+  if(mod==='quicknotes') renderQuickNotes();
   if(mod==='habits') renderHabits();
   if(mod==='birthdays') renderBdays();
   if(mod==='lists') { renderGoal(); renderLists(); }
-  if(mod==='quicknotes') renderQNotes();
+  updateAppUI();
+}
+
+// ==================== TAKVİM (CALENDAR) ====================
+function changeCalMonth(dir) {
+    currentCalDate.setMonth(currentCalDate.getMonth() + dir);
+    renderCalendar();
+}
+
+function getCalEventsForDate(dStr, mNum, dNum) {
+    let hasWork = false, hasPers = false;
+    let workItems = [], persItems = [];
+    
+    // Check Appointments
+    DB.get('work_appts',[]).forEach(a => { if(a.date === dStr) { hasWork = true; workItems.push({type:'İş Randevusu', title:a.title, time:a.time}); }});
+    DB.get('pers_appts',[]).forEach(a => { if(a.date === dStr) { hasPers = true; persItems.push({type:'Kişisel Randevu', title:a.title, time:a.time}); }});
+    
+    // Check Todos (Only Undone)
+    DB.get('work_todos',[]).forEach(t => { if(t.date === dStr && !t.done) { hasWork = true; workItems.push({type:'İş Görevi', title:t.title}); }});
+    DB.get('pers_todos',[]).forEach(t => { if(t.date === dStr && !t.done) { hasPers = true; persItems.push({type:'Kişisel Görev', title:t.title}); }});
+    
+    // Check Travels
+    const checkTravel = (ctx, arr) => {
+        arr.forEach(t => {
+            if(t.start && t.end && dStr >= t.start && dStr <= t.end) {
+                if(ctx === 'work') { hasWork = true; workItems.push({type:'İş Seyahati', title:t.dest}); } 
+                else { hasPers = true; persItems.push({type:'Kişisel Seyahat', title:t.dest}); }
+            } else if(t.start === dStr) {
+                if(ctx === 'work') { hasWork = true; workItems.push({type:'İş Seyahati', title:t.dest}); } 
+                else { hasPers = true; persItems.push({type:'Kişisel Seyahat', title:t.dest}); }
+            }
+        });
+    };
+    checkTravel('work', DB.get('work_travels',[]));
+    checkTravel('pers', DB.get('pers_travels',[]));
+
+    // Check Birthdays
+    DB.get('pers_birthdays',[]).forEach(b => { if(b.month === mNum && b.day === dNum) { hasPers = true; persItems.push({type:'Doğum Günü', title:b.name}); }});
+
+    return { hasWork, hasPers, workItems, persItems };
+}
+
+function openDayDetails(dStr, mNum, dNum, isHoliday, holidayName) {
+    const evs = getCalEventsForDate(dStr, mNum, dNum);
+    const dateObj = new Date(dStr);
+    const dName = {tr:['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']}[currentLang][dateObj.getDay()];
+    
+    document.getElementById('day-details-title').innerHTML = `${dNum} ${MONTHS_TR[mNum]} <span style="font-weight:400; color:var(--muted); font-size:14px; margin-left:6px;">${dName}</span>`;
+    
+    let html = '';
+    if(isHoliday) html += `<div style="background:rgba(216,109,109,0.15); color:var(--accent-danger); padding:10px; border-radius:8px; font-weight:700; font-size:13px; text-align:center; margin-bottom:10px;">🇹🇷 ${holidayName}</div>`;
+    
+    const renderEvList = (items, dotColor) => {
+        return items.map(i => `<div style="display:flex; align-items:center; gap:10px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:10px;">
+            <div style="width:10px; height:10px; border-radius:50%; background:${dotColor}; flex-shrink:0;"></div>
+            <div style="flex:1;">
+                <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase;">${i.type}</div>
+                <div style="font-size:14px; font-weight:600; color:var(--text);">${esc(i.title)}</div>
+            </div>
+            ${i.time ? `<div style="font-size:12px; font-weight:700; color:var(--accent);">${i.time}</div>` : ''}
+        </div>`).join('');
+    };
+
+    if(evs.workItems.length) html += `<div style="margin-bottom:16px;"><div class="section-label" style="color:var(--accent-work);">💼 İş Dünyası</div>` + renderEvList(evs.workItems, 'var(--accent-work)') + `</div>`;
+    if(evs.persItems.length) html += `<div style="margin-bottom:16px;"><div class="section-label" style="color:var(--accent);">🌿 Kişisel Yaşam</div>` + renderEvList(evs.persItems, 'var(--accent)') + `</div>`;
+    
+    if(!evs.workItems.length && !evs.persItems.length && !isHoliday) {
+        html = `<div class="empty" style="padding: 40px 0;">Bugün için planlanmış bir kayıt yok.</div>`;
+    }
+
+    document.getElementById('day-details-content').innerHTML = html;
+    openModal('modal-day-details');
+}
+
+function renderCalendar() {
+    const year = currentCalDate.getFullYear();
+    const month = currentCalDate.getMonth();
+    
+    document.getElementById('cal-month-year').innerText = `${MONTHS_TR[month + 1]} ${year}`;
+    
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const startDay = (firstDayIndex === 0) ? 6 : firstDayIndex - 1; // Pzt=0
+    
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const prevMonthDays = new Date(year, month, 0).getDate();
+    
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    let html = '';
+    
+    // Önceki ayın günleri
+    for (let i = startDay; i > 0; i--) {
+        html += `<div class="cal-day other-month">${prevMonthDays - i + 1}</div>`;
+    }
+    
+    // Mevcut ayın günleri
+    for (let i = 1; i <= daysInMonth; i++) {
+        const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const shortDStr = `${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const isToday = dStr === todayStr ? 'today' : '';
+        
+        // Hafta Sonu Kontrolü (Pazar = 0, Cumartesi = 6)
+        const dateObj = new Date(year, month, i);
+        const dayOfWeek = dateObj.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6) ? 'weekend' : '';
+        
+        let holidayName = HOLIDAYS[dStr] || HOLIDAYS[shortDStr] || null;
+        let isHoliday = holidayName ? 'holiday' : '';
+        
+        let evs = getCalEventsForDate(dStr, month + 1, i);
+        let dotsHTML = '';
+        if(evs.hasWork) dotsHTML += `<div class="cal-dot work"></div>`;
+        if(evs.hasPers) dotsHTML += `<div class="cal-dot pers"></div>`;
+        
+        html += `<div class="cal-day ${isWeekend} ${isToday} ${isHoliday}" onclick="openDayDetails('${dStr}', ${month+1}, ${i}, ${holidayName ? true : false}, '${holidayName ? esc(holidayName) : ''}')">
+            ${i}
+            ${holidayName ? `<div class="cal-holiday-text">${esc(holidayName.split(' ')[0])}</div>` : ''}
+            <div class="cal-dots">${dotsHTML}</div>
+        </div>`;
+    }
+    
+    // Sonraki ayın günleri (Boşlukları doldur)
+    const totalCells = startDay + daysInMonth;
+    const nextDays = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
+    for (let i = 1; i <= nextDays; i++) {
+        html += `<div class="cal-day other-month">${i}</div>`;
+    }
+    
+    document.getElementById('cal-days').innerHTML = html;
 }
 
 // ==================== FAB ====================
-function toggleFAB() {
-  fabOpen = !fabOpen;
-  document.getElementById('fab-main').classList.toggle('open', fabOpen);
-  document.querySelectorAll('.fab-option').forEach((el,i) => {
-    setTimeout(() => el.classList.toggle('visible', fabOpen), fabOpen ? i*40 : (2-i)*40);
-  });
-}
-function fabAction(type) {
-  toggleFAB();
-  setTimeout(() => {
-    if(type==='appt') { openApptForm(); }
-    else if(type==='todo') { openTodoForm(); }
-    else if(type==='note') { openNoteEditor(); }
-  }, 200);
-}
-document.addEventListener('click', function(e) {
-  if(fabOpen && !e.target.closest('.fab-container')) toggleFAB();
-});
+let fabTimer;
+let isFabLongPress = false;
 
+function initFAB() {
+    const fab = document.getElementById('fab-main');
+    let justClosedCalendar = false;
+
+    // 1. Sadece sağ tık menüsünü aç
+    fab.oncontextmenu = e => { 
+        e.preventDefault(); 
+        if(!fabOpen) toggleFAB(); 
+    };
+
+    // 2. Tıklama Başlangıcı
+    fab.onpointerdown = e => {
+        // Sol tık (0) veya dokunmatik harici her şeyi (sağ tık, orta tık) kesin engelle!
+        if (e.button !== undefined && e.button !== 0) return; 
+
+        justClosedCalendar = false;
+        if(fabOpen) return;
+        
+        const cal = document.getElementById('calendar-sidebar');
+        if (cal && cal.classList.contains('mobile-open')) {
+            toggleMobileCal();
+            justClosedCalendar = true;
+            return; 
+        }
+
+        isFabLongPress = false;
+        fabTimer = setTimeout(() => { isFabLongPress = true; toggleFAB(); }, 400); 
+    };
+
+    // 3. Tıklama Bitişi
+    fab.onpointerup = e => {
+        // Sol tık (0) veya dokunmatik harici her şeyi (sağ tık, orta tık) kesin engelle!
+        if (e.button !== undefined && e.button !== 0) return; 
+
+        if (justClosedCalendar) {
+            justClosedCalendar = false;
+            return;
+        }
+
+        clearTimeout(fabTimer);
+        if(fabOpen && !isFabLongPress) { toggleFAB(); return; } 
+        if(!isFabLongPress && !fabOpen) { openNoteEditor(null, 'quick'); }
+    };
+
+    fab.onpointerleave = e => { clearTimeout(fabTimer); };
+    fab.onpointercancel = e => { clearTimeout(fabTimer); };
+}
 // ==================== ARAMA ====================
 function openSearch() {
   document.getElementById('search-overlay').classList.add('open');
@@ -1076,8 +1336,6 @@ function closeSearch() {
   document.getElementById('search-input').value = '';
   document.getElementById('search-results').innerHTML = '';
 }
-document.getElementById('search-overlay').addEventListener('click', function(e) { if(e.target===this) closeSearch(); });
-
 function performSearch() {
   const q = document.getElementById('search-input').value.trim().toLowerCase();
   const el = document.getElementById('search-results');
@@ -1101,11 +1359,12 @@ function performSearch() {
   push(DB.get('pers_birthdays',[]),'🎂','pers','birthdays',i=>i.name,i=>`${i.day} ${MONTHS_TR[i.month]}`);
   push(DB.get('pers_habits',[]),'⚡','pers','habits',i=>i.n,i=>'');
 
-  ['work_notes','pers_notes'].forEach(key => {
-    const ctx = key.includes('work')?'work':'pers';
+  ['work_notes','pers_notes', 'quick_notes'].forEach(key => {
+    const ctx = key.includes('work')?'work':key.includes('quick')?'quick':'pers';
+    const mod = ctx === 'quick' ? 'quicknotes' : 'notes';
     (DB.get(key,[])||[]).forEach(n => {
       if((n.title+' '+n.body).toLowerCase().includes(q))
-        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:n.body.slice(0,60)});
+        results.push({icon:'✍️', ctx, mod:mod, title:n.title, sub:n.body.slice(0,60)});
     });
   });
 
@@ -1210,161 +1469,119 @@ function exportData() { const d={}; for(let i=0;i<localStorage.length;i++){let k
 function importData(e) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>{try{const d=JSON.parse(ev.target.result);Object.keys(d).forEach(k=>{if(k.startsWith('planner_'))localStorage.setItem(k,d[k]);});location.reload();}catch(err){alert("Format error");}};r.readAsText(f); }
 
 // ==================== 1. SUMMARY ====================
-let pastOpen   = false;
-let futureOpen = false;
-
-function setHorizonDays(v) {
-  localStorage.setItem('planner_horizon', v);
-  const sel = document.getElementById('horizon-select');
-  if (sel) sel.value = v;
-  if (currentModule === 'summary') renderSummary();
-}
-
-function getHorizonDays() {
-  return parseInt(localStorage.getItem('planner_horizon') || '3');
-}
-
+let pastOpen = false;
 function togglePastSection() {
   pastOpen = !pastOpen;
-  const list=document.getElementById('sum-past-list'), inner=document.getElementById('sum-past-inner'), arrow=document.getElementById('sum-past-arrow');
-  if (!list||!inner) return;
-  if (pastOpen) { list.style.height=inner.scrollHeight+'px'; if(arrow) arrow.style.transform='rotate(180deg)'; list.addEventListener('transitionend',function onEnd(){list.style.height='auto';list.removeEventListener('transitionend',onEnd);},{ once:true }); }
-  else { list.style.height=inner.scrollHeight+'px'; requestAnimationFrame(()=>requestAnimationFrame(()=>list.style.height='0')); if(arrow) arrow.style.transform=''; }
-}
-
-function toggleFutureSection() {
-  futureOpen = !futureOpen;
-  const list=document.getElementById('sum-future-list'), inner=document.getElementById('sum-future-inner'), arrow=document.getElementById('sum-future-arrow');
-  if (!list||!inner) return;
-  if (futureOpen) { list.style.height=inner.scrollHeight+'px'; if(arrow) arrow.style.transform='rotate(180deg)'; list.addEventListener('transitionend',function onEnd(){list.style.height='auto';list.removeEventListener('transitionend',onEnd);},{ once:true }); }
-  else { list.style.height=inner.scrollHeight+'px'; requestAnimationFrame(()=>requestAnimationFrame(()=>list.style.height='0')); if(arrow) arrow.style.transform=''; }
-}
-
-function restoreCollapsible(listId, innerId, arrowId, isOpen) {
-  if (!isOpen) return;
-  const list=document.getElementById(listId), inner=document.getElementById(innerId), arrow=document.getElementById(arrowId);
-  if (!list||!inner) return;
-  list.style.transition='none'; list.style.height=inner.scrollHeight+'px';
-  if (arrow) arrow.style.transform='rotate(180deg)';
-  requestAnimationFrame(()=>{ list.style.transition=''; });
+  const list  = document.getElementById('sum-past-list'); const inner = document.getElementById('sum-past-inner'); const arrow = document.getElementById('sum-past-arrow');
+  if (pastOpen) { list.style.height = inner.scrollHeight + 'px'; arrow.style.transform = 'rotate(180deg)'; list.addEventListener('transitionend', function onEnd() { list.style.height = 'auto'; list.removeEventListener('transitionend', onEnd); }); } 
+  else { list.style.height = inner.scrollHeight + 'px'; requestAnimationFrame(() => { requestAnimationFrame(() => { list.style.height = '0'; }); }); arrow.style.transform = ''; }
 }
 
 function renderSummary() {
-  const el   = document.getElementById('summary-list');
-  const now  = new Date();
-  const tMs  = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const el = document.getElementById('summary-list');
+  const now = new Date(); 
+  const tMs = new Date(now.setHours(0,0,0,0)).getTime(); 
   const nowMs = Date.now();
-  const horizonDays = getHorizonDays();
-  const horizonMs   = tMs + horizonDays * 86400000;
+  let active = [], past = [];
 
-  let near = [], future = [], past = [];
-
-  const MOD_MAP = { appts:'appointments', todos:'todos', travels:'travels', habits:'habits', birthdays:'birthdays', notes:'notes', quicknotes:'quicknotes' };
   const pushEv = (key, icon, extractFn) => {
     DB.get(key,[]).forEach(i => {
       const e = extractFn(i); if (!e) return;
-      const rawMod = key.split('_').slice(1).join('_');
-      const mod = MOD_MAP[rawMod] || rawMod;
-      const ev = { ...e, icon, ctx: key.includes('work') ? 'work' : 'pers', mod };
-      if (e.tObj.getTime() < nowMs) past.push(ev);
-      else if (e.t < horizonMs)     near.push(ev);
-      else                          future.push(ev);
+      const isPast = e.tObj.getTime() < nowMs;
+      const moduleName = key.includes('appts') ? 'appointments' : key.split('_')[1];
+      const ev = { ...e, icon, ctx: key.includes('work') ? 'work' : 'pers', mod: moduleName };
+      if (isPast) past.push(ev); else active.push(ev);
     });
   };
 
-  pushEv('work_appts',  '🗓️', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
-  pushEv('pers_appts',  '📍', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
-  pushEv('work_travels','✈️', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), title:i.dest, sub:formatDate(i.start) } : null);
-  pushEv('pers_travels','🎒', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), title:i.dest, sub:formatDate(i.start) } : null);
-  pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), title:i.title, sub:formatDate(i.date) } : null);
-  pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), title:i.title, sub:formatDate(i.date) } : null);
+  pushEv('work_appts',  '🗓️', i => i.date ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title: i.title, sub: formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('pers_appts',  '📍', i => i.date ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title: i.title, sub: formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('work_travels','✈️', i => i.start ? { t: new Date(i.start+'T00:00').getTime(), tObj: new Date(i.start+'T23:59:59'), title: i.dest, sub: formatDate(i.start) } : null);
+  pushEv('pers_travels','🎒', i => i.start ? { t: new Date(i.start+'T00:00').getTime(), tObj: new Date(i.start+'T23:59:59'), title: i.dest, sub: formatDate(i.start) } : null);
+  pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+'T23:59:59'), title: i.title, sub: formatDate(i.date) } : null);
+  pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t: new Date(i.date+'T00:00').getTime(), tObj: new Date(i.date+'T23:59:59'), title: i.title, sub: formatDate(i.date) } : null);
 
   const ty = new Date().getFullYear();
   DB.get('pers_birthdays',[]).forEach(b => {
     let n = new Date(ty, b.month-1, b.day);
     if (n.getTime() < tMs) n = new Date(ty+1, b.month-1, b.day);
-    const ev = { t:n.getTime(), tObj:new Date(n.getFullYear(),b.month-1,b.day,23,59,59), title:b.name, sub:`${b.day} ${MONTHS_TR[b.month]}`, icon:'🎂', ctx:'pers', mod:'birthdays' };
-    if (ev.t < horizonMs) near.push(ev); else future.push(ev);
+    active.push({ t: n.getTime(), tObj: new Date(n.getFullYear(), b.month-1, b.day, 23, 59, 59), title: b.name, sub: `${b.day} ${MONTHS_TR[b.month]}`, icon: '🎂', ctx: 'pers', mod: 'birthdays' });
   });
 
-  near.sort((a,b)=>a.t-b.t); future.sort((a,b)=>a.t-b.t); past.sort((a,b)=>b.t-a.t);
+  active.sort((a,b) => a.t - b.t); past.sort((a,b) => b.t - a.t); 
+
+  // --- YENİ GRUPLAMA MANTIĞI ---
+  const thresholdDate = new Date();
+  thresholdDate.setHours(0,0,0,0);
+  thresholdDate.setDate(thresholdDate.getDate() + summaryDays); 
+  const thresholdMs = thresholdDate.getTime();
+
+  let upcomingShort = [];
+  let upcomingLong = [];
+
+  active.forEach(e => {
+      if(e.tObj.getTime() < thresholdMs) upcomingShort.push(e);
+      else upcomingLong.push(e);
+  });
 
   const cardHTML = (e, isPast=false) => {
     const dStr = e.tObj.toISOString().split('T')[0];
     const tStr = e.tObj.toISOString().split('T')[1].substring(0,5);
     const cd   = getCountdown(dStr, tStr==='23:59'?null:tStr);
-    const ctxC = isPast ? 'ctx-past' : `ctx-${e.ctx}`;
-    const icnC = isPast ? '' : `ctx-${e.ctx}`;
-    return `<div class="summary-item ${ctxC}" onclick="switchModule('${e.mod}','${e.ctx}')">
-      <div class="sum-icon ${icnC}">${e.icon}</div>
-      <div style="flex:1;min-width:0;">
-        <div class="card-title" style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.title)}</div>
-        <div style="font-size:12px;font-weight:700;color:var(--text);opacity:0.75;margin-top:3px;">${e.sub}</div>
-      </div>
-      ${cd ? `<span class="badge ${cd.c}" style="margin:0;flex-shrink:0;">${cd.t}</span>` : ''}
+    const ctxClass = isPast ? 'ctx-past' : `ctx-${e.ctx}`;
+    const iconClass = isPast ? '' : `ctx-${e.ctx}`;
+    return `<div class="summary-item ${ctxClass}" onclick="switchModule('${e.mod}','${e.ctx}')">
+        <div class="sum-icon ${iconClass}">${e.icon}</div>
+        <div style="flex:1;min-width:0;">
+            <div class="card-title" style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.title)}</div>
+            <div class="card-meta" style="font-size:13.5px; font-weight:700; color:var(--text); margin-top:5px; opacity:0.95;">${e.sub}</div>
+        </div>
+        ${cd ? `<span class="badge ${cd.c}" style="margin:0;flex-shrink:0;">${cd.t}</span>` : ''}
     </div>`;
   };
 
-  const horizonLabel = horizonDays===1 ? 'Bugün' : horizonDays===7 ? 'Bu Hafta' : horizonDays===14 ? 'Bu 2 Hafta' : horizonDays===30 ? 'Bu Ay' : `${horizonDays} Gün`;
-
   let html = '';
-  if (!near.length && !future.length && !past.length) {
-    html = `<div class="empty">${translations[currentLang].empty}</div>`;
+  if (!upcomingShort.length && !upcomingLong.length && !past.length) { 
+      html = `<div class="empty">${translations[currentLang].empty}</div>`; 
   } else {
-    // Yakın kayıtlar başlığı
-    if (near.length) {
-      html += `<div style="font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;padding:4px 2px 10px;">📌 ${horizonLabel}</div>`;
-      html += near.map(e => cardHTML(e)).join('');
-    } else {
-      html += `<div class="empty" style="padding:24px 0;">${horizonLabel} içinde kayıt yok.</div>`;
+    // 1. KISIM: YAKIN ZAMAN (Açık görünür)
+    if (upcomingShort.length) {
+        html += upcomingShort.map(e => cardHTML(e, false)).join('');
+    } else if (upcomingLong.length) {
+        html += `<div class="empty" style="padding:30px 20px; font-size:15px;">Önümüzdeki ${summaryDays} gün için plan yok. Dinlenmeye devam! ☕</div>`;
     }
 
-    // Sonraki kayıtlar — kapatılabilir
-    if (future.length) {
-      html += `
-        <button class="sum-past-toggle" onclick="toggleFutureSection()" style="margin-top:12px;margin-bottom:0;">
+    // 2. KISIM: SONRAKİ KAYITLAR (Gizli, tıklayınca açılır)
+    if (upcomingLong.length) {
+      html += `<button class="sum-past-toggle" onclick="toggleUpcomingSection()" style="margin-top:16px;">
           <span style="flex:1;text-align:left;">📅 Sonraki Kayıtlar</span>
-          <span style="background:var(--border);padding:2px 8px;border-radius:6px;font-size:11px;">${future.length}</span>
-          <span id="sum-future-arrow" style="font-size:11px;transition:transform 0.3s;">${futureOpen?'▲':'▼'}</span>
-        </button>
-        <div class="sum-past-list" id="sum-future-list" style="height:${futureOpen?'auto':'0'};">
-          <div class="sum-past-list-inner" id="sum-future-inner" style="padding-top:8px;">
-            ${future.map(e => cardHTML(e)).join('')}
-          </div>
-        </div>`;
+          <span style="background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:6px;font-size:11px;">${upcomingLong.length}</span>
+          <span id="sum-upcoming-arrow" style="font-size:11px;transition:transform 0.3s;">▼</span>
+      </button>
+      <div class="sum-past-list" id="sum-upcoming-list" style="height:0;">
+          <div class="sum-past-list-inner" id="sum-upcoming-inner">${upcomingLong.map(e => cardHTML(e, false)).join('')}</div>
+      </div>`;
     }
 
-    // Geçmiş kayıtlar — kapatılabilir
+    // 3. KISIM: GEÇMİŞ KAYITLAR (Gizli, tıklayınca açılır)
     if (past.length) {
-      html += `
-        <button class="sum-past-toggle" onclick="togglePastSection()" style="margin-top:8px;">
+      html += `<button class="sum-past-toggle" onclick="togglePastSection()" style="margin-top:16px;">
           <span style="flex:1;text-align:left;">🗂️ Geçmiş Kayıtlar</span>
           <span id="sum-past-count" style="background:var(--border);padding:2px 8px;border-radius:6px;font-size:11px;">${past.length}</span>
-          <span id="sum-past-arrow" style="font-size:11px;transition:transform 0.3s;">${pastOpen?'▲':'▼'}</span>
-        </button>
-        <div class="sum-past-list" id="sum-past-list" style="height:${pastOpen?'auto':'0'};">
-          <div class="sum-past-list-inner" id="sum-past-inner" style="padding-top:8px;">
-            ${past.map(e => cardHTML(e, true)).join('')}
-          </div>
-        </div>`;
+          <span id="sum-past-arrow" style="font-size:11px;transition:transform 0.3s;">▼</span>
+      </button>
+      <div class="sum-past-list" id="sum-past-list" style="height:0;">
+          <div class="sum-past-list-inner" id="sum-past-inner">${past.map(e => cardHTML(e, true)).join('')}</div>
+      </div>`;
     }
   }
-
   el.innerHTML = html;
-  renderCalendar();
-
-  // Açık olan bölümleri geri yükle
-  requestAnimationFrame(() => {
-    restoreCollapsible('sum-future-list','sum-future-inner','sum-future-arrow', futureOpen);
-    restoreCollapsible('sum-past-list',  'sum-past-inner',  'sum-past-arrow',   pastOpen);
-  });
 }
-
 // ==================== 2. APPOINTMENTS ====================
 function getApptKey() { return currentContext+'_appts'; }
 function openApptForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getApptKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-appt-title').value=d?d.title:''; document.getElementById('m-appt-date').value=d?d.date:new Date().toISOString().split('T')[0]; document.getElementById('m-appt-time').value=d?d.time||'':''; document.getElementById('m-appt-note').value=d?d.note||'':''; openModal('modal-appt'); }
-function saveAppt() { const t=document.getElementById('m-appt-title').value.trim(); if(!t)return; const k=getApptKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} arr.sort((a,b)=>(a.date+(a.time||''))<(b.date+(b.time||''))?-1:1); DB.set(k,arr); closeModal('modal-appt'); renderAppts(); checkAndNotify(); }
-function delAppt(id) { if(!confirm("Silinsin mi?"))return; const k=getApptKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderAppts(); }
+function saveAppt() { const t=document.getElementById('m-appt-title').value.trim(); if(!t)return; const k=getApptKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} arr.sort((a,b)=>(a.date+(a.time||''))<(b.date+(b.time||''))?-1:1); DB.set(k,arr); closeModal('modal-appt'); renderAppts(); checkAndNotify(); updateAppUI(); }
+function delAppt(id) { if(!confirm("Silinsin mi?"))return; const k=getApptKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderAppts(); updateAppUI(); }
 function renderAppts() { const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.date,a.time);return `<div class="card">${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}</div>`;}).join(''); }
 
 // ==================== 3. TODOS ====================
@@ -1386,10 +1603,10 @@ function saveTodo() {
   const k=getTodoKey(); const arr=DB.get(k,[]);
   const p={id:currentEditId||id(),title:t,pri:document.getElementById('m-todo-pri').value,rec:parseInt(document.getElementById('m-todo-rec').value)||null,date:document.getElementById('m-todo-date').value,note:document.getElementById('m-todo-note').value.trim(),tag:document.getElementById('m-todo-tag').value.trim(),tagColor:selectedTagColor,done:false};
   if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.done=arr[i].done;arr[i]=p;}}else{arr.push(p);}
-  DB.set(k,arr); closeModal('modal-todo'); renderTodoTagFilter(); renderTodos(); checkAndNotify();
+  DB.set(k,arr); closeModal('modal-todo'); renderTodoTagFilter(); renderTodos(); checkAndNotify(); updateAppUI();
 }
-function toggleTodo(id) { const k=getTodoKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){if(!o.done&&o.rec&&o.date){let d=new Date(o.date);d.setDate(d.getDate()+o.rec);o.date=d.toISOString().split('T')[0];}else{o.done=!o.done;} DB.set(k,arr); renderTodos();} }
-function delTodo(id) { if(confirm("Silinsin mi?")){const k=getTodoKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderTodoTagFilter(); renderTodos();} }
+function toggleTodo(id) { const k=getTodoKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){if(!o.done&&o.rec&&o.date){let d=new Date(o.date);d.setDate(d.getDate()+o.rec);o.date=d.toISOString().split('T')[0];}else{o.done=!o.done;} DB.set(k,arr); renderTodos(); updateAppUI();} }
+function delTodo(id) { if(confirm("Silinsin mi?")){const k=getTodoKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderTodoTagFilter(); renderTodos(); updateAppUI();} }
 function renderTodos() {
   let arr=DB.get(getTodoKey(),[]);
   if(activeTagFilter) arr=arr.filter(t=>t.tag===activeTagFilter);
@@ -1404,7 +1621,7 @@ function renderTodos() {
 // ==================== 4. TRAVELS ====================
 function getTravKey() { return currentContext+'_travels'; }
 function openTravelForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getTravKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-travel-dest').value=d?d.dest:''; document.getElementById('m-travel-start').value=d?d.start:''; document.getElementById('m-travel-end').value=d?d.end:''; document.getElementById('m-travel-note').value=d?d.note||'':''; openModal('modal-travel'); }
-function saveTravel() { const t=document.getElementById('m-travel-dest').value.trim(); if(!t)return; const k=getTravKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),dest:t,start:document.getElementById('m-travel-start').value,end:document.getElementById('m-travel-end').value,note:document.getElementById('m-travel-note').value.trim(),items:[]}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.items=arr[i].items;arr[i]=p;}}else{arr.push(p);} DB.set(k,arr); closeModal('modal-travel'); renderTravels(); }
+function saveTravel() { const t=document.getElementById('m-travel-dest').value.trim(); if(!t)return; const k=getTravKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),dest:t,start:document.getElementById('m-travel-start').value,end:document.getElementById('m-travel-end').value,note:document.getElementById('m-travel-note').value.trim(),items:[]}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.items=arr[i].items;arr[i]=p;}}else{arr.push(p);} DB.set(k,arr); closeModal('modal-travel'); renderTravels(); updateAppUI(); }
 function toggleTravelBody(id) { document.getElementById('tb-'+id).classList.toggle('open'); document.getElementById('tc-'+id).classList.toggle('open'); }
 function addTravItem(tid){ 
   const v=document.getElementById('ti-'+tid).value.trim(); 
@@ -1420,7 +1637,7 @@ function delTravItem(tid,iid){
   const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); 
   if(o){ o.items=o.items.filter(x=>x.id!==iid); DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); } 
 }
-function delTrav(id){ if(confirm("Silinsin mi?")){const k=getTravKey();DB.set(k,DB.get(k,[]).filter(x=>x.id!==id));renderTravels();} }
+function delTrav(id){ if(confirm("Silinsin mi?")){const k=getTravKey();DB.set(k,DB.get(k,[]).filter(x=>x.id!==id));renderTravels(); updateAppUI();} }
 function renderTravels() { const arr=DB.get(getTravKey(),[]); const el=document.getElementById('travel-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.start,null);const dr=[a.start&&formatDate(a.start),a.end&&formatDate(a.end)].filter(Boolean).join(' - ');const items=(a.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togTravItem('${a.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delTravItem('${a.id}','${i.id}')">✕</button></div>`).join('');return `<div class="card"><div class="acc-header" onclick="toggleTravelBody('${a.id}')"><div>${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-title" style="font-size:22px;margin:0;">${esc(a.dest)}</div><div class="card-meta" style="margin-top:4px;">${dr}</div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openTravelForm('${a.id}')">&#9998;</button><span class="chevron" id="tc-${a.id}">▼</span></div></div><div class="acc-body" id="tb-${a.id}">${a.note?`<div class="card-note" style="margin-bottom:10px;">${esc(a.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="ti-${a.id}" placeholder="Not veya rota ekle..." onkeydown="if(event.key==='Enter')addTravItem('${a.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addTravItem('${a.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delTrav('${a.id}')">Seyahati Sil</button></div></div>`;}).join(''); }
 
 // ==================== 5. HABITS ====================
@@ -1517,10 +1734,10 @@ function saveBday() {
         arr.push(p);
     }
     
-    DB.set('pers_birthdays', arr); closeModal('modal-bday'); renderBdays(); checkAndNotify(); 
+    DB.set('pers_birthdays', arr); closeModal('modal-bday'); renderBdays(); checkAndNotify(); updateAppUI();
 }
 
-function delBday(id) { if(confirm("Silinsin mi?")){ DB.set('pers_birthdays', DB.get('pers_birthdays',[]).filter(x=>x.id!==id)); renderBdays(); } }
+function delBday(id) { if(confirm("Silinsin mi?")){ DB.set('pers_birthdays', DB.get('pers_birthdays',[]).filter(x=>x.id!==id)); renderBdays(); updateAppUI(); } }
 
 function getBdayCD(m,d) { 
   const t = new Date(); t.setHours(0,0,0,0); 
@@ -1611,327 +1828,127 @@ function renderBdays() {
   }).join(''); 
 }
 
-// ==================== 8. NOTES ====================
-function getNoteKey() { return currentContext+'_notes'; }
+// ==================== 8. NOTES & QUICK NOTES ====================
+function getNoteKey() { return activeNoteContext + '_notes'; }
 function parseMD(t) { return esc(t).replace(/^### (.*$)/gim,'<h3>$1</h3>').replace(/^## (.*$)/gim,'<h2>$1</h2>').replace(/^# (.*$)/gim,'<h1>$1</h1>').replace(/\*\*(.*?)\*\*/gim,'<strong>$1</strong>').replace(/\*(.*?)\*/gim,'<em>$1</em>').replace(/^\- (.*$)/gim,'<ul><li>$1</li></ul>').replace(/<\/ul>\n<ul>/gim,'').replace(/\n/gim,'<br>'); }
 
-function showToast(msg) {
-  const t = document.getElementById('save-toast');
-  t.textContent = msg || '✓ Kaydedildi';
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+function openNoteEditor(eid=null, ctx=null) { 
+    activeNoteContext = ctx || currentContext;
+    currentEditId = eid; 
+    const n = eid ? DB.get(getNoteKey(), []).find(x=>x.id===eid) : null; 
+    document.getElementById('m-note-title').value = n ? n.title : ''; 
+    document.getElementById('m-note-body').value = n ? n.body : ''; 
+    currentNoteContacts = n && n.contacts ? [...n.contacts] : [];
+    
+    switchNoteTab('write'); 
+    renderNoteContacts();
+    document.getElementById('note-editor').classList.add('open'); 
+    if(!eid) currentEditId = id(); 
 }
 
-function openNoteEditor(eid=null) {
-  currentEditId = eid;
-  const n = eid ? DB.get(getNoteKey(),[]).find(x=>x.id===eid) : null;
-  document.getElementById('m-note-title').value = n ? n.title : '';
-  document.getElementById('m-note-body').value  = n ? n.body  : '';
-  switchNoteTab('write');
-  renderNoteContacts(n ? (n.contacts||[]) : []);
-  document.getElementById('note-editor').classList.add('open');
-  if (!eid) currentEditId = id();
+function switchNoteTab(m) { 
+    ['write', 'contacts', 'preview'].forEach(t => {
+        document.getElementById('tab-'+t).classList.remove('active');
+        document.getElementById('m-note-'+(t==='write'?'body':t)).style.display = 'none';
+        if(t==='write') document.getElementById('m-note-body').classList.remove('active');
+    });
+    
+    document.getElementById('tab-'+m).classList.add('active');
+    const el = document.getElementById('m-note-'+(m==='write'?'body':m));
+    el.style.display = 'block';
+    
+    if(m==='write') el.classList.add('active');
+    if(m==='preview') {
+        const md = document.getElementById('m-note-body').value;
+        el.innerHTML = md ? parseMD(md) : '<div style="color:var(--muted);font-style:italic">Boş...</div>';
+    }
 }
 
-function switchNoteTab(m) {
-  ['tab-write','tab-preview','tab-contacts'].forEach(t => document.getElementById(t).classList.remove('active'));
-  document.getElementById('m-note-body').classList.remove('active');
-  document.getElementById('m-note-preview').classList.remove('active');
-  document.getElementById('m-note-contacts').style.display = 'none';
-  if (m === 'write') {
-    document.getElementById('tab-write').classList.add('active');
-    document.getElementById('m-note-body').classList.add('active');
-  } else if (m === 'preview') {
-    document.getElementById('tab-preview').classList.add('active');
-    const md = document.getElementById('m-note-body').value;
-    document.getElementById('m-note-preview').innerHTML = md ? parseMD(md) : '<div style="color:var(--muted);font-style:italic">Boş...</div>';
-    document.getElementById('m-note-preview').classList.add('active');
-  } else if (m === 'contacts') {
-    document.getElementById('tab-contacts').classList.add('active');
-    document.getElementById('m-note-contacts').style.display = 'block';
-  }
+function addNoteContact() {
+    const n = document.getElementById('nc-name').value.trim();
+    const r = document.getElementById('nc-role').value.trim();
+    const c = document.getElementById('nc-contact').value.trim();
+    if(!n) return;
+    currentNoteContacts.push({id: id(), name: n, role: r, contact: c});
+    document.getElementById('nc-name').value = '';
+    document.getElementById('nc-role').value = '';
+    document.getElementById('nc-contact').value = '';
+    renderNoteContacts();
+}
+
+function delNoteContact(cid) {
+    currentNoteContacts = currentNoteContacts.filter(c => c.id !== cid);
+    renderNoteContacts();
+}
+
+function renderNoteContacts() {
+    const el = document.getElementById('note-contacts-list');
+    if(!currentNoteContacts.length) { el.innerHTML = '<div class="empty" style="padding: 20px;">Henüz kişi eklenmedi.</div>'; return; }
+    el.innerHTML = currentNoteContacts.map(c => `
+        <div class="list-item-row" style="background: var(--surface); padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;">
+            <div style="flex:1;">
+                <div style="font-weight:700;">${esc(c.name)}</div>
+                <div style="font-size:12px; color:var(--muted);">${esc(c.role)}</div>
+            </div>
+            <div style="font-size:13px; color:var(--accent); margin-right:12px;">${esc(c.contact)}</div>
+            <button class="btn-icon" style="color:var(--accent-danger);" onclick="delNoteContact('${c.id}')">&#10005;</button>
+        </div>
+    `).join('');
+}
+
+function saveNoteExplicitly() {
+    saveNoteData();
+    showToast('Kaydedildi ✔');
+    setTimeout(() => document.getElementById('note-editor').classList.remove('open'), 500);
 }
 
 function saveNoteData() {
-  const t = document.getElementById('m-note-title').value.trim();
-  const b = document.getElementById('m-note-body').value.trim();
-  const contacts = collectContacts();
-  if (!t && !b) return false;
-  const k = getNoteKey(); const arr = DB.get(k,[]);
-  const idx = arr.findIndex(x => x.id === currentEditId);
-  const e = { id: currentEditId, title: t||'İsimsiz', body: b, contacts, d: new Date().toISOString() };
-  if (idx > -1) arr[idx] = e; else arr.unshift(e);
-  DB.set(k, arr);
-  return true;
+    const t = document.getElementById('m-note-title').value.trim(); 
+    const b = document.getElementById('m-note-body').value.trim(); 
+    if(t || b || currentNoteContacts.length > 0){
+        const k = getNoteKey();
+        const arr = DB.get(k, []);
+        const idx = arr.findIndex(x => x.id === currentEditId);
+        const e = {id: currentEditId, title: t || 'İsimsiz Not', body: b, contacts: currentNoteContacts, d: new Date().toISOString()};
+        if(idx > -1) arr[idx] = e; else arr.unshift(e);
+        DB.set(k, arr);
+    }
+    if(activeNoteContext === 'quick') renderQuickNotes(); else renderNotes();
 }
 
-function saveNoteManual() {
-  if (saveNoteData()) showToast('✓ Kaydedildi');
+function closeNoteEditor() { 
+    saveNoteData();
+    document.getElementById('note-editor').classList.remove('open'); 
 }
 
-function saveAndCloseNoteEditor() {
-  saveNoteData();
-  document.getElementById('note-editor').classList.remove('open');
-  renderNotes();
+function deleteNote() { 
+    if(confirm("Silinsin mi?")){
+        const k = getNoteKey();
+        DB.set(k, DB.get(k, []).filter(x => x.id !== currentEditId));
+        document.getElementById('note-editor').classList.remove('open');
+        if(activeNoteContext === 'quick') renderQuickNotes(); else renderNotes();
+    } 
 }
 
-function deleteNote() {
-  if (!confirm('Silinsin mi?')) return;
-  const k = getNoteKey();
-  DB.set(k, DB.get(k,[]).filter(x => x.id !== currentEditId));
-  document.getElementById('note-editor').classList.remove('open');
-  renderNotes();
-}
+function renderNotes() { _renderNoteList('notes-list', currentContext); }
+function renderQuickNotes() { _renderNoteList('quicknotes-list', 'quick'); }
 
-function renderNotes() {
-  const arr = DB.get(getNoteKey(),[]);
-  const el = document.getElementById('notes-list');
-  if (!arr.length) { el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`; return; }
-  el.innerHTML = arr.map(n => {
-    const d = new Date(n.d);
-    const cCount = (n.contacts||[]).length;
-    return `<div class="card" style="cursor:pointer;" data-id="${n.id}" onclick="openNoteEditor('${n.id}')">
-      <div class="card-title">${esc(n.title)}</div>
-      <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;display:flex;gap:10px;align-items:center;">
-        <span>${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</span>
-        ${cCount ? `<span style="color:var(--accent)">👤 ${cCount} kişi</span>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ==================== KİŞİLER ====================
-function collectContacts() {
-  const rows = document.querySelectorAll('.contact-input-row');
-  const contacts = [];
-  rows.forEach(row => {
-    const name  = row.querySelector('.ci-name').value.trim();
-    const phone = row.querySelector('.ci-phone').value.trim();
-    const email = row.querySelector('.ci-email').value.trim();
-    if (name || phone || email) contacts.push({ id: row.dataset.cid, name, phone, email });
-  });
-  return contacts;
-}
-
-function renderNoteContacts(contacts) {
-  const el = document.getElementById('contacts-list');
-  el.innerHTML = (contacts||[]).map(c => contactRowHTML(c)).join('');
-}
-
-function addContactRow() {
-  const el = document.getElementById('contacts-list');
-  const newId = id();
-  el.insertAdjacentHTML('beforeend', contactRowHTML({ id: newId, name:'', phone:'', email:'' }));
-  el.lastElementChild.querySelector('.ci-name').focus();
-}
-
-function contactRowHTML(c) {
-  return `<div class="contact-input-row" data-cid="${c.id}" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-      <input class="ci-name"  value="${esc(c.name||'')}"  placeholder="Ad Soyad"     style="padding:8px;font-size:13px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);">
-      <input class="ci-phone" value="${esc(c.phone||'')}" placeholder="Telefon"       style="padding:8px;font-size:13px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);">
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <input class="ci-email" value="${esc(c.email||'')}" placeholder="E-posta"       style="flex:1;padding:8px;font-size:13px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);">
-      <button onclick="this.closest('.contact-input-row').remove()" style="background:none;border:none;cursor:pointer;color:var(--accent-danger);font-size:18px;flex-shrink:0;">✕</button>
-    </div>
-  </div>`;
-}
-
-// ==================== HIZLI NOTLAR ====================
-let currentQNoteId = null;
-
-function openQNoteEditor(eid=null) {
-  currentQNoteId = eid;
-  const n = eid ? DB.get('quick_notes',[]).find(x=>x.id===eid) : null;
-  document.getElementById('qnote-body').value = n ? n.body : '';
-  document.getElementById('qnote-editor').classList.add('open');
-  if (!eid) currentQNoteId = id();
-  setTimeout(() => document.getElementById('qnote-body').focus(), 200);
-}
-
-function saveQNote() {
-  const b = document.getElementById('qnote-body').value.trim();
-  if (!b) return;
-  const arr = DB.get('quick_notes',[]);
-  const idx = arr.findIndex(x => x.id === currentQNoteId);
-  const e = { id: currentQNoteId, body: b, d: new Date().toISOString() };
-  if (idx > -1) arr[idx] = e; else arr.unshift(e);
-  DB.set('quick_notes', arr);
-  showToast('⚡ Hızlı Not Kaydedildi');
-  document.getElementById('qnote-editor').classList.remove('open');
-  if (currentModule === 'quicknotes') renderQNotes();
-}
-
-function closeQNoteEditor() {
-  // Otomatik kaydet — içerik varsa
-  const b = document.getElementById('qnote-body').value.trim();
-  if (b) saveQNote(); else document.getElementById('qnote-editor').classList.remove('open');
-}
-
-function deleteQNote() {
-  if (!confirm('Silinsin mi?')) return;
-  DB.set('quick_notes', DB.get('quick_notes',[]).filter(x => x.id !== currentQNoteId));
-  document.getElementById('qnote-editor').classList.remove('open');
-  if (currentModule === 'quicknotes') renderQNotes();
-}
-
-function renderQNotes() {
-  const arr = DB.get('quick_notes',[]);
-  const el  = document.getElementById('qnotes-list');
-  if (!arr.length) { el.innerHTML=`<div class="empty">Henüz hızlı not yok. Sağ alttaki arabaya tıkla!</div>`; return; }
-  el.innerHTML = arr.map(n => {
-    const d = new Date(n.d);
-    const dateStr = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    return `<div class="qnote-card" data-id="${n.id}" onclick="openQNoteEditor('${n.id}')">
-      <div class="qnote-text">${esc(n.body)}</div>
-      <div class="qnote-date">⚡ ${dateStr}</div>
-    </div>`;
-  }).join('');
-}
-
-// ==================== TAKVİM ====================
-const TR_HOLIDAYS = {
-  '01-01': 'Yılbaşı',
-  '04-23': 'Ulusal Egemenlik ve Çocuk Bayramı',
-  '05-01': 'Emek ve Dayanışma Günü',
-  '05-19': 'Atatürk\'ü Anma, Gençlik ve Spor Bayramı',
-  '07-15': 'Demokrasi ve Millî Birlik Günü',
-  '08-30': 'Zafer Bayramı',
-  '10-29': 'Cumhuriyet Bayramı',
-};
-
-let calYear  = new Date().getFullYear();
-let calMonth = new Date().getMonth();
-let calSelectedDay = null;
-
-function renderCalendar() {
-  const el = document.getElementById('cal-panel');
-  if (!el) return;
-
-  const now   = new Date();
-  const first = new Date(calYear, calMonth, 1);
-  const days  = new Date(calYear, calMonth+1, 0).getDate();
-  const startDow = (first.getDay()+6) % 7; // Pazartesi = 0
-
-  const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-  const DOW_LABELS = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
-
-  // Tüm kayıtlı tarihleri topla
-  const workDates = new Set(), persDates = new Set();
-  const addDates = (key, set) => DB.get(key,[]).forEach(i => { if(i.date) set.add(i.date); if(i.start) set.add(i.start); });
-  addDates('work_appts', workDates); addDates('work_todos', workDates); addDates('work_travels', workDates);
-  addDates('pers_appts', persDates); addDates('pers_todos', persDates); addDates('pers_travels', persDates);
-  // Doğum günleri
-  DB.get('pers_birthdays',[]).forEach(b => {
-    const ds = `${calYear}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`;
-    persDates.add(ds);
-  });
-
-  // Grid hücreleri
-  let cells = '';
-  // Önceki ayın dolgu günleri
-  const prevDays = new Date(calYear, calMonth, 0).getDate();
-  for (let i = startDow-1; i >= 0; i--) {
-    cells += `<div class="cal-day other-month"><span class="cal-day-num">${prevDays-i}</span></div>`;
-  }
-  // Bu ayın günleri
-  for (let d = 1; d <= days; d++) {
-    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const holidayKey = `${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday    = d===now.getDate() && calMonth===now.getMonth() && calYear===now.getFullYear();
-    const isHoliday  = !!TR_HOLIDAYS[holidayKey];
-    const dow        = new Date(calYear, calMonth, d).getDay(); // 0=Pz, 6=Ct
-    const isWeekend  = dow === 0 || dow === 6;
-    const isSelected = calSelectedDay === ds;
-    const hasWork    = workDates.has(ds);
-    const hasPers    = persDates.has(ds);
-    let dots = '';
-    if (hasWork)   dots += `<div class="cal-dot cal-dot-work"></div>`;
-    if (hasPers)   dots += `<div class="cal-dot cal-dot-pers"></div>`;
-    if (isHoliday) dots += `<div class="cal-dot cal-dot-holiday"></div>`;
-    cells += `<div class="cal-day ${isToday?'today':''} ${isHoliday?'holiday':''} ${isWeekend&&!isToday?'weekend':''} ${isSelected?'selected':''}"
-      onclick="calDayClick('${ds}')" title="${isHoliday?TR_HOLIDAYS[holidayKey]:''}">
-      <span class="cal-day-num">${d}</span>
-      ${dots ? `<div class="cal-dots">${dots}</div>` : ''}
-    </div>`;
-  }
-  // Sonraki ay dolgu
-  const totalCells = startDow + days;
-  const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-  for (let d = 1; d <= remaining; d++) {
-    cells += `<div class="cal-day other-month"><span class="cal-day-num">${d}</span></div>`;
-  }
-
-  // Seçili gün popup
-  let popup = '';
-  if (calSelectedDay) {
-    const items = getCalDayItems(calSelectedDay);
-    const dParts = calSelectedDay.split('-');
-    const dLabel = `${parseInt(dParts[2])} ${TR_MONTHS[parseInt(dParts[1])-1]}`;
-    const hKey   = `${dParts[1]}-${dParts[2]}`;
-    popup = `<div class="cal-popup">
-      <div class="cal-popup-title">${dLabel}${TR_HOLIDAYS[hKey]?` · <span class="cal-holiday-badge">${TR_HOLIDAYS[hKey]}</span>`:''}</div>
-      ${items.length ? items.map(i=>`
-        <div class="cal-popup-item" onclick="${i.onclick}" style="cursor:pointer;">
-          <div class="cal-popup-dot" style="background:${i.ctx==='work'?'#5C8BB8':'#5C9E78'}"></div>
-          <span style="flex:1;">${esc(i.title)}</span>
-          <span style="font-size:11px;color:var(--muted);">${i.time||''}</span>
-        </div>`).join('') : `<div style="font-size:13px;color:var(--muted);font-style:italic;">Bu günde kayıt yok.</div>`}
-    </div>`;
-  }
-
-  el.innerHTML = `
-    <div class="cal-header">
-      <button class="cal-nav" onclick="calNav(-1)">&#8249;</button>
-      <span class="cal-title">${TR_MONTHS[calMonth]} ${calYear}</span>
-      <button class="cal-nav" onclick="calNav(1)">&#8250;</button>
-    </div>
-    <div class="cal-grid">
-      ${DOW_LABELS.map(l=>`<div class="cal-dow">${l}</div>`).join('')}
-      ${cells}
-    </div>
-    ${popup}`;
-}
-
-function calNav(dir) {
-  calMonth += dir;
-  if (calMonth > 11) { calMonth = 0;  calYear++; }
-  if (calMonth < 0)  { calMonth = 11; calYear--; }
-  calSelectedDay = null;
-  renderCalendar();
-}
-
-function calDayClick(ds) {
-  calSelectedDay = calSelectedDay === ds ? null : ds;
-  renderCalendar();
-}
-
-function getCalDayItems(ds) {
-  const items = [];
-  const push = (key, icon, ctx, mod, getTitle, getTime) => {
-    DB.get(key,[]).forEach(i => {
-      const iDate = i.date || i.start;
-      if (iDate === ds) items.push({ title: getTitle(i), time: getTime(i), ctx, onclick: `switchModule('${mod}','${ctx}')` });
-    });
-  };
-  push('work_appts', '🗓️', 'work', 'appointments', i=>i.title, i=>i.time||'');
-  push('pers_appts', '📍', 'pers', 'appointments', i=>i.title, i=>i.time||'');
-  push('work_todos', '💼', 'work', 'todos',        i=>i.title, i=>'');
-  push('pers_todos', '✅', 'pers', 'todos',        i=>i.title, i=>'');
-  push('work_travels','✈️','work', 'travels',      i=>i.dest,  i=>'');
-  push('pers_travels','🎒','pers', 'travels',      i=>i.dest,  i=>'');
-  // Doğum günleri
-  const dParts = ds.split('-');
-  DB.get('pers_birthdays',[]).forEach(b => {
-    if (b.month===parseInt(dParts[1]) && b.day===parseInt(dParts[2]))
-      items.push({ title:`🎂 ${b.name}`, time:'', ctx:'pers', onclick:`switchModule('birthdays','pers')` });
-  });
-  // Tatil
-  const hKey = `${dParts[1]}-${dParts[2]}`;
-  if (TR_HOLIDAYS[hKey]) items.unshift({ title: TR_HOLIDAYS[hKey], time:'', ctx:'holiday', onclick:'' });
-  return items;
+function _renderNoteList(elementId, ctx) {
+    const arr = DB.get(ctx + '_notes', []); 
+    const el = document.getElementById(elementId); 
+    if(!arr.length){ el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`; return; } 
+    el.innerHTML = arr.map(n => {
+        const d = new Date(n.d);
+        const cCount = n.contacts ? n.contacts.length : 0;
+        return `<div class="card" style="cursor:pointer;" onclick="openNoteEditor('${n.id}', '${ctx}')">
+            <div class="card-title">${esc(n.title)}</div>
+            <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; line-height:1.5;">${esc(n.body)}</div>
+            <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:11px; font-weight:700; color:var(--muted);">
+                <span>${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</span>
+                ${cCount > 0 ? `<span style="color:var(--accent);">👤 ${cCount} Kişi</span>` : ''}
+            </div>
+        </div>`;
+    }).join('');
 }
 
 // ==================== PWA ====================
@@ -1957,6 +1974,7 @@ function printPage() {
 
   const modLabels = {
     summary:      { tr: 'Günlük Özet',         en: 'Daily Overview' },
+    quicknotes:   { tr: 'Hızlı Notlar',        en: 'Quick Notes' },
     appointments: { tr: currentContext==='work' ? 'Toplantı & Takvim' : 'Randevular', en: currentContext==='work' ? 'Meetings' : 'Appointments' },
     todos:        { tr: currentContext==='work' ? 'İş Görevleri' : 'Görevler',          en: currentContext==='work' ? 'Work Tasks' : 'Tasks' },
     travels:      { tr: currentContext==='work' ? 'İş Seyahati' : 'Seyahat Planı',      en: currentContext==='work' ? 'Business Trip' : 'Travel Plan' },
@@ -1970,7 +1988,6 @@ function printPage() {
 
   let body = '';
 
-  // ---- ÖZET ----
   if (currentModule === 'summary') {
     const tMs = new Date(new Date().setHours(0,0,0,0)).getTime();
     let evs = [];
@@ -1994,7 +2011,6 @@ function printPage() {
         </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0;">Yaklaşan etkinlik yok.</p>');
   }
 
-  // ---- RANDEVULAR ----
   else if (currentModule === 'appointments') {
     const arr = DB.get(currentContext+'_appts', []);
     body = `<div class="pr-section-title">${moduleLabel}</div>` +
@@ -2009,7 +2025,6 @@ function printPage() {
         </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0;">Kayıt yok.</p>');
   }
 
-  // ---- GÖREVLER ----
   else if (currentModule === 'todos') {
     const arr = DB.get(currentContext+'_todos', []);
     const un = arr.filter(t=>!t.done).sort((a,b)=>(a.pri==='high'?0:1)-(b.pri==='high'?0:1));
@@ -2027,7 +2042,6 @@ function printPage() {
     if(dn.length) body += `<div class="pr-section-title">Tamamlananlar (${dn.length})</div>${dn.map(row).join('')}`;
   }
 
-  // ---- SEYAHAT ----
   else if (currentModule === 'travels') {
     const arr = DB.get(currentContext+'_travels', []);
     body = arr.length ? arr.map(a=>`
@@ -2039,7 +2053,6 @@ function printPage() {
       </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0;">Kayıt yok.</p>';
   }
 
-  // ---- RUTINLER ----
   else if (currentModule === 'habits') {
     const arr = DB.get('pers_habits', []);
     const wDays = (()=>{ const t=new Date();t.setHours(0,0,0,0);const m=new Date(t);m.setDate(t.getDate()-((t.getDay()+6)%7));const d=[];for(let i=0;i<7;i++){const x=new Date(m);x.setDate(m.getDate()+i);d.push({ds:x.toISOString().split('T')[0],lb:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'][i]});}return d;})();
@@ -2049,7 +2062,6 @@ function printPage() {
       `</tbody></table>`;
   }
 
-  // ---- DOĞUM GÜNLERİ ----
   else if (currentModule === 'birthdays') {
     const ty=new Date().getFullYear(); const arr=DB.get('pers_birthdays',[]);
     arr.forEach(x=>{let n=new Date(ty,x.month-1,x.day);if(n.getTime()<new Date().getTime())n=new Date(ty+1,x.month-1,x.day);x._n=n.getTime();}); arr.sort((a,b)=>a._n-b._n);
@@ -2058,17 +2070,16 @@ function printPage() {
       `</tbody></table>`;
   }
 
-  // ---- NOTLAR ----
-  else if (currentModule === 'notes') {
-    const arr = DB.get(currentContext+'_notes', []);
+  else if (currentModule === 'notes' || currentModule === 'quicknotes') {
+    const arr = DB.get((currentModule === 'quicknotes' ? 'quick' : currentContext)+'_notes', []);
     body = arr.length ? arr.map(n=>`
       <div class="pr-note-card">
         <div class="pr-note-title">${esc(n.title)}</div>
         <div class="pr-note-body">${parseMD(n.body)}</div>
+        ${n.contacts && n.contacts.length ? `<div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd; font-size:11px; color:#555;"><strong>İlgili Kişiler:</strong><br>${n.contacts.map(c=>`${esc(c.name)} (${esc(c.role)}) - ${esc(c.contact)}`).join('<br>')}</div>` : ''}
       </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0;">Not yok.</p>';
   }
 
-  // ---- LİSTELER ----
   else if (currentModule === 'lists') {
     const cats = getCatKeys();
     body = cats.map(cat => {
@@ -2079,7 +2090,6 @@ function printPage() {
     }).join('');
   }
 
-  // HTML oluştur
   const html = `
     <div class="pr-page">
       <div class="pr-header">
@@ -2108,13 +2118,19 @@ function init() {
   setTheme(currentTheme);
   applyTranslations();
   updateHeaderDate();
-  const hSel = document.getElementById('horizon-select');
-  if (hSel) hSel.value = getHorizonDays();
   switchModule('summary');
   initNotifications();
+  initFAB(); 
   registerSW();
-  setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
+  updateAppUI(); 
+  setInterval(() => { if(currentModule==='summary') { renderSummary(); updateAppUI(); } }, 60000);
 }
+
+// Ekran boyutu değiştiğinde takvimi göster/gizle işlemi için
+window.addEventListener('resize', () => {
+    if(window.innerWidth > 1024) renderCalendar();
+});
+
 init();
 </script>
 </body>
