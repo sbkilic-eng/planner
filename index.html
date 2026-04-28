@@ -166,6 +166,8 @@
   
   @media (max-width: 768px) {
     .mobile-only { display: flex !important; }
+    #cal-panel { display: none; margin-top: 20px; } /* Mobilde takvimi gizle */
+    #cal-panel.show-mobile { display: block; animation: fadeIn 0.3s; } /* Butona basınca göster */
     .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); width: 285px; box-shadow: var(--shadow); }
     .sidebar.open { transform: translateX(0); }
     .sidebar-overlay.open { display: block; }
@@ -456,9 +458,9 @@
       <button class="mobile-close-btn" onclick="toggleSidebar()">✕</button>
     </div>
 
-    <div class="mobile-only" style="padding: 0 16px 12px; width: 100%;">
-        <button class="btn-add" style="margin:0; width:100%; border-style:solid; background:var(--accent-light); color:var(--accent); font-weight:bold; height: 45px; align-items: center; justify-content: center; gap: 8px;" onclick="switchModule('summary'); toggleSidebar();">
-            📅 Takvimi Göster
+    <div class="mobile-only" style="padding: 0 16px 12px;">
+        <button class="btn-add" style="margin:0; width:100%; border-style:solid; background:var(--accent-light); color:var(--accent); font-weight:bold; height: 45px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="toggleMobileCalendar(); toggleSidebar();">
+            📅 Takvimi Aç / Kapat
         </button>
     </div>
 
@@ -501,7 +503,7 @@
           <div class="fan-header-icon personal">🌿</div>
           <div class="fan-header-text">
             <div class="fan-header-title" data-i18n="nav_personal">KİŞİSEL YAŞAM</div>
-            <div class="fan-header-sub" id="fan-pers-sub">6 bölüm</div>
+            <div class="fan-header-sub" id="fan-pers-sub">7 bölüm</div>
           </div>
           <span class="fan-arrow">▼</span>
         </button>
@@ -611,7 +613,7 @@
         <span class="app-date" id="headerDate"></span>
       </div>
       <div class="header-right">
-        <button class="btn-header-icon mobile-only" onclick="switchModule('summary')" title="Takvim">📅</button>
+        <button class="btn-header-icon mobile-only" onclick="toggleMobileCalendar()" title="Takvim">📅</button>
         <button class="btn-header-icon" onclick="openSearch()" title="Ara">🔍</button>
         <button class="btn-header-icon" onclick="printPage()" title="Yazdır / PDF">🖨️</button>
         <button class="btn-header-icon btn-settings" onclick="openModal('modal-settings')" title="Ayarlar">⚙️</button>
@@ -1016,12 +1018,6 @@ function switchModule(mod, ctx='') {
   if(mod==='summary') { 
       header.style.display='none'; 
       renderSummary(); 
-      if(window.innerWidth <= 768) {
-          setTimeout(() => {
-              const calPanel = document.getElementById('cal-panel');
-              if(calPanel) calPanel.scrollIntoView({behavior: 'smooth', block: 'start'});
-          }, 300);
-      }
       return; 
   }
 
@@ -2127,6 +2123,41 @@ function init() {
   registerSW();
   setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
 }
+init();
+// ==================== MOBİL TAKVİM GÖSTER/GİZLE ====================
+function toggleMobileCalendar() {
+    if(currentModule !== 'summary') {
+        switchModule('summary'); // Başka sayfadaysa önce ana sayfaya dön
+    }
+    const cal = document.getElementById('cal-panel');
+    if(cal) {
+        cal.classList.toggle('show-mobile'); // Göster veya Gizle
+        if(cal.classList.contains('show-mobile')) {
+            // Açıldıysa yavaşça takvime kaydır
+            setTimeout(() => cal.scrollIntoView({behavior: 'smooth', block: 'start'}), 200);
+        }
+    }
+}
+
+// ==================== BAŞLATMA (INIT) ====================
+function init() {
+  setTheme(currentTheme);
+  applyTranslations();
+  updateHeaderDate();
+  
+  // Ana sayfa ayarı
+  const hSel = document.getElementById('horizon-select');
+  if (hSel) hSel.value = getHorizonDays();
+  
+  switchModule('summary');
+  initNotifications();
+  registerSW();
+  
+  // Her dakika özeti güncelle (saat/tarih değişimi için)
+  setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
+}
+
+// Uygulamayı çalıştır
 init();
 </script>
 </body>
