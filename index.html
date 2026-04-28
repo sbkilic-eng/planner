@@ -166,7 +166,11 @@
 
   /* ================= MASAÜSTÜ & MOBİL TAKVİMİ ================= */
   .calendar-sidebar { width: 320px; flex-shrink: 0; display: none; position: sticky; top: 90px; }
-  .cal-widget { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+  .cal-widget { 
+      background: var(--surface); border: 1px solid var(--border); 
+      border-radius: 16px; padding: 20px; box-shadow: var(--shadow); 
+      position: relative; /* "X" işaretinin doğru konumlanması için BU SATIR ŞART */
+  }
   .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
   .cal-title { font-weight: 700; font-size: 15px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
   .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
@@ -370,8 +374,18 @@
   .note-tab { flex:1; padding:12px; text-align:center; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); border-bottom: 2px solid transparent; }
   .note-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
   .note-area { flex:1; padding:20px; overflow-y:auto; background:var(--bg); }
-  .note-textarea { width:100%; height:100%; background:none; border:none; color:var(--text); resize:none; display:none; line-height:1.6; }
-  .note-preview { width:100%; height:100%; display:none; line-height:1.6; }
+  .note-textarea { 
+    width:100%; height:100%; 
+    background:var(--surface); border:1px solid var(--border); 
+    border-radius:12px; padding:16px; color:var(--text); 
+    resize:none; display:none; line-height:1.6; 
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .note-preview { 
+    width:100%; height:100%; display:none; line-height:1.6; 
+    background:var(--surface); border:1px solid var(--border); 
+    border-radius:12px; padding:16px; 
+  }
   .note-textarea.active, .note-preview.active { display:block; }
   .note-preview h1, .note-preview h2, .note-preview h3 { margin:15px 0 10px; font-weight:normal; }
   .note-preview ul { margin-left:20px; margin-bottom:10px; }
@@ -1438,7 +1452,8 @@ function renderSummary() {
     DB.get(key,[]).forEach(i => {
       const e = extractFn(i); if (!e) return;
       const isPast = e.tObj.getTime() < nowMs;
-      const ev = { ...e, icon, ctx: key.includes('work') ? 'work' : 'pers', mod: key.split('_')[1] };
+      const moduleName = key.includes('appts') ? 'appointments' : key.split('_')[1];
+      const ev = { ...e, icon, ctx: key.includes('work') ? 'work' : 'pers', mod: moduleName };
       if (isPast) past.push(ev); else active.push(ev);
     });
   };
@@ -1465,7 +1480,16 @@ function renderSummary() {
     const cd   = getCountdown(dStr, tStr==='23:59'?null:tStr);
     const ctxClass = isPast ? 'ctx-past' : `ctx-${e.ctx}`;
     const iconClass = isPast ? '' : `ctx-${e.ctx}`;
-    return `<div class="summary-item ${ctxClass}" onclick="switchModule('${e.mod}','${e.ctx}')"><div class="sum-icon ${iconClass}">${e.icon}</div><div style="flex:1;min-width:0;"><div class="card-title" style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.title)}</div><div class="card-meta" style="font-size:12px;margin-top:2px;">${e.sub}</div></div>${cd ? `<span class="badge ${cd.c}" style="margin:0;flex-shrink:0;">${cd.t}</span>` : ''}</div>`;
+    
+    // DÜZELTME: card-meta kısmını büyütüp, kalınlaştırıp belirginleştirdik
+    return `<div class="summary-item ${ctxClass}" onclick="switchModule('${e.mod}','${e.ctx}')">
+        <div class="sum-icon ${iconClass}">${e.icon}</div>
+        <div style="flex:1;min-width:0;">
+            <div class="card-title" style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.title)}</div>
+            <div class="card-meta" style="font-size:13.5px; font-weight:700; color:var(--text); margin-top:5px; opacity:0.95;">${e.sub}</div>
+        </div>
+        ${cd ? `<span class="badge ${cd.c}" style="margin:0;flex-shrink:0;">${cd.t}</span>` : ''}
+    </div>`;
   };
 
   let html = '';
