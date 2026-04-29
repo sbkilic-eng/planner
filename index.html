@@ -307,7 +307,37 @@
   /* Takvim İçeriği */
   .summary-layout { display:flex; gap:24px; align-items:flex-start; }
   .summary-events { flex:1; min-width:0; }
-  .cal-panel { width:100%; position:relative; } /* Artık dış çerçeveyi widget-panel kontrol ediyor */
+  .cal-panel { width:100%; position:relative; }
+
+  /* Mobil takvim toggle */
+  .cal-mobile-wrapper { display:none; }
+  @media (max-width: 900px) {
+    .cal-mobile-wrapper {
+      display: block;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1);
+      margin-bottom: 0;
+    }
+    .cal-mobile-wrapper.open {
+      max-height: 600px;
+      margin-bottom: 16px;
+    }
+    .cal-mobile-inner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .widget-column { display: none !important; }
+  }
+  .btn-cal-header { display: none; }
+  @media (max-width: 900px) {
+    .btn-cal-header { display: flex; }
+  }
+  .btn-cal-header.active { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; }
   .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
   .cal-title { font-size:15px; font-weight:700; color:var(--text); }
   .cal-nav { background:none; border:none; cursor:pointer; color:var(--muted); font-size:18px; padding:4px 8px; border-radius:8px; transition:background 0.15s; }
@@ -322,9 +352,11 @@
   .cal-day.other-month { opacity:0.3; pointer-events:none; }
   .cal-day.holiday { background:rgba(216,109,109,0.12); }
   .cal-day.holiday .cal-day-num { color:var(--accent-danger); font-weight:800; }
+  .cal-day.religious { background:rgba(155,111,208,0.13); }
+  .cal-day.religious .cal-day-num { color:#9B6FD0; font-weight:800; }
   .cal-day.weekend .cal-day-num { color:#D8A56D; }
   .cal-day.weekend { background:rgba(216,165,109,0.07); }
-  .cal-day.holiday.weekend .cal-day-num { color:var(--accent-danger); }
+  .cal-day.holiday.weekend .cal-day-num, .cal-day.religious.weekend .cal-day-num { color:inherit; }
   .cal-day.selected { outline:2px solid var(--accent); outline-offset:1px; }
   .cal-day-num { font-size:12px; font-weight:600; color:var(--text); line-height:1; }
   .cal-dots { display:flex; gap:2px; justify-content:center; }
@@ -596,6 +628,7 @@
         <span class="app-date" id="headerDate"></span>
       </div>
       <div class="header-right">
+        <button class="btn-header-icon btn-cal-header" id="btn-cal-header" onclick="toggleMobileCal()" title="Takvim">📅</button>
         <button class="btn-header-icon" onclick="openSearch()" title="Ara">🔍</button>
         <button class="btn-header-icon" onclick="printPage()" title="Yazdır / PDF">🖨️</button>
         <button class="btn-header-icon btn-settings" onclick="openModal('modal-settings')" title="Ayarlar">⚙️</button>
@@ -613,9 +646,14 @@
         <div class="main-column">
 
           <div class="section active" id="sec-summary">
+            <!-- Mobil Takvim (açılır/kapanır) -->
+            <div class="cal-mobile-wrapper" id="cal-mobile-wrapper">
+              <div class="cal-mobile-inner">
+                <div class="cal-panel" id="cal-panel-mobile"></div>
+              </div>
+            </div>
             <div class="summary-layout" id="summary-layout-inner">
               <div class="summary-events" id="summary-list"></div>
-              
               <div class="widget-panel widget-color-1 cal-panel" id="cal-panel"></div>
             </div>
           </div>
@@ -1817,7 +1855,8 @@ function renderQNotes() {
 }
 
 // ==================== TAKVİM ====================
-const TR_HOLIDAYS = {
+// Milli Bayramlar (yıl bağımsız MM-DD)
+const TR_NATIONAL = {
   '01-01': 'Yılbaşı',
   '04-23': 'Ulusal Egemenlik ve Çocuk Bayramı',
   '05-01': 'Emek ve Dayanışma Günü',
@@ -1827,27 +1866,115 @@ const TR_HOLIDAYS = {
   '10-29': 'Cumhuriyet Bayramı',
 };
 
+// Dini Bayramlar (yıl bazlı YYYY-MM-DD)
+// Ramazan Bayramı: 3 gün | Kurban Bayramı: 4 gün + arife
+const TR_RELIGIOUS = {
+  // 2024
+  '2024-04-09': 'Ramazan Bayramı Arife',
+  '2024-04-10': 'Ramazan Bayramı 1. Gün',
+  '2024-04-11': 'Ramazan Bayramı 2. Gün',
+  '2024-04-12': 'Ramazan Bayramı 3. Gün',
+  '2024-06-15': 'Kurban Bayramı Arife',
+  '2024-06-16': 'Kurban Bayramı 1. Gün',
+  '2024-06-17': 'Kurban Bayramı 2. Gün',
+  '2024-06-18': 'Kurban Bayramı 3. Gün',
+  '2024-06-19': 'Kurban Bayramı 4. Gün',
+  // 2025
+  '2025-03-29': 'Ramazan Bayramı Arife',
+  '2025-03-30': 'Ramazan Bayramı 1. Gün',
+  '2025-03-31': 'Ramazan Bayramı 2. Gün',
+  '2025-04-01': 'Ramazan Bayramı 3. Gün',
+  '2025-06-05': 'Kurban Bayramı Arife',
+  '2025-06-06': 'Kurban Bayramı 1. Gün',
+  '2025-06-07': 'Kurban Bayramı 2. Gün',
+  '2025-06-08': 'Kurban Bayramı 3. Gün',
+  '2025-06-09': 'Kurban Bayramı 4. Gün',
+  // 2026
+  '2026-03-19': 'Ramazan Bayramı Arife',
+  '2026-03-20': 'Ramazan Bayramı 1. Gün',
+  '2026-03-21': 'Ramazan Bayramı 2. Gün',
+  '2026-03-22': 'Ramazan Bayramı 3. Gün',
+  '2026-05-26': 'Kurban Bayramı Arife',
+  '2026-05-27': 'Kurban Bayramı 1. Gün',
+  '2026-05-28': 'Kurban Bayramı 2. Gün',
+  '2026-05-29': 'Kurban Bayramı 3. Gün',
+  '2026-05-30': 'Kurban Bayramı 4. Gün',
+  // 2027
+  '2027-03-08': 'Ramazan Bayramı Arife',
+  '2027-03-09': 'Ramazan Bayramı 1. Gün',
+  '2027-03-10': 'Ramazan Bayramı 2. Gün',
+  '2027-03-11': 'Ramazan Bayramı 3. Gün',
+  '2027-05-15': 'Kurban Bayramı Arife',
+  '2027-05-16': 'Kurban Bayramı 1. Gün',
+  '2027-05-17': 'Kurban Bayramı 2. Gün',
+  '2027-05-18': 'Kurban Bayramı 3. Gün',
+  '2027-05-19': 'Kurban Bayramı 4. Gün',
+  // 2028
+  '2028-02-25': 'Ramazan Bayramı Arife',
+  '2028-02-26': 'Ramazan Bayramı 1. Gün',
+  '2028-02-27': 'Ramazan Bayramı 2. Gün',
+  '2028-02-28': 'Ramazan Bayramı 3. Gün',
+  '2028-05-03': 'Kurban Bayramı Arife',
+  '2028-05-04': 'Kurban Bayramı 1. Gün',
+  '2028-05-05': 'Kurban Bayramı 2. Gün',
+  '2028-05-06': 'Kurban Bayramı 3. Gün',
+  '2028-05-07': 'Kurban Bayramı 4. Gün',
+};
+
+// Belirli bir tarih için tatil adını getir
+function getHolidayName(ds) {
+  // ds = YYYY-MM-DD
+  if (TR_RELIGIOUS[ds]) return { name: TR_RELIGIOUS[ds], type: 'religious' };
+  const mmdd = ds.slice(5); // MM-DD
+  if (TR_NATIONAL[mmdd]) return { name: TR_NATIONAL[mmdd], type: 'national' };
+  return null;
+}
+
+// Geriye uyumluluk için (getCalDayItems'de kullanılıyor)
+function getHolidayNameStr(ds) {
+  const h = getHolidayName(ds);
+  return h ? h.name : null;
+}
+
 let calYear  = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 let calSelectedDay = null;
+let calMobileOpen = false;
+
+function toggleMobileCal() {
+  calMobileOpen = !calMobileOpen;
+  const wrapper = document.getElementById('cal-mobile-wrapper');
+  const btn     = document.getElementById('btn-cal-header');
+  if (wrapper) wrapper.classList.toggle('open', calMobileOpen);
+  if (btn)     btn.classList.toggle('active', calMobileOpen);
+  if (calMobileOpen) renderCalendarInEl(document.getElementById('cal-panel-mobile'));
+}
 
 function renderCalendar() {
+  // Masaüstü panel
   const el = document.getElementById('cal-panel');
+  if (el) renderCalendarInEl(el);
+  // Mobil panel (açıksa)
+  if (calMobileOpen) {
+    const mel = document.getElementById('cal-panel-mobile');
+    if (mel) renderCalendarInEl(mel);
+  }
+}
+
+function renderCalendarInEl(el) {
   if (!el) return;
+  const now      = new Date();
+  const first    = new Date(calYear, calMonth, 1);
+  const days     = new Date(calYear, calMonth+1, 0).getDate();
+  const startDow = (first.getDay()+6) % 7;
 
-  const now   = new Date();
-  const first = new Date(calYear, calMonth, 1);
-  const days  = new Date(calYear, calMonth+1, 0).getDate();
-  const startDow = (first.getDay()+6) % 7; 
-
-  const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-  const DOW_LABELS = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
+  const TR_MONTHS   = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const DOW_LABELS  = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
 
   const workDates = new Set(), persDates = new Set();
   const addDates = (key, set) => DB.get(key,[]).forEach(i => { if(i.date) set.add(i.date); if(i.start) set.add(i.start); });
   addDates('work_appts', workDates); addDates('work_todos', workDates); addDates('work_travels', workDates);
   addDates('pers_appts', persDates); addDates('pers_todos', persDates); addDates('pers_travels', persDates);
-  
   DB.get('pers_birthdays',[]).forEach(b => {
     const ds = `${calYear}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`;
     persDates.add(ds);
@@ -1855,58 +1982,74 @@ function renderCalendar() {
 
   let cells = '';
   const prevDays = new Date(calYear, calMonth, 0).getDate();
-  for (let i = startDow-1; i >= 0; i--) {
+  for (let i = startDow-1; i >= 0; i--)
     cells += `<div class="cal-day other-month"><span class="cal-day-num">${prevDays-i}</span></div>`;
-  }
+
   for (let d = 1; d <= days; d++) {
-    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const holidayKey = `${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday    = d===now.getDate() && calMonth===now.getMonth() && calYear===now.getFullYear();
-    const isHoliday  = !!TR_HOLIDAYS[holidayKey];
-    const dow        = new Date(calYear, calMonth, d).getDay(); 
-    const isWeekend  = dow === 0 || dow === 6;
-    const isSelected = calSelectedDay === ds;
-    const hasWork    = workDates.has(ds);
-    const hasPers    = persDates.has(ds);
+    const ds      = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const holiday = getHolidayName(ds);
+    const isToday   = d===now.getDate() && calMonth===now.getMonth() && calYear===now.getFullYear();
+    const dow       = new Date(calYear, calMonth, d).getDay();
+    const isWeekend = dow===0 || dow===6;
+    const isSelected= calSelectedDay===ds;
+    const hasWork   = workDates.has(ds);
+    const hasPers   = persDates.has(ds);
+
     let dots = '';
-    if (hasWork)   dots += `<div class="cal-dot cal-dot-work"></div>`;
-    if (hasPers)   dots += `<div class="cal-dot cal-dot-pers"></div>`;
-    if (isHoliday) dots += `<div class="cal-dot cal-dot-holiday"></div>`;
-    cells += `<div class="cal-day ${isToday?'today':''} ${isHoliday?'holiday':''} ${isWeekend&&!isToday?'weekend':''} ${isSelected?'selected':''}"
-      onclick="calDayClick('${ds}')" title="${isHoliday?TR_HOLIDAYS[holidayKey]:''}">
+    if (hasWork) dots += `<div class="cal-dot cal-dot-work"></div>`;
+    if (hasPers) dots += `<div class="cal-dot cal-dot-pers"></div>`;
+    if (holiday) dots += `<div class="cal-dot cal-dot-holiday"></div>`;
+
+    // Dini bayram ayrı renk
+    const isNational = holiday && holiday.type==='national';
+    const isReligious= holiday && holiday.type==='religious';
+    const extraClass = isReligious ? 'religious' : (isNational ? 'holiday' : '');
+
+    cells += `<div class="cal-day ${isToday?'today':''} ${extraClass} ${isWeekend&&!isToday&&!isReligious?'weekend':''} ${isSelected?'selected':''}"
+      onclick="calDayClick('${ds}')" title="${holiday?holiday.name:''}">
       <span class="cal-day-num">${d}</span>
       ${dots ? `<div class="cal-dots">${dots}</div>` : ''}
     </div>`;
   }
-  
+
   const totalCells = startDow + days;
-  const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-  for (let d = 1; d <= remaining; d++) {
+  const remaining  = totalCells%7===0 ? 0 : 7-(totalCells%7);
+  for (let d=1; d<=remaining; d++)
     cells += `<div class="cal-day other-month"><span class="cal-day-num">${d}</span></div>`;
-  }
 
   let popup = '';
   if (calSelectedDay) {
-    const items = getCalDayItems(calSelectedDay);
+    const items  = getCalDayItems(calSelectedDay);
     const dParts = calSelectedDay.split('-');
     const dLabel = `${parseInt(dParts[2])} ${TR_MONTHS[parseInt(dParts[1])-1]}`;
-    const hKey   = `${dParts[1]}-${dParts[2]}`;
+    const hol    = getHolidayName(calSelectedDay);
     popup = `<div class="cal-popup">
-      <div class="cal-popup-title">${dLabel}${TR_HOLIDAYS[hKey]?` · <span class="cal-holiday-badge">${TR_HOLIDAYS[hKey]}</span>`:''}</div>
+      <div class="cal-popup-title">${dLabel}${hol?` · <span class="cal-holiday-badge">${hol.name}</span>`:''}</div>
       ${items.length ? items.map(i=>`
-        <div class="cal-popup-item" onclick="${i.onclick}" style="cursor:pointer;">
-          <div class="cal-popup-dot" style="background:${i.ctx==='work'?'#5C8BB8':'#5C9E78'}"></div>
+        <div class="cal-popup-item" ${i.onclick?`onclick="${i.onclick}" style="cursor:pointer;"`:''}> 
+          <div class="cal-popup-dot" style="background:${i.ctx==='work'?'#5C8BB8':i.ctx==='holiday'?'#D86D6D':'#5C9E78'}"></div>
           <span style="flex:1;">${esc(i.title)}</span>
           <span style="font-size:11px;color:var(--muted);">${i.time||''}</span>
         </div>`).join('') : `<div style="font-size:13px;color:var(--muted);font-style:italic;">Bu günde kayıt yok.</div>`}
     </div>`;
   }
 
+  // Mobil için X butonu göster
+  const isMobile = el.id === 'cal-panel-mobile';
+  const closeBtn = isMobile ? `<button onclick="toggleMobileCal()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;padding:2px 6px;border-radius:8px;transition:background 0.15s;" title="Kapat">✕</button>` : '';
+
   el.innerHTML = `
     <div class="cal-header">
-      <button class="cal-nav" onclick="calNav(-1)">&#8249;</button>
+      <button class="cal-nav" onclick="calNavInEl(event,-1)">&#8249;</button>
       <span class="cal-title">${TR_MONTHS[calMonth]} ${calYear}</span>
-      <button class="cal-nav" onclick="calNav(1)">&#8250;</button>
+      <button class="cal-nav" onclick="calNavInEl(event,1)">&#8250;</button>
+      ${closeBtn}
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
+      <span style="font-size:10px;display:flex;align-items:center;gap:4px;color:var(--muted);"><span style="width:8px;height:8px;border-radius:50%;background:#D86D6D;display:inline-block;"></span>Millî</span>
+      <span style="font-size:10px;display:flex;align-items:center;gap:4px;color:var(--muted);"><span style="width:8px;height:8px;border-radius:50%;background:#9B6FD0;display:inline-block;"></span>Dinî</span>
+      <span style="font-size:10px;display:flex;align-items:center;gap:4px;color:var(--muted);"><span style="width:8px;height:8px;border-radius:50%;background:#5C8BB8;display:inline-block;"></span>İş</span>
+      <span style="font-size:10px;display:flex;align-items:center;gap:4px;color:var(--muted);"><span style="width:8px;height:8px;border-radius:50%;background:#5C9E78;display:inline-block;"></span>Kişisel</span>
     </div>
     <div class="cal-grid">
       ${DOW_LABELS.map(l=>`<div class="cal-dow">${l}</div>`).join('')}
@@ -1915,7 +2058,8 @@ function renderCalendar() {
     ${popup}`;
 }
 
-function calNav(dir) {
+function calNavInEl(e, dir) {
+  e.stopPropagation();
   calMonth += dir;
   if (calMonth > 11) { calMonth = 0;  calYear++; }
   if (calMonth < 0)  { calMonth = 11; calYear--; }
@@ -1930,27 +2074,25 @@ function calDayClick(ds) {
 
 function getCalDayItems(ds) {
   const items = [];
-  const push = (key, icon, ctx, mod, getTitle, getTime) => {
+  const push = (key, ctx, mod, getTitle, getTime) => {
     DB.get(key,[]).forEach(i => {
       const iDate = i.date || i.start;
-      if (iDate === ds) items.push({ title: getTitle(i), time: getTime(i), ctx, onclick: `switchModule('${mod}','${ctx}')` });
+      if (iDate === ds) items.push({ title:getTitle(i), time:getTime(i), ctx, onclick:`switchModule('${mod}','${ctx}')` });
     });
   };
-  push('work_appts', '🗓️', 'work', 'appointments', i=>i.title, i=>i.time||'');
-  push('pers_appts', '📍', 'pers', 'appointments', i=>i.title, i=>i.time||'');
-  push('work_todos', '💼', 'work', 'todos',        i=>i.title, i=>'');
-  push('pers_todos', '✅', 'pers', 'todos',        i=>i.title, i=>'');
-  push('work_travels','✈️','work', 'travels',      i=>i.dest,  i=>'');
-  push('pers_travels','🎒','pers', 'travels',      i=>i.dest,  i=>'');
-  
+  push('work_appts', 'work', 'appointments', i=>i.title, i=>i.time||'');
+  push('pers_appts', 'pers', 'appointments', i=>i.title, i=>i.time||'');
+  push('work_todos', 'work', 'todos',        i=>i.title, i=>'');
+  push('pers_todos', 'pers', 'todos',        i=>i.title, i=>'');
+  push('work_travels','work','travels',      i=>i.dest,  i=>'');
+  push('pers_travels','pers','travels',      i=>i.dest,  i=>'');
   const dParts = ds.split('-');
   DB.get('pers_birthdays',[]).forEach(b => {
     if (b.month===parseInt(dParts[1]) && b.day===parseInt(dParts[2]))
       items.push({ title:`🎂 ${b.name}`, time:'', ctx:'pers', onclick:`switchModule('birthdays','pers')` });
   });
-  
-  const hKey = `${dParts[1]}-${dParts[2]}`;
-  if (TR_HOLIDAYS[hKey]) items.unshift({ title: TR_HOLIDAYS[hKey], time:'', ctx:'holiday', onclick:'' });
+  const hol = getHolidayName(ds);
+  if (hol) items.unshift({ title: hol.name, time:'', ctx:'holiday', onclick:'' });
   return items;
 }
 
