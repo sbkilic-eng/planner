@@ -135,8 +135,23 @@
   /* Daha Sonra Renklendirebilmen İçin Özel Class'lar */
   .widget-color-1 { background: var(--surface); } /* Takvim Bloğu */
   .widget-color-2 { background: var(--surface); border: 1px solid #D84040; } /* Hızlı Not Bloğu (Kırmızı Çerçeve) */
-  .widget-color-3 { background: var(--surface); } /* Boş Blok 1 */
-  .widget-color-4 { background: var(--surface); } /* Boş Blok 2 */
+  .widget-color-3 { background: var(--surface); }
+  .widget-color-4 { background: var(--surface); }
+
+  /* Listeler Widget */
+  .lw-tabs { display:flex; gap:6px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .lw-tab { flex:1; font-size:11px; font-weight:700; padding:8px 4px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); cursor:pointer; transition:all 0.15s; font-family:inherit; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lw-tab:hover { color:var(--text); }
+  .lw-tab.active { background:var(--accent-light); border-color:var(--accent); color:var(--accent); }
+  .lw-list { display:flex; flex-direction:column; gap:6px; min-height:100px; }
+  .lw-item { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--bg); border:1px solid var(--border); border-radius:8px; font-size:13px; }
+  .lw-item-bullet { width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+  .lw-item-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+  .lw-empty { text-align:center; padding:20px 12px; color:var(--muted); font-size:12px; font-style:italic; }
+  .lw-footer { margin-top:12px; padding-top:10px; border-top:1px solid var(--border); text-align:center; }
+  .lw-link { background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; font-weight:700; font-family:inherit; padding:4px 8px; }
+  .lw-link:hover { text-decoration:underline; }
+  .lw-header { font-size:14px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
 
   .section { display: none; animation: fadeIn 0.3s ease; } .section.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -171,6 +186,14 @@
   /* Takvim dini bayram rengi */
   .cal-day.religious { background: rgba(155,111,208,0.13); }
   .cal-day.religious .cal-day-num { color: #9B6FD0; font-weight: 800; }
+
+  /* Mobilde swipe-wrap içindeki X silme ikonunu gizle */
+  @media (max-width: 900px) {
+    .swipe-wrap .card-actions .btn-icon:last-child,
+    .swipe-wrap .todo-item > .btn-icon:last-child,
+    .swipe-wrap .card > .btn-icon[onclick*="del"],
+    .swipe-hide-mobile { display: none !important; }
+  }
 
   /* ================= MOBİL ================= */
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(2px); }
@@ -571,6 +594,10 @@
           </div>
         </button>
       </div>
+    </div>
+
+    <!-- SABİT FOOTER -->
+    <div class="sidebar-footer">
       <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="exportData()">💾 <span data-i18n="export">Yedekle (TXT)</span></button>
       <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="document.getElementById('imp').click()">📂 <span data-i18n="import">Veri Yükle</span></button>
       <input type="file" id="imp" style="display:none" onchange="importData(event)">
@@ -691,10 +718,13 @@
           <!-- Satır 1: Takvim + Boş Blok 1 -->
           <div class="widget-grid-row" id="widget-row-1">
             <div class="widget-panel widget-color-1 cal-panel" id="cal-panel"></div>
-            <div class="widget-panel widget-color-3" id="widget-3" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:240px; opacity:0.6; border-style:dashed;">
-              <div style="font-size:28px; margin-bottom:8px;">📚</div>
-              <div style="font-size:14px; font-weight:600; color:var(--muted);">Boş Blok 1</div>
-              <div style="font-size:11px; color:var(--muted); margin-top:4px;">(Kitap veya Film Takibi)</div>
+            <div class="widget-panel widget-color-3" id="widget-3">
+              <div class="lw-header"><span>📋</span><span>Listelerim</span></div>
+              <div class="lw-tabs" id="lw-tabs"></div>
+              <div class="lw-list" id="lw-list"></div>
+              <div class="lw-footer">
+                <button class="lw-link" onclick="switchModule('lists','pers')">Tüm listeyi gör →</button>
+              </div>
             </div>
           </div>
           <!-- Satır 2: Sabit Hızlı Not + Boş Blok 2 -->
@@ -1443,8 +1473,7 @@ function renderSummary() {
 
   el.innerHTML = html;
   renderCalendar();
-
-  // Açık olan bölümleri geri yükle
+  renderListsWidget();
   requestAnimationFrame(() => {
     restoreCollapsible('sum-future-list','sum-future-inner','sum-future-arrow', futureOpen);
     restoreCollapsible('sum-past-list',  'sum-past-inner',  'sum-past-arrow',   pastOpen);
@@ -1670,7 +1699,7 @@ function renderHabits() {
 function getCatKeys() { return DB.get('pers_listcats',['Alışveriş','İzlenecekler','Kitaplar']); }
 function getActiveCat() { return DB.get('pers_activecat',getCatKeys()[0]); }
 function safe(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
-function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); }
+function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); renderListsWidget(); }
 function saveNewListCat(){ const n=document.getElementById('m-newlist-name').value.trim(); if(!n)return; const c=getCatKeys(); if(!c.includes(n))c.push(n); DB.set('pers_listcats',c); DB.set('pers_activecat',n); closeModal('modal-newlist'); renderLists(); }
 function addLItem(cat){ 
   const inputId = 'li-' + safe(cat);
@@ -1914,15 +1943,29 @@ function renderNotes() {
   el.innerHTML = arr.map(n => {
     const d = new Date(n.d);
     const cCount = (n.contacts||[]).length;
-    return `<div class="card" style="cursor:pointer;" data-id="${n.id}" onclick="openNoteEditor('${n.id}')">
-      <div class="card-title">${esc(n.title)}</div>
-      <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;display:flex;gap:10px;align-items:center;">
-        <span>${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</span>
-        ${cCount ? `<span style="color:var(--accent)">👤 ${cCount} kişi</span>` : ''}
+    return `<div class="swipe-wrap">
+      <div class="swipe-del-btn" onclick="deleteNoteById('${n.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+      <div class="card" style="cursor:pointer;margin-bottom:0;" data-id="${n.id}" onclick="openNoteEditor('${n.id}')">
+        <div class="card-actions">
+          <button class="btn-icon swipe-hide-mobile" onclick="event.stopPropagation();deleteNoteById('${n.id}')">&#10005;</button>
+        </div>
+        <div class="card-title">${esc(n.title)}</div>
+        <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;display:flex;gap:10px;align-items:center;">
+          <span>${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</span>
+          ${cCount ? `<span style="color:var(--accent)">👤 ${cCount} kişi</span>` : ''}
+        </div>
       </div>
     </div>`;
   }).join('');
+  initSwipeForList('notes-list');
+}
+
+function deleteNoteById(nid) {
+  if (!confirm('Silinsin mi?')) return;
+  const k = getNoteKey();
+  DB.set(k, DB.get(k,[]).filter(x => x.id !== nid));
+  renderNotes();
 }
 
 // ==================== KİŞİLER ====================
@@ -2000,6 +2043,44 @@ function saveWidgetQNote() {
     if(currentModule === 'quicknotes') renderQNotes();
 }
 
+// ==================== LİSTELER WIDGET ====================
+let lwActiveCat = null;
+
+function renderListsWidget() {
+  const tabsEl = document.getElementById('lw-tabs');
+  const listEl = document.getElementById('lw-list');
+  if (!tabsEl || !listEl) return;
+
+  const cats = getCatKeys().slice(0, 3);
+  if (!cats.length) {
+    tabsEl.innerHTML = '';
+    listEl.innerHTML = `<div class="lw-empty">Henüz liste kategorisi yok.</div>`;
+    return;
+  }
+  if (!lwActiveCat || !cats.includes(lwActiveCat)) lwActiveCat = cats[0];
+
+  tabsEl.innerHTML = cats.map(c =>
+    `<button class="lw-tab ${c===lwActiveCat?'active':''}" onclick="lwSwitchCat('${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</button>`
+  ).join('');
+
+  const items = DB.get('pers_list_'+lwActiveCat, []).filter(i => !i.d).slice(0, 6);
+  if (!items.length) {
+    listEl.innerHTML = `<div class="lw-empty">"${esc(lwActiveCat)}" listesi boş.</div>`;
+    return;
+  }
+  listEl.innerHTML = items.map(i =>
+    `<div class="lw-item">
+      <div class="lw-item-bullet"></div>
+      <span class="lw-item-text">${esc(i.t)}</span>
+    </div>`
+  ).join('');
+}
+
+function lwSwitchCat(cat) {
+  lwActiveCat = cat;
+  renderListsWidget();
+}
+
 function closeQNoteEditor() {
   const b = document.getElementById('qnote-body').value.trim();
   if (b) saveQNote(); else document.getElementById('qnote-editor').classList.remove('open');
@@ -2019,11 +2100,21 @@ function renderQNotes() {
   el.innerHTML = arr.map(n => {
     const d = new Date(n.d);
     const dateStr = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    return `<div class="qnote-card" data-id="${n.id}" onclick="openQNoteEditor('${n.id}')">
-      <div class="qnote-text">${esc(n.body)}</div>
-      <div class="qnote-date">⚡ ${dateStr}</div>
+    return `<div class="swipe-wrap">
+      <div class="swipe-del-btn" onclick="deleteQNoteById('${n.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+      <div class="qnote-card" style="margin-bottom:0;position:relative;" data-id="${n.id}" onclick="openQNoteEditor('${n.id}')">
+        <button class="btn-icon swipe-hide-mobile" style="position:absolute;top:10px;right:10px;font-size:14px;" onclick="event.stopPropagation();deleteQNoteById('${n.id}')">&#10005;</button>
+        <div class="qnote-text" style="padding-right:28px;">${esc(n.body)}</div>
+        <div class="qnote-date">⚡ ${dateStr}</div>
+      </div>
     </div>`;
   }).join('');
+  initSwipeForList('qnotes-list');
+}
+
+function deleteQNoteById(nid) {
+  DB.set('quick_notes', DB.get('quick_notes',[]).filter(x => x.id !== nid));
+  renderQNotes();
 }
 
 // ==================== TAKVİM ====================
@@ -2422,6 +2513,7 @@ function init() {
   
   // Widgetların (Takvim vb.) ekran boyutuna göre yerleşimi
   relocateWidgets();
+  renderListsWidget();
   
   setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
 }
