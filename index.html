@@ -157,6 +157,13 @@
   .search-result-meta { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
   .search-empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 16px; font-style: italic; }
 
+  /* ================= SWIPE TO DELETE ================= */
+  .swipe-wrap { position: relative; overflow: hidden; border-radius: 16px; margin-bottom: 10px; }
+  .swipe-wrap .card, .swipe-wrap .todo-item { margin-bottom: 0; border-radius: 16px; transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); will-change: transform; }
+  .swipe-del-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--accent-danger); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; color: white; font-size: 11px; font-weight: 800; border-radius: 0 16px 16px 0; cursor: pointer; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+  .swipe-del-btn.visible { opacity: 1; pointer-events: auto; }
+  .swipe-del-btn-icon { font-size: 20px; }
+
   /* ================= MOBİL ================= */
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(2px); }
   @media (max-width: 900px) {
@@ -828,9 +835,46 @@
 <div class="modal-overlay" id="modal-habit">
   <div class="modal">
     <div class="modal-title">Rutin Ekle</div>
-    <div class="form-row"><label>Alışkanlık Adı</label><input type="text" id="m-habit-name"></div>
-    <div class="form-row"><label>Haftalık Hedef (Gün)</label><select id="m-habit-target"><option value="7">7 Gün</option><option value="5">5 Gün</option><option value="3">3 Gün</option><option value="1">1 Gün</option></select></div>
-    <div class="form-row-2"><button class="btn-primary" onclick="saveHabit()">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-habit')">İptal</button></div>
+    <div class="form-row">
+      <label>Hazır Şablonlar</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="btn-ghost" style="font-size:12px;padding:8px;border-radius:10px;text-align:left;" onclick="fillHabitTemplate('🍬 Şekersiz','21')">🍬 Şekersiz 21 Gün</button>
+        <button class="btn-ghost" style="font-size:12px;padding:8px;border-radius:10px;text-align:left;" onclick="fillHabitTemplate('💪 Günlük Egzersiz','30')">💪 Günlük Egzersiz</button>
+        <button class="btn-ghost" style="font-size:12px;padding:8px;border-radius:10px;text-align:left;" onclick="fillHabitTemplate('📵 Dijital Detoks','21')">📵 Dijital Detoks</button>
+        <button class="btn-ghost" style="font-size:12px;padding:8px;border-radius:10px;text-align:left;" onclick="fillHabitTemplate('📚 Günlük Okuma','21')">📚 Günlük Okuma</button>
+        <button class="btn-ghost" style="font-size:12px;padding:8px;border-radius:10px;text-align:left;" onclick="fillHabitTemplate('💧 8 Bardak Su','15')">💧 8 Bardak Su</button>
+        <button class="btn-ghost" style="font-size:12px;padding:8px;border-radius:10px;text-align:left;" onclick="fillHabitTemplate('🛏️ Erken Uyu','21')">🛏️ Erken Uyu</button>
+        <button class="btn-ghost" style="font-size:12px;padding:8px;border-radius:10px;text-align:left;" onclick="fillHabitTemplate('🚶 10.000 Adım','30')">🚶 10.000 Adım</button>
+        <button class="btn-ghost" style="font-size:12px;padding:8px;border-radius:10px;text-align:left;" onclick="fillHabitTemplate('🧘 Meditasyon','21')">🧘 Meditasyon</button>
+      </div>
+    </div>
+    <div style="height:1px;background:var(--border);margin:12px 0;"></div>
+    <div class="form-row"><label>Alışkanlık Adı</label><input type="text" id="m-habit-name" placeholder="Kendi alışkanlığını yaz..."></div>
+    <div class="form-row-2">
+      <div>
+        <label>Haftalık Hedef</label>
+        <select id="m-habit-target">
+          <option value="7">Her gün (7)</option>
+          <option value="5">5 gün</option>
+          <option value="3">3 gün</option>
+          <option value="1">1 gün</option>
+        </select>
+      </div>
+      <div>
+        <label>Süre Hedefi</label>
+        <select id="m-habit-duration">
+          <option value="0">Süresiz</option>
+          <option value="15">15 Gün</option>
+          <option value="21">21 Gün ⭐</option>
+          <option value="30">30 Gün</option>
+          <option value="60">60 Gün</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row-2">
+      <button class="btn-primary" onclick="saveHabit()">Kaydet</button>
+      <button class="btn-ghost" onclick="closeModal('modal-habit')">İptal</button>
+    </div>
   </div>
 </div>
 
@@ -1398,7 +1442,23 @@ function getApptKey() { return currentContext+'_appts'; }
 function openApptForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getApptKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-appt-title').value=d?d.title:''; document.getElementById('m-appt-date').value=d?d.date:new Date().toISOString().split('T')[0]; document.getElementById('m-appt-time').value=d?d.time||'':''; document.getElementById('m-appt-note').value=d?d.note||'':''; openModal('modal-appt'); }
 function saveAppt() { const t=document.getElementById('m-appt-title').value.trim(); if(!t)return; const k=getApptKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} arr.sort((a,b)=>(a.date+(a.time||''))<(b.date+(b.time||''))?-1:1); DB.set(k,arr); closeModal('modal-appt'); renderAppts(); checkAndNotify(); }
 function delAppt(id) { if(!confirm("Silinsin mi?"))return; const k=getApptKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderAppts(); }
-function renderAppts() { const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.date,a.time);return `<div class="card">${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}</div>`;}).join(''); }
+function renderAppts() {
+  const arr=DB.get(getApptKey(),[]); const el=document.getElementById('appt-list');
+  if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  el.innerHTML=arr.map(a=>{const cd=getCountdown(a.date,a.time);
+    return `<div class="swipe-wrap">
+      <div class="swipe-del-btn" onclick="delAppt('${a.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+      <div class="card" data-id="${a.id}">
+        ${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}
+        <div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div>
+        <div class="card-title">${esc(a.title)}</div>
+        <div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>
+        ${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  initSwipeForList('appt-list');
+}
 
 // ==================== 3. TODOS ====================
 function getTodoKey() { return currentContext+'_todos'; }
@@ -1428,10 +1488,24 @@ function renderTodos() {
   if(activeTagFilter) arr=arr.filter(t=>t.tag===activeTagFilter);
   const el=document.getElementById('todo-list');
   if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
-  const po={high:0,normal:1}; const un=arr.filter(t=>!t.done).sort((a,b)=>po[a.pri]-po[b.pri]||(a.date>b.date?1:-1)); const dn=arr.filter(t=>t.done);
-  const r=(t)=>{ const cd=getCountdown(t.date,null); const rl=t.rec===1?'1 Gün':t.rec===7?'1 Hafta':t.rec===30?'1 Ay':'';
-    return `<div class="todo-item priority-${t.pri} ${t.done?'done':''}"><div class="list-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div><div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}${t.tag?tagPill(t.tag,t.tagColor):''}</div><div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div><button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button><button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button></div>`; };
+  const po={high:0,normal:1};
+  const un=arr.filter(t=>!t.done).sort((a,b)=>po[a.pri]-po[b.pri]||(a.date>b.date?1:-1));
+  const dn=arr.filter(t=>t.done);
+  const r=(t)=>{
+    const cd=getCountdown(t.date,null); const rl=t.rec===1?'1 Gün':t.rec===7?'1 Hafta':t.rec===30?'1 Ay':'';
+    return `<div class="swipe-wrap">
+      <div class="swipe-del-btn" onclick="delTodo('${t.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+      <div class="todo-item priority-${t.pri} ${t.done?'done':''}" data-id="${t.id}">
+        <div class="list-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}${t.tag?tagPill(t.tag,t.tagColor):''}</div>
+        <div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div>
+        <button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button>
+        <button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button>
+      </div>
+    </div>`;
+  };
   el.innerHTML=(un.length?un.map(r).join(''):'<div class="empty">Tüm görevler tamam! 🎉</div>')+(dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:'');
+  initSwipeForList('todo-list');
 }
 
 // ==================== 4. TRAVELS ====================
@@ -1439,32 +1513,143 @@ function getTravKey() { return currentContext+'_travels'; }
 function openTravelForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getTravKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-travel-dest').value=d?d.dest:''; document.getElementById('m-travel-start').value=d?d.start:''; document.getElementById('m-travel-end').value=d?d.end:''; document.getElementById('m-travel-note').value=d?d.note||'':''; openModal('modal-travel'); }
 function saveTravel() { const t=document.getElementById('m-travel-dest').value.trim(); if(!t)return; const k=getTravKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),dest:t,start:document.getElementById('m-travel-start').value,end:document.getElementById('m-travel-end').value,note:document.getElementById('m-travel-note').value.trim(),items:[]}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.items=arr[i].items;arr[i]=p;}}else{arr.push(p);} DB.set(k,arr); closeModal('modal-travel'); renderTravels(); }
 function toggleTravelBody(id) { document.getElementById('tb-'+id).classList.toggle('open'); document.getElementById('tc-'+id).classList.toggle('open'); }
-function addTravItem(tid){ 
-  const v=document.getElementById('ti-'+tid).value.trim(); 
-  if(!v)return; 
-  const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); 
-  if(o){ o.items.push({id:id(),t:v,d:false}); DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); document.getElementById('ti-'+tid).focus(); } 
-}
-function togTravItem(tid,iid){ 
-  const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); 
-  if(o){ const i=o.items.find(x=>x.id===iid); if(i)i.d=!i.d; DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); } 
-}
-function delTravItem(tid,iid){ 
-  const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); 
-  if(o){ o.items=o.items.filter(x=>x.id!==iid); DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); } 
-}
+function addTravItem(tid){ const v=document.getElementById('ti-'+tid).value.trim(); if(!v)return; const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){ o.items.push({id:id(),t:v,d:false}); DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); document.getElementById('ti-'+tid).focus(); } }
+function togTravItem(tid,iid){ const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){ const i=o.items.find(x=>x.id===iid); if(i)i.d=!i.d; DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); } }
+function delTravItem(tid,iid){ const k=getTravKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===tid); if(o){ o.items=o.items.filter(x=>x.id!==iid); DB.set(k,arr); renderTravels(); document.getElementById('tb-'+tid).classList.add('open'); document.getElementById('tc-'+tid).classList.add('open'); } }
 function delTrav(id){ if(confirm("Silinsin mi?")){const k=getTravKey();DB.set(k,DB.get(k,[]).filter(x=>x.id!==id));renderTravels();} }
-function renderTravels() { const arr=DB.get(getTravKey(),[]); const el=document.getElementById('travel-list'); if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;} el.innerHTML=arr.map(a=>{const cd=getCountdown(a.start,null);const dr=[a.start&&formatDate(a.start),a.end&&formatDate(a.end)].filter(Boolean).join(' - ');const items=(a.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togTravItem('${a.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delTravItem('${a.id}','${i.id}')">✕</button></div>`).join('');return `<div class="card"><div class="acc-header" onclick="toggleTravelBody('${a.id}')"><div>${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-title" style="font-size:22px;margin:0;">${esc(a.dest)}</div><div class="card-meta" style="margin-top:4px;">${dr}</div></div><div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openTravelForm('${a.id}')">&#9998;</button><span class="chevron" id="tc-${a.id}">▼</span></div></div><div class="acc-body" id="tb-${a.id}">${a.note?`<div class="card-note" style="margin-bottom:10px;">${esc(a.note)}</div>`:''}<div>${items}</div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="ti-${a.id}" placeholder="Not veya rota ekle..." onkeydown="if(event.key==='Enter')addTravItem('${a.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addTravItem('${a.id}')">+</button></div><button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delTrav('${a.id}')">Seyahati Sil</button></div></div>`;}).join(''); }
+function renderTravels() {
+  const arr=DB.get(getTravKey(),[]); const el=document.getElementById('travel-list');
+  if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
+  el.innerHTML=arr.map(a=>{
+    const cd=getCountdown(a.start,null); const dr=[a.start&&formatDate(a.start),a.end&&formatDate(a.end)].filter(Boolean).join(' - ');
+    const items=(a.items||[]).map(i=>`<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togTravItem('${a.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delTravItem('${a.id}','${i.id}')">✕</button></div>`).join('');
+    return `<div class="swipe-wrap">
+      <div class="swipe-del-btn" onclick="delTrav('${a.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+      <div class="card" data-id="${a.id}">
+        <div class="acc-header" onclick="toggleTravelBody('${a.id}')">
+          <div>${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-title" style="font-size:22px;margin:0;">${esc(a.dest)}</div><div class="card-meta" style="margin-top:4px;">${dr}</div></div>
+          <div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openTravelForm('${a.id}')">&#9998;</button><span class="chevron" id="tc-${a.id}">▼</span></div>
+        </div>
+        <div class="acc-body" id="tb-${a.id}">
+          ${a.note?`<div class="card-note" style="margin-bottom:10px;">${esc(a.note)}</div>`:''}
+          <div>${items}</div>
+          <div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="ti-${a.id}" placeholder="Not veya rota ekle..." onkeydown="if(event.key==='Enter')addTravItem('${a.id}')" style="padding:8px;font-size:13px;"><button class="btn-primary" style="padding:8px 12px;" onclick="addTravItem('${a.id}')">+</button></div>
+          <button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delTrav('${a.id}')">Seyahati Sil</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  initSwipeForList('travel-list');
+}
 
 // ==================== 5. HABITS ====================
-function saveHabit() { const t=document.getElementById('m-habit-name').value.trim(); if(!t)return; const arr=DB.get('pers_habits',[]); arr.push({id:id(),n:t,tg:parseInt(document.getElementById('m-habit-target').value),c:{}}); DB.set('pers_habits',arr); closeModal('modal-habit'); renderHabits(); }
-function togHabit(id,dStr) { const arr=DB.get('pers_habits',[]); const o=arr.find(x=>x.id===id); if(o){o.c[dStr]=!o.c[dStr];DB.set('pers_habits',arr);renderHabits();} }
-function delHabit(id) { if(confirm("Silinsin mi?")){DB.set('pers_habits',DB.get('pers_habits',[]).filter(x=>x.id!==id));renderHabits();} }
+function fillHabitTemplate(name, duration) {
+  document.getElementById('m-habit-name').value = name;
+  document.getElementById('m-habit-duration').value = duration;
+  document.getElementById('m-habit-target').value = '7';
+}
+
+function saveHabit() {
+  const t = document.getElementById('m-habit-name').value.trim();
+  if (!t) return;
+  const arr = DB.get('pers_habits',[]);
+  arr.push({
+    id: id(), n: t,
+    tg: parseInt(document.getElementById('m-habit-target').value),
+    dur: parseInt(document.getElementById('m-habit-duration').value) || 0,
+    startDate: new Date().toISOString().split('T')[0],
+    c: {}
+  });
+  DB.set('pers_habits', arr);
+  closeModal('modal-habit');
+  renderHabits();
+}
+
+function togHabit(hid, dStr) {
+  const arr = DB.get('pers_habits',[]);
+  const o = arr.find(x => x.id === hid);
+  if (o) { o.c[dStr] = !o.c[dStr]; DB.set('pers_habits', arr); renderHabits(); }
+}
+
+function delHabit(hid) {
+  if (confirm('Silinsin mi?')) {
+    DB.set('pers_habits', DB.get('pers_habits',[]).filter(x => x.id !== hid));
+    renderHabits();
+  }
+}
+
 function renderHabits() {
-  const arr=DB.get('pers_habits',[]); const el=document.getElementById('habit-list');
-  if(!arr.length){el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`;return;}
-  const wDays=(()=>{const t=new Date();t.setHours(0,0,0,0);const m=new Date(t);m.setDate(t.getDate()-((t.getDay()+6)%7));const d=[];const l={tr:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'],en:['Mo','Tu','We','Th','Fr','Sa','Su']};for(let i=0;i<7;i++){const x=new Date(m);x.setDate(m.getDate()+i);d.push({ds:x.toISOString().split('T')[0],lb:l[currentLang][i],n:x.getDate(),td:x.toDateString()===t.toDateString()});}return d;})();
-  el.innerHTML=arr.map(h=>{const ch=h.c||{};const dw=wDays.filter(d=>ch[d.ds]).length;const pct=Math.min(100,Math.round((dw/h.tg)*100));const dots=wDays.map(d=>`<div class="habit-day ${ch[d.ds]?'checked':''} ${d.td?'today':''}" onclick="togHabit('${h.id}','${d.ds}')"><span style="font-size:10px;font-weight:700;opacity:0.8">${d.lb}</span><span style="font-size:13px;font-weight:700">${d.n}</span></div>`).join('');return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div class="card-title" style="margin:0;">${esc(h.n)}</div><div class="card-meta" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:2px;">${dw}/${h.tg} ${currentLang==='tr'?'hedef':'goal'}</div></div><button class="btn-icon" onclick="delHabit('${h.id}')">&#10005;</button></div><div class="habit-days">${dots}</div><div style="display:flex;align-items:center;gap:10px;margin-top:12px;"><div class="goal-bar-bg" style="margin:0;"><div class="goal-bar-fill" style="width:${pct}%"></div></div><span style="font-size:12px;font-weight:700;color:var(--muted)">%${pct}</span></div></div>`;}).join('');
+  const arr = DB.get('pers_habits',[]);
+  const el  = document.getElementById('habit-list');
+  if (!arr.length) { el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`; return; }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const wDays = (() => {
+    const m = new Date(today);
+    m.setDate(today.getDate() - ((today.getDay()+6)%7));
+    const l = { tr:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'], en:['Mo','Tu','We','Th','Fr','Sa','Su'] };
+    return Array.from({length:7}, (_,i) => {
+      const x = new Date(m); x.setDate(m.getDate()+i);
+      return { ds: x.toISOString().split('T')[0], lb: l[currentLang][i], n: x.getDate(), td: x.toDateString()===today.toDateString() };
+    });
+  })();
+
+  el.innerHTML = arr.map(h => {
+    const ch  = h.c || {};
+    const dw  = wDays.filter(d => ch[d.ds]).length;
+    const pct = Math.min(100, Math.round((dw / h.tg) * 100));
+
+    // Süre hedefi
+    let durHTML = '';
+    if (h.dur > 0 && h.startDate) {
+      const start   = new Date(h.startDate+'T00:00');
+      const endDate = new Date(start); endDate.setDate(start.getDate() + h.dur);
+      const totalDone = Object.values(ch).filter(Boolean).length;
+      const daysLeft  = Math.max(0, Math.ceil((endDate - today) / 86400000));
+      const durPct    = Math.min(100, Math.round((totalDone / h.dur) * 100));
+      durHTML = (daysLeft === 0 && durPct >= 100)
+        ? `<div style="background:rgba(92,158,120,0.15);border:1px solid var(--accent);border-radius:10px;padding:10px 12px;margin-top:10px;text-align:center;"><span style="font-size:20px;">🎉</span> <span style="font-size:13px;font-weight:700;color:var(--accent);">${h.dur} Günlük Hedef Tamamlandı!</span></div>`
+        : `<div style="margin-top:10px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px;">
+              <span>⏱️ ${h.dur} Günlük Hedef · ${totalDone} gün yapıldı</span>
+              <span>${daysLeft} gün kaldı</span>
+            </div>
+            <div class="goal-bar-bg" style="margin:0;height:6px;">
+              <div class="goal-bar-fill" style="width:${durPct}%;background:linear-gradient(90deg,var(--accent),#3E8A5C);"></div>
+            </div>
+          </div>`;
+    }
+
+    const dots = wDays.map(d =>
+      `<div class="habit-day ${ch[d.ds]?'checked':''} ${d.td?'today':''}" onclick="togHabit('${h.id}','${d.ds}')">
+        <span style="font-size:10px;font-weight:700;opacity:0.8">${d.lb}</span>
+        <span style="font-size:13px;font-weight:700">${d.n}</span>
+      </div>`
+    ).join('');
+
+    return `<div class="swipe-wrap">
+      <div class="swipe-del-btn" onclick="delHabit('${h.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+      <div class="card" style="margin-bottom:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="card-title" style="margin:0;">${esc(h.n)}</div>
+            <div class="card-meta" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:2px;">
+              ${dw}/${h.tg} ${currentLang==='tr'?'bu hafta':'this week'}
+              ${h.dur > 0 ? `· ${h.dur} günlük program` : ''}
+            </div>
+          </div>
+          <button class="btn-icon" onclick="delHabit('${h.id}')">&#10005;</button>
+        </div>
+        <div class="habit-days">${dots}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+          <div class="goal-bar-bg" style="margin:0;"><div class="goal-bar-fill" style="width:${pct}%"></div></div>
+          <span style="font-size:12px;font-weight:700;color:var(--muted)">%${pct}</span>
+        </div>
+        ${durHTML}
+      </div>
+    </div>`;
+  }).join('');
+  initSwipeForList('habit-list');
 }
 
 // ==================== 6. LISTS ====================
@@ -1604,7 +1789,9 @@ function renderBdays() {
       const dStr = `${nDate.getFullYear()}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;
       const items = (x.items||[]).map(i => `<div class="list-item-row"><div class="list-check ${i.d?'checked':''}" style="width:16px;height:16px;" onclick="togBdayItem('${x.id}','${i.id}')">${i.d?'✓':''}</div><span style="flex:1;font-size:14px;${i.d?'text-decoration:line-through;opacity:0.5':''}">${esc(i.t)}</span><button class="btn-icon" style="font-size:12px;" onclick="delBdayItem('${x.id}','${i.id}')">✕</button></div>`).join('');
       
-      return `<div class="card">
+      return `<div class="swipe-wrap">
+        <div class="swipe-del-btn" onclick="delBday('${x.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+        <div class="card" data-id="${x.id}">
           <div class="acc-header" onclick="toggleBdayBody('${x.id}')">
               <div style="display:flex;align-items:center;gap:14px;">
                   <div class="bday-avatar">${x.name.charAt(0).toUpperCase()}</div>
@@ -1627,10 +1814,11 @@ function renderBdays() {
                   <input type="text" id="bi-${x.id}" placeholder="Hediye veya sürpriz planı..." onkeydown="if(event.key==='Enter')addBdayItem('${x.id}')" style="padding:8px;font-size:13px;">
                   <button class="btn-primary" style="padding:8px 12px;" onclick="addBdayItem('${x.id}')">+</button>
               </div>
-              <button class="btn-ghost" style="width:100%;margin-top:10px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="delBday('${x.id}')">Kişiyi Sil</button>
           </div>
+        </div>
       </div>`;
-  }).join(''); 
+  }).join('');
+  initSwipeForList('bday-list');
 }
 
 // ==================== 8. NOTES ====================
@@ -1975,6 +2163,43 @@ function registerSW() {
     const swURL = URL.createObjectURL(blob);
     navigator.serviceWorker.register(swURL).catch(()=>{});
   }
+}
+
+// ==================== SWIPE TO DELETE ====================
+function initSwipeDelete(listEl) {
+  if (!listEl || !('ontouchstart' in window)) return;
+  listEl.querySelectorAll('.swipe-wrap').forEach(wrap => {
+    if (wrap._swipeInit) return;
+    wrap._swipeInit = true;
+    const inner = wrap.querySelector('.card, .todo-item');
+    const btn   = wrap.querySelector('.swipe-del-btn');
+    if (!inner || !btn) return;
+    let startX=0, startY=0, curX=0, dragging=false, opened=false;
+    const THRESHOLD = 60;
+    inner.addEventListener('touchstart', e => {
+      startX=e.touches[0].clientX; startY=e.touches[0].clientY; curX=0; dragging=true;
+      inner.style.transition='none';
+    }, {passive:true});
+    inner.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      const dx=e.touches[0].clientX-startX, dy=e.touches[0].clientY-startY;
+      if (!opened && Math.abs(dy)>Math.abs(dx)) { dragging=false; return; }
+      if (dx>0 && !opened) return;
+      curX=Math.max(dx,-80);
+      inner.style.transform=`translateX(${curX}px)`;
+    }, {passive:true});
+    inner.addEventListener('touchend', () => {
+      dragging=false; inner.style.transition='';
+      if (curX<-THRESHOLD) { inner.style.transform='translateX(-80px)'; btn.classList.add('visible'); opened=true; }
+      else { inner.style.transform=''; btn.classList.remove('visible'); opened=false; }
+    });
+    document.addEventListener('touchstart', e => {
+      if (opened && !wrap.contains(e.target)) { inner.style.transform=''; btn.classList.remove('visible'); opened=false; }
+    }, {passive:true});
+  });
+}
+function initSwipeForList(listId) {
+  setTimeout(() => initSwipeDelete(document.getElementById(listId)), 100);
 }
 
 // ==================== YAZDIR ====================
