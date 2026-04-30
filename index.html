@@ -2353,7 +2353,7 @@ function initSwipeDelete(listEl) {
   listEl.querySelectorAll('.swipe-wrap').forEach(wrap => {
     if (wrap._swipeInit) return;
     wrap._swipeInit = true;
-    const inner = wrap.querySelector('.card, .todo-item');
+    const inner = wrap.querySelector('.card, .todo-item, .qnote-card');
     const btn   = wrap.querySelector('.swipe-del-btn');
     if (!inner || !btn) return;
     let startX=0, startY=0, curX=0, dragging=false, opened=false;
