@@ -172,7 +172,7 @@
 
   /* ================= SWIPE TO DELETE ================= */
   .swipe-wrap { position: relative; overflow: hidden; border-radius: 16px; margin-bottom: 10px; }
-  .swipe-wrap .card, .swipe-wrap .todo-item { margin-bottom: 0; border-radius: 16px; transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); will-change: transform; }
+  .swipe-wrap .card, .swipe-wrap .todo-item, .swipe-wrap .qnote-card { margin-bottom: 0; border-radius: 16px; transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); will-change: transform; }
   .swipe-del-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--accent-danger); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; color: white; font-size: 11px; font-weight: 800; border-radius: 0 16px 16px 0; cursor: pointer; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
   .swipe-del-btn.visible { opacity: 1; pointer-events: auto; }
   .swipe-del-btn-icon { font-size: 20px; }
@@ -332,6 +332,7 @@
   /* Hızlı not post-it */
   .qnote-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:10px; cursor:pointer; transition:transform 0.15s; box-shadow:var(--shadow); border-left:4px solid #D84040; }
   .qnote-card:hover { transform:translateX(5px); }
+  .swipe-wrap .qnote-card:hover { transform:none; }
   .qnote-text { font-size:14px; color:var(--text); line-height:1.6; white-space:pre-wrap; }
   .qnote-date { font-size:11px; color:var(--muted); font-weight:700; margin-top:8px; }
   .qnote-editor { display:none; position:fixed; inset:0; background:var(--bg); z-index:300; flex-direction:column; max-width:820px; margin:0 auto; }
