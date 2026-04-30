@@ -1964,15 +1964,29 @@ function renderNotes() {
   el.innerHTML = arr.map(n => {
     const d = new Date(n.d);
     const cCount = (n.contacts||[]).length;
-    return `<div class="card" style="cursor:pointer;" data-id="${n.id}" onclick="openNoteEditor('${n.id}')">
-      <div class="card-title">${esc(n.title)}</div>
-      <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;display:flex;gap:10px;align-items:center;">
-        <span>${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</span>
-        ${cCount ? `<span style="color:var(--accent)">👤 ${cCount} kişi</span>` : ''}
+    return `<div class="swipe-wrap">
+      <div class="swipe-del-btn" onclick="deleteNoteById('${n.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+      <div class="card" style="cursor:pointer;margin-bottom:0;" data-id="${n.id}" onclick="openNoteEditor('${n.id}')">
+        <div class="card-actions">
+          <button class="btn-icon swipe-hide-mobile" onclick="event.stopPropagation();deleteNoteById('${n.id}')">&#10005;</button>
+        </div>
+        <div class="card-title">${esc(n.title)}</div>
+        <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;display:flex;gap:10px;align-items:center;">
+          <span>${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</span>
+          ${cCount ? `<span style="color:var(--accent)">👤 ${cCount} kişi</span>` : ''}
+        </div>
       </div>
     </div>`;
   }).join('');
+  initSwipeForList('notes-list');
+}
+
+function deleteNoteById(nid) {
+  if (!confirm('Silinsin mi?')) return;
+  const k = getNoteKey();
+  DB.set(k, DB.get(k,[]).filter(x => x.id !== nid));
+  renderNotes();
 }
 
 // ==================== KİŞİLER ====================
@@ -2114,11 +2128,21 @@ function renderQNotes() {
   el.innerHTML = arr.map(n => {
     const d = new Date(n.d);
     const dateStr = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    return `<div class="qnote-card" data-id="${n.id}" onclick="openQNoteEditor('${n.id}')">
-      <div class="qnote-text">${esc(n.body)}</div>
-      <div class="qnote-date">⚡ ${dateStr}</div>
+    return `<div class="swipe-wrap">
+      <div class="swipe-del-btn" onclick="deleteQNoteById('${n.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+      <div class="qnote-card" style="margin-bottom:0;position:relative;" data-id="${n.id}" onclick="openQNoteEditor('${n.id}')">
+        <button class="btn-icon swipe-hide-mobile" style="position:absolute;top:10px;right:10px;font-size:14px;" onclick="event.stopPropagation();deleteQNoteById('${n.id}')">&#10005;</button>
+        <div class="qnote-text" style="padding-right:28px;">${esc(n.body)}</div>
+        <div class="qnote-date">⚡ ${dateStr}</div>
+      </div>
     </div>`;
   }).join('');
+  initSwipeForList('qnotes-list');
+}
+
+function deleteQNoteById(nid) {
+  DB.set('quick_notes', DB.get('quick_notes',[]).filter(x => x.id !== nid));
+  renderQNotes();
 }
 
 // ==================== TAKVİM ====================
