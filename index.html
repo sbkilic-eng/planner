@@ -172,26 +172,6 @@
   .cal-day.religious { background: rgba(155,111,208,0.13); }
   .cal-day.religious .cal-day-num { color: #9B6FD0; font-weight: 800; }
 
-  /* Mobilde swipe-wrap içindeki X silme ikonunu gizle */
-  @media (max-width: 900px) {
-    .swipe-hide-mobile { display: none !important; }
-  }
-
-  /* Listeler Widget */
-  .lw-tabs { display:flex; gap:6px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
-  .lw-tab { flex:1; font-size:11px; font-weight:700; padding:8px 4px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); cursor:pointer; transition:all 0.15s; font-family:inherit; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .lw-tab:hover { color:var(--text); }
-  .lw-tab.active { background:var(--accent-light); border-color:var(--accent); color:var(--accent); }
-  .lw-list { display:flex; flex-direction:column; gap:6px; min-height:100px; }
-  .lw-item { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--bg); border:1px solid var(--border); border-radius:8px; font-size:13px; }
-  .lw-item-bullet { width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
-  .lw-item-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
-  .lw-empty { text-align:center; padding:20px 12px; color:var(--muted); font-size:12px; font-style:italic; }
-  .lw-footer { margin-top:12px; padding-top:10px; border-top:1px solid var(--border); text-align:center; }
-  .lw-link { background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; font-weight:700; font-family:inherit; padding:4px 8px; }
-  .lw-link:hover { text-decoration:underline; }
-  .lw-header { font-size:14px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
-
   /* ================= MOBİL ================= */
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(2px); }
   @media (max-width: 900px) {
@@ -393,6 +373,14 @@
   .modal { background: var(--surface); width: 90%; max-width: 500px; border-radius: 20px; padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
   .modal-title { font-size: 24px; font-weight:700; margin-bottom: 20px; }
 
+  /* Mobilde swipe-wrap içindeki silme X butonlarını gizle */
+  @media (max-width: 900px) {
+    .swipe-wrap .card-actions .btn-icon:last-child { display: none !important; }
+    .swipe-wrap .todo-item > .btn-icon:last-child  { display: none !important; }
+    .swipe-wrap .card > .btn-icon:last-child        { display: none !important; }
+    .swipe-hide-mobile                              { display: none !important; }
+  }
+
   /* ================= YAZDIR ================= */
   #print-area { display: none; }
 
@@ -591,8 +579,6 @@
           </div>
         </button>
       </div>
-    </div>
-    <div class="sidebar-footer">
       <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="exportData()">💾 <span data-i18n="export">Yedekle (TXT)</span></button>
       <button class="btn-ghost" style="width:100%; font-size:13px; padding:10px; border-style:dashed;" onclick="document.getElementById('imp').click()">📂 <span data-i18n="import">Veri Yükle</span></button>
       <input type="file" id="imp" style="display:none" onchange="importData(event)">
@@ -713,13 +699,10 @@
           <!-- Satır 1: Takvim + Boş Blok 1 -->
           <div class="widget-grid-row" id="widget-row-1">
             <div class="widget-panel widget-color-1 cal-panel" id="cal-panel"></div>
-            <div class="widget-panel widget-color-3" id="widget-3">
-              <div class="lw-header"><span>📋</span><span>Listelerim</span></div>
-              <div class="lw-tabs" id="lw-tabs"></div>
-              <div class="lw-list" id="lw-list"></div>
-              <div class="lw-footer">
-                <button class="lw-link" onclick="switchModule('lists','pers')">Tüm listeyi gör →</button>
-              </div>
+            <div class="widget-panel widget-color-3" id="widget-3" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:240px; opacity:0.6; border-style:dashed;">
+              <div style="font-size:28px; margin-bottom:8px;">📚</div>
+              <div style="font-size:14px; font-weight:600; color:var(--muted);">Boş Blok 1</div>
+              <div style="font-size:11px; color:var(--muted); margin-top:4px;">(Kitap veya Film Takibi)</div>
             </div>
           </div>
           <!-- Satır 2: Sabit Hızlı Not + Boş Blok 2 -->
@@ -1468,7 +1451,8 @@ function renderSummary() {
 
   el.innerHTML = html;
   renderCalendar();
-  renderListsWidget();
+
+  // Açık olan bölümleri geri yükle
   requestAnimationFrame(() => {
     restoreCollapsible('sum-future-list','sum-future-inner','sum-future-arrow', futureOpen);
     restoreCollapsible('sum-past-list',  'sum-past-inner',  'sum-past-arrow',   pastOpen);
@@ -1538,6 +1522,7 @@ function renderTodos() {
         <div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}${t.tag?tagPill(t.tag,t.tagColor):''}</div>
         <div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div>
         <button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button>
+        ${t.date?`<button class="btn-icon" onclick="downloadICS('${esc(t.title)}','${t.date}',null,'${esc(t.note||'')}')" title="Takvime Ekle">&#128197;</button>`:''}
         <button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button>
       </div>
     </div>`;
@@ -1694,7 +1679,7 @@ function renderHabits() {
 function getCatKeys() { return DB.get('pers_listcats',['Alışveriş','İzlenecekler','Kitaplar']); }
 function getActiveCat() { return DB.get('pers_activecat',getCatKeys()[0]); }
 function safe(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
-function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); renderListsWidget(); }
+function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); }
 function saveNewListCat(){ const n=document.getElementById('m-newlist-name').value.trim(); if(!n)return; const c=getCatKeys(); if(!c.includes(n))c.push(n); DB.set('pers_listcats',c); DB.set('pers_activecat',n); closeModal('modal-newlist'); renderLists(); }
 function addLItem(cat){ 
   const inputId = 'li-' + safe(cat);
@@ -1722,44 +1707,13 @@ function delListCat(cat){
     DB.set('pers_activecat', cats.length ? cats[0] : ''); renderLists();
   }
 }
-function updLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.p=document.getElementById('lp-'+id).value.trim();o.n=document.getElementById('ln-'+id).value.trim();DB.set('pers_list_'+cat,arr); renderListItems(cat);} }
+function updLItem(cat,id){ const arr=DB.get('pers_list_'+cat,[]); const o=arr.find(x=>x.id===id); if(o){o.p=document.getElementById('lp-'+id).value.trim();o.n=document.getElementById('ln-'+id).value.trim();DB.set('pers_list_'+cat,arr);} }
 function togLBody(id){ document.getElementById('lb-'+id).classList.toggle('open'); document.getElementById('lc-'+id).classList.toggle('open'); }
-
-function getLinkDomain(url) {
-  if (!url) return null;
-  const s = url.startsWith('http') ? url : 'https://'+url;
-  try { return new URL(s).hostname.replace('www.',''); } catch(e) { return null; }
-}
-
 function renderListItems(cat) { 
   const el=document.getElementById('list-content'); 
   if(!cat) { el.innerHTML=''; return; }
   const arr=DB.get('pers_list_'+cat,[]);
-  const r=(i)=>{
-    const domain = getLinkDomain(i.p);
-    const linkUrl = i.p ? (i.p.startsWith('http') ? i.p : 'https://'+i.p) : null;
-    const linkBadge = domain && !i.d ? `<a href="${linkUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;background:var(--accent-light);padding:3px 8px;border-radius:6px;border:1px solid var(--accent);color:var(--accent);text-decoration:none;margin-right:8px;flex-shrink:0;" title="${esc(i.p)}">🔗 ${esc(domain)}</a>` : '';
-    return `<div class="card" style="padding:12px 16px;margin-bottom:8px;${i.d?'opacity:0.5;box-shadow:none;':''}">
-      <div class="acc-header" onclick="togLBody('${i.id}')">
-        <div class="list-check ${i.d?'checked':''}" style="width:20px;height:20px;" onclick="event.stopPropagation();togLItem('${esc(cat)}','${i.id}')">${i.d?'✓':''}</div>
-        <div style="flex:1;font-weight:600;font-size:15px;margin-left:12px;${i.d?'text-decoration:line-through':''}">${esc(i.t)}</div>
-        ${linkBadge}
-        <span class="chevron" id="lc-${i.id}">▼</span>
-      </div>
-      <div class="acc-body" id="lb-${i.id}">
-        <div style="margin-bottom:8px;">
-          <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;">🔗 Link</label>
-          <input type="url" id="lp-${i.id}" value="${esc(i.p)}" placeholder="https://..." onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:inherit;width:100%;">
-          ${linkUrl ? `<a href="${linkUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:12px;font-weight:700;color:var(--accent);text-decoration:none;">🔗 ${esc(domain)} — Sayfayı Aç ↗</a>` : ''}
-        </div>
-        <div style="margin-bottom:8px;">
-          <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;">📝 Notlar</label>
-          <textarea id="ln-${i.id}" placeholder="Notlar..." onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;min-height:50px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:inherit;width:100%;resize:none;">${esc(i.n)}</textarea>
-        </div>
-        <div style="text-align:right"><button class="btn-icon" style="color:var(--accent-danger)" onclick="delLItem('${esc(cat)}','${i.id}')">Sil</button></div>
-      </div>
-    </div>`;
-  };
+  const r=(i)=>`<div class="card" style="padding:12px 16px;margin-bottom:8px;${i.d?'opacity:0.5;box-shadow:none;':''}"><div class="acc-header" onclick="togLBody('${i.id}')"><div class="list-check ${i.d?'checked':''}" style="width:20px;height:20px;" onclick="event.stopPropagation();togLItem('${esc(cat)}','${i.id}')">${i.d?'✓':''}</div><div style="flex:1;font-weight:600;font-size:15px;margin-left:12px;${i.d?'text-decoration:line-through':''}">${esc(i.t)}</div>${i.p&&!i.d?`<span style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border);margin-right:10px;color:var(--muted)">${esc(i.p)}</span>`:''}<span class="chevron" id="lc-${i.id}">▼</span></div><div class="acc-body" id="lb-${i.id}"><input type="text" id="lp-${i.id}" value="${esc(i.p)}" placeholder="${currentLang==='tr'?'İlerleme (Örn: Sayfa 4)':'Progress'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;margin-bottom:8px;"><textarea id="ln-${i.id}" placeholder="${currentLang==='tr'?'Link veya Not':'Note or Link'}" onchange="updLItem('${esc(cat)}','${i.id}')" style="padding:8px;font-size:13px;min-height:50px;margin-bottom:8px;">${esc(i.n)}</textarea><div style="text-align:right"><button class="btn-icon" style="color:var(--accent-danger)" onclick="delLItem('${esc(cat)}','${i.id}')">Sil</button></div></div></div>`;
   const un=arr.filter(i=>!i.d); const dn=arr.filter(i=>i.d);
   
   el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:16px;"><input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')"><button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button><button class="btn-ghost" style="padding:8px 12px; border-color:var(--accent-danger); color:var(--accent-danger);" onclick="delListCat('${esc(cat)}')">🗑️</button></div>${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
@@ -1969,29 +1923,15 @@ function renderNotes() {
   el.innerHTML = arr.map(n => {
     const d = new Date(n.d);
     const cCount = (n.contacts||[]).length;
-    return `<div class="swipe-wrap">
-      <div class="swipe-del-btn" onclick="deleteNoteById('${n.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
-      <div class="card" style="cursor:pointer;margin-bottom:0;" data-id="${n.id}" onclick="openNoteEditor('${n.id}')">
-        <div class="card-actions">
-          <button class="btn-icon swipe-hide-mobile" onclick="event.stopPropagation();deleteNoteById('${n.id}')">&#10005;</button>
-        </div>
-        <div class="card-title">${esc(n.title)}</div>
-        <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;display:flex;gap:10px;align-items:center;">
-          <span>${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</span>
-          ${cCount ? `<span style="color:var(--accent)">👤 ${cCount} kişi</span>` : ''}
-        </div>
+    return `<div class="card" style="cursor:pointer;" data-id="${n.id}" onclick="openNoteEditor('${n.id}')">
+      <div class="card-title">${esc(n.title)}</div>
+      <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;display:flex;gap:10px;align-items:center;">
+        <span>${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</span>
+        ${cCount ? `<span style="color:var(--accent)">👤 ${cCount} kişi</span>` : ''}
       </div>
     </div>`;
   }).join('');
-  initSwipeForList('notes-list');
-}
-
-function deleteNoteById(nid) {
-  if (!confirm('Silinsin mi?')) return;
-  const k = getNoteKey();
-  DB.set(k, DB.get(k,[]).filter(x => x.id !== nid));
-  renderNotes();
 }
 
 // ==================== KİŞİLER ====================
@@ -2069,44 +2009,6 @@ function saveWidgetQNote() {
     if(currentModule === 'quicknotes') renderQNotes();
 }
 
-// ==================== LİSTELER WIDGET ====================
-let lwActiveCat = null;
-
-function renderListsWidget() {
-  const tabsEl = document.getElementById('lw-tabs');
-  const listEl = document.getElementById('lw-list');
-  if (!tabsEl || !listEl) return;
-  const cats = getCatKeys().slice(0, 3);
-  if (!cats.length) {
-    tabsEl.innerHTML = '';
-    listEl.innerHTML = `<div class="lw-empty">Henüz liste kategorisi yok.</div>`;
-    return;
-  }
-  if (!lwActiveCat || !cats.includes(lwActiveCat)) lwActiveCat = cats[0];
-  tabsEl.innerHTML = cats.map(c =>
-    `<button class="lw-tab ${c===lwActiveCat?'active':''}" onclick="lwSwitchCat('${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</button>`
-  ).join('');
-  const items = DB.get('pers_list_'+lwActiveCat, []).filter(i => !i.d).slice(0, 6);
-  if (!items.length) {
-    listEl.innerHTML = `<div class="lw-empty">"${esc(lwActiveCat)}" listesi boş.</div>`;
-    return;
-  }
-  listEl.innerHTML = items.map(i => {
-    const domain = getLinkDomain(i.p);
-    const linkUrl = i.p ? (i.p.startsWith('http') ? i.p : 'https://'+i.p) : null;
-    return `<div class="lw-item">
-      <div class="lw-item-bullet"></div>
-      <span class="lw-item-text">${esc(i.t)}</span>
-      ${domain ? `<a href="${linkUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:10px;color:var(--accent);flex-shrink:0;text-decoration:none;" title="${esc(i.p)}">🔗</a>` : ''}
-    </div>`;
-  }).join('');
-}
-
-function lwSwitchCat(cat) {
-  lwActiveCat = cat;
-  renderListsWidget();
-}
-
 function closeQNoteEditor() {
   const b = document.getElementById('qnote-body').value.trim();
   if (b) saveQNote(); else document.getElementById('qnote-editor').classList.remove('open');
@@ -2126,21 +2028,11 @@ function renderQNotes() {
   el.innerHTML = arr.map(n => {
     const d = new Date(n.d);
     const dateStr = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    return `<div class="swipe-wrap">
-      <div class="swipe-del-btn" onclick="deleteQNoteById('${n.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
-      <div class="qnote-card" style="margin-bottom:0;position:relative;" data-id="${n.id}" onclick="openQNoteEditor('${n.id}')">
-        <button class="btn-icon swipe-hide-mobile" style="position:absolute;top:10px;right:10px;font-size:14px;" onclick="event.stopPropagation();deleteQNoteById('${n.id}')">&#10005;</button>
-        <div class="qnote-text" style="padding-right:28px;">${esc(n.body)}</div>
-        <div class="qnote-date">⚡ ${dateStr}</div>
-      </div>
+    return `<div class="qnote-card" data-id="${n.id}" onclick="openQNoteEditor('${n.id}')">
+      <div class="qnote-text">${esc(n.body)}</div>
+      <div class="qnote-date">⚡ ${dateStr}</div>
     </div>`;
   }).join('');
-  initSwipeForList('qnotes-list');
-}
-
-function deleteQNoteById(nid) {
-  DB.set('quick_notes', DB.get('quick_notes',[]).filter(x => x.id !== nid));
-  renderQNotes();
 }
 
 // ==================== TAKVİM ====================
@@ -2539,7 +2431,6 @@ function init() {
   
   // Widgetların (Takvim vb.) ekran boyutuna göre yerleşimi
   relocateWidgets();
-  renderListsWidget();
   
   setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
 }
