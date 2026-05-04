@@ -395,6 +395,49 @@
     .swipe-hide-mobile                              { display: none !important; }
   }
 
+  /* ================= GİRİŞ EKRANI ================= */
+  #login-screen {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    align-items: center; justify-content: center; flex-direction: column;
+    padding: 24px;
+  }
+  #login-screen.visible { display: flex; animation: fadeIn 0.4s ease; }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px; padding: 36px 32px; width: 100%; max-width: 360px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3); text-align: center;
+  }
+  .login-logo { margin: 0 auto 20px; display: block; }
+  .login-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .login-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+  .login-input {
+    width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; font-size: 16px;
+    font-family: inherit; color: var(--text); outline: none;
+    text-align: center; letter-spacing: 2px; margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .login-input:focus { border-color: #3A6EA8; }
+  .login-input.error { border-color: var(--accent-danger); animation: shake 0.4s ease; }
+  .login-btn {
+    width: 100%; padding: 14px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, #3A6EA8, #1A3A5C);
+    color: white; font-size: 15px; font-weight: 700; font-family: inherit;
+    cursor: pointer; transition: transform 0.15s, opacity 0.15s;
+  }
+  .login-btn:hover { opacity: 0.9; }
+  .login-btn:active { transform: scale(0.97); }
+  .login-error { font-size: 13px; color: var(--accent-danger); margin-top: 10px; min-height: 18px; font-weight: 600; }
+  .login-footer { font-size: 11px; color: var(--muted); margin-top: 20px; }
+  @keyframes shake {
+    0%,100%{ transform: translateX(0); }
+    20%{ transform: translateX(-8px); }
+    40%{ transform: translateX(8px); }
+    60%{ transform: translateX(-6px); }
+    80%{ transform: translateX(6px); }
+  }
+
   /* ================= YAZDIR ================= */
   #print-area { display: none; }
 
@@ -441,7 +484,48 @@
 </head>
 <body data-theme="dark">
 
-<div class="app-shell">
+<!-- GİRİŞ EKRANI -->
+<div id="login-screen">
+  <div class="login-card">
+    <svg class="login-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="72" height="72">
+      <defs><linearGradient id="lgl" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3A6EA8"/><stop offset="100%" stop-color="#1A3A5C"/></linearGradient></defs>
+      <rect width="100" height="100" rx="24" fill="url(#lgl)"/>
+      <ellipse cx="26" cy="44" rx="11" ry="18" fill="white" opacity="0.28" transform="rotate(-25 26 44)"/>
+      <ellipse cx="74" cy="44" rx="11" ry="18" fill="white" opacity="0.28" transform="rotate(25 74 44)"/>
+      <ellipse cx="50" cy="60" rx="17" ry="22" fill="#FCEEA0"/>
+      <clipPath id="bBl"><ellipse cx="50" cy="60" rx="17" ry="22"/></clipPath>
+      <rect x="33" y="54" width="34" height="7" fill="#3A2800" opacity="0.3" clip-path="url(#bBl)"/>
+      <rect x="33" y="65" width="34" height="6" fill="#3A2800" opacity="0.25" clip-path="url(#bBl)"/>
+      <ellipse cx="50" cy="60" rx="17" ry="22" fill="none" stroke="#E8C040" stroke-width="1.5"/>
+      <path d="M50 81 L47 90 L50 88 L53 90 Z" fill="#E8C040"/>
+      <circle cx="50" cy="34" r="14" fill="#FCEEA0" stroke="#E8C040" stroke-width="1.5"/>
+      <circle cx="43" cy="37" r="4" fill="#F5A0A0" opacity="0.5"/>
+      <circle cx="57" cy="37" r="4" fill="#F5A0A0" opacity="0.5"/>
+      <circle cx="45" cy="32" r="3.5" fill="#2A1A00"/>
+      <circle cx="55" cy="32" r="3.5" fill="#2A1A00"/>
+      <path d="M44 38 Q50 43 56 38" fill="none" stroke="#2A1A00" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M44 21 Q40 14 36 10" fill="none" stroke="#E8C040" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="36" cy="10" r="3" fill="#F08030"/>
+      <path d="M56 21 Q60 14 64 10" fill="none" stroke="#E8C040" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="64" cy="10" r="3" fill="#F08030"/>
+    </svg>
+    <div class="login-title">Planner Pro</div>
+    <div class="login-sub">Giriş kodunu girin</div>
+    <input class="login-input" id="login-pwd" type="password"
+      placeholder="••••-••••"
+      onkeydown="if(event.key==='Enter') checkLogin()"
+      autocomplete="current-password">
+    <label style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px;cursor:pointer;font-size:13px;color:var(--muted);">
+      <input type="checkbox" id="login-remember" checked style="width:16px;height:16px;accent-color:#3A6EA8;cursor:pointer;">
+      Beni hatırla (30 gün)
+    </label>
+    <button class="login-btn" onclick="checkLogin()">Giriş Yap</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-footer">Planner Pro · Kişisel Planlayıcı</div>
+  </div>
+</div>
+
+<div class="app-shell" id="app-shell-wrap">
 
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
@@ -816,6 +900,15 @@
       <label>Bildirimler</label>
       <button class="btn-ghost" style="width:100%;" onclick="allowNotifications()" id="notif-settings-btn">🔔 Bildirimleri Etkinleştir</button>
     </div>
+    <div class="form-row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
+      <label>☁️ Bulut Senkron</label>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+        Verilerin tüm cihazlarında otomatik güncel kalır. Tüm cihazlarda <b>aynı şifreyi</b> kullanmalısın. Veriler şifreli iletilir, sadece sen okuyabilirsin.
+      </div>
+      <button class="btn-ghost" style="width:100%;margin-bottom:6px;" id="cloud-sync-btn" onclick="cloudSyncBtnClick()">☁️ Bulut Senkronu Aç</button>
+      <div id="cloud-sync-status" style="font-size:11px;color:var(--muted);text-align:center;"></div>
+      <button class="btn-ghost" style="width:100%;margin-top:8px;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);display:none;" id="cloud-sync-disable" onclick="disableCloudSync()">Bulut Senkronu Kapat</button>
+    </div>
   </div>
 </div>
 
@@ -1004,7 +1097,11 @@ let fabOpen = false;
 
 const DB = {
   get: (k, def) => { try { return JSON.parse(localStorage.getItem('planner_' + k)) || def; } catch(e) { return def; } },
-  set: (k, v) => localStorage.setItem('planner_' + k, JSON.stringify(v)),
+  set: (k, v) => {
+    localStorage.setItem('planner_' + k, JSON.stringify(v));
+    // Bulut senkron için bekleyen değişiklik işaretle
+    if (typeof markCloudDirty === 'function') markCloudDirty();
+  },
 };
 
 function id() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -2529,6 +2626,502 @@ function printPage() {
   window.print();
 }
 
+// ==================== GİRİŞ & TOKEN SİSTEMİ ====================
+// ---------------------------------------------------------------
+// ARKADAŞ TOKEN LİSTESİ — buraya istediğin tokenleri ekle/çıkar
+// Her arkadaşa şu formatta link gönder:
+//   https://siteadresi.github.io/planner/#abc4-7xk2
+// Birinin erişimini iptal etmek için satırını sil ve dosyayı yeniden yükle.
+// ---------------------------------------------------------------
+const ACCESS_TOKENS = [
+  '287v-vsh4',
+  '2dy2-7ucv',
+  '2hfr-pj8x',
+  '2vq7-vpnh',
+  '3fu9-38t8',
+  '3j3x-mdkq',
+  '3u3e-eys9',
+  '4fzq-mjeg',
+  '6dhg-gure',
+  '6nwj-4b2r',
+  '754k-hbh7',
+  '8yxc-wxfu',
+  '93md-cpdn',
+  '9ay2-dy7u',
+  'augz-xzuq',
+  'awms-ad8n',
+  'bh5b-4mpj',
+  'bhc7-b6mc',
+  'cbyh-3kc6',
+  'cg89-v7zm',
+  'ejeh-2uuj',
+  'etsc-3b6d',
+  'exf4-yqwc',
+  'fqss-g6p7',
+  'fra9-272j',
+  'g8u3-2zgz',
+  'gxsp-78xr',
+  'h6dp-jrx5',
+  'hrvj-46a3',
+  'k5xt-wgen',
+  'kpyx-nr7t',
+  'nfnn-gyjz',
+  'nqqr-62by',
+  'ppwr-tju6',
+  'qbac-ghtw',
+  'qfjr-h68c',
+  'r466-udbx',
+  'rdhh-cmav',
+  's4qg-ddyq',
+  't3ft-8d6x',
+  'thjy-sgue',
+  'u5ac-836h',
+  'ud8p-cuk5',
+  'ufjt-6wq9',
+  'uhvh-aczx',
+  'v9cc-2s5c',
+  'xda2-jhhe',
+  'xw76-nvgz',
+  'xxdb-p2m4',
+  'zuhy-m533',
+];
+
+// ---------------------------------------------------------------
+// YEDEK ŞİFRE — token bilmeyenler için (sadece sen)
+// ---------------------------------------------------------------
+const ACCESS_PASSWORD = 'Pl@nner-2026!Sb';
+
+// ---------------------------------------------------------------
+// Oturum süresi (dakika)
+// ---------------------------------------------------------------
+const SESSION_MINUTES = 480; // 8 saat
+
+function checkAccess() {
+  const SESSION_MS  = SESSION_MINUTES * 60 * 1000;
+  const REMEMBER_MS = 30 * 24 * 60 * 60 * 1000;
+
+  // 1. sessionStorage — sekme açık
+  const sAt = sessionStorage.getItem('planner_auth_at');
+  if (sessionStorage.getItem('planner_auth_ok') === '1' && sAt) {
+    if (Date.now() - parseInt(sAt) < SESSION_MS) return true;
+  }
+  // 2. localStorage — beni hatırla (30 gün)
+  const lAt = localStorage.getItem('planner_auth_at');
+  if (localStorage.getItem('planner_auth_ok') === '1' && lAt) {
+    if (Date.now() - parseInt(lAt) < REMEMBER_MS) {
+      sessionStorage.setItem('planner_auth_ok', '1');
+      sessionStorage.setItem('planner_auth_at', Date.now().toString());
+      return true;
+    } else {
+      localStorage.removeItem('planner_auth_ok');
+      localStorage.removeItem('planner_auth_at');
+    }
+  }
+  // 3. URL token (#abc4-7xk2)
+  const hash  = window.location.hash.replace('#','').trim().toLowerCase();
+  const param = new URLSearchParams(window.location.search).get('t');
+  const token = (hash || param || '').toLowerCase();
+  if (token && ACCESS_TOKENS.map(t => t.toLowerCase()).includes(token)) {
+    grantAccess(true);
+    history.replaceState(null, '', window.location.pathname);
+    return true;
+  }
+  return false;
+}
+
+function grantAccess(remember = false) {
+  const now = Date.now().toString();
+  sessionStorage.setItem('planner_auth_ok', '1');
+  sessionStorage.setItem('planner_auth_at', now);
+  if (remember) {
+    localStorage.setItem('planner_auth_ok', '1');
+    localStorage.setItem('planner_auth_at', now);
+  }
+}
+
+function checkLogin() {
+  const val   = document.getElementById('login-pwd').value.trim();
+  const inEl  = document.getElementById('login-pwd');
+  const msgEl = document.getElementById('login-error');
+  const rem   = document.getElementById('login-remember').checked;
+
+  const isToken = ACCESS_TOKENS.map(t => t.toLowerCase()).includes(val.toLowerCase());
+  const isPwd   = val === ACCESS_PASSWORD;
+
+  if (isToken || isPwd) {
+    grantAccess(rem);
+    document.getElementById('login-screen').classList.remove('visible');
+    document.getElementById('app-shell-wrap').style.display = 'flex';
+    msgEl.textContent = '';
+  } else {
+    inEl.classList.add('error');
+    msgEl.textContent = 'Hatalı kod. Tekrar deneyin.';
+    setTimeout(() => inEl.classList.remove('error'), 500);
+    document.getElementById('login-pwd').value = '';
+    document.getElementById('login-pwd').focus();
+  }
+}
+
+function initAuth() {
+  const appWrap = document.getElementById('app-shell-wrap');
+  if (checkAccess()) {
+    appWrap.style.display = 'flex';
+  } else {
+    document.getElementById('login-screen').classList.add('visible');
+    appWrap.style.display = 'none';
+    setTimeout(() => document.getElementById('login-pwd').focus(), 400);
+  }
+}
+
+// ==================== ☁️ BULUT SENKRON (JSONBin) ====================
+const JSONBIN_KEY = '$2a$10$.C9vSXygjEIU5iEbAPcpbevhHCa/UKy0uJCGVXQOK6j1BdCS/AQ3m';
+const JSONBIN_API = 'https://api.jsonbin.io/v3';
+
+// Kullanıcı kimliği — ilk girişteki token/şifre, hash'lenmiş hali
+function getCloudUserId() {
+  return localStorage.getItem('planner_cloud_uid') || null;
+}
+
+function setCloudUserId(uid) {
+  localStorage.setItem('planner_cloud_uid', uid);
+}
+
+// SHA-256 hash — kullanıcı kimliğini ve şifreleme anahtarını üretmek için
+async function sha256(text) {
+  const buf = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// AES-GCM şifreleme
+async function encryptData(plainText, password) {
+  const enc = new TextEncoder();
+  const keyMat = await crypto.subtle.digest('SHA-256', enc.encode(password));
+  const key = await crypto.subtle.importKey('raw', keyMat, 'AES-GCM', false, ['encrypt']);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, enc.encode(plainText));
+  // iv + ciphertext'i base64'e çevir
+  const combined = new Uint8Array(iv.length + ct.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(ct), iv.length);
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptData(b64, password) {
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+  const keyMat = await crypto.subtle.digest('SHA-256', enc.encode(password));
+  const key = await crypto.subtle.importKey('raw', keyMat, 'AES-GCM', false, ['decrypt']);
+  const combined = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const iv = combined.slice(0, 12);
+  const ct = combined.slice(12);
+  const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv }, key, ct);
+  return dec.decode(pt);
+}
+
+// Tüm planner_ verilerini topla
+function collectLocalData() {
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith('planner_') && k !== 'planner_cloud_uid' && k !== 'planner_cloud_binid' && k !== 'planner_cloud_lastsync' && k !== 'planner_auth_ok' && k !== 'planner_auth_at') {
+      data[k] = localStorage.getItem(k);
+    }
+  }
+  return data;
+}
+
+function applyCloudData(data) {
+  Object.keys(data).forEach(k => {
+    if (k.startsWith('planner_')) localStorage.setItem(k, data[k]);
+  });
+}
+
+// Şifreyi cihazda sakla (token veya yedek şifre)
+function getCloudPassword() {
+  return sessionStorage.getItem('planner_cloud_pwd') || localStorage.getItem('planner_cloud_pwd');
+}
+
+function setCloudPassword(pwd, remember) {
+  sessionStorage.setItem('planner_cloud_pwd', pwd);
+  if (remember) localStorage.setItem('planner_cloud_pwd', pwd);
+}
+
+// Yeni bin oluştur
+async function createCloudBin(uid) {
+  const res = await fetch(`${JSONBIN_API}/b`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': JSONBIN_KEY,
+      'X-Bin-Name': 'planner-' + uid.slice(0, 12),
+      'X-Bin-Private': 'true'
+    },
+    body: JSON.stringify({ uid, data: '', updatedAt: Date.now() })
+  });
+  if (!res.ok) throw new Error('Bin oluşturulamadı');
+  const r = await res.json();
+  return r.metadata.id;
+}
+
+// Senkron metadata kaydet
+function getBinId() { return localStorage.getItem('planner_cloud_binid'); }
+function setBinId(id) { localStorage.setItem('planner_cloud_binid', id); }
+function getLastSync() { return parseInt(localStorage.getItem('planner_cloud_lastsync') || '0'); }
+function setLastSync(t) { localStorage.setItem('planner_cloud_lastsync', t.toString()); }
+
+// Kullanıcının bin ID'sini bul (uid'den hash ile)
+async function findOrCreateBin(uid, password) {
+  let binId = getBinId();
+  if (binId) return binId;
+  // Yoksa uid'den hash üret, master listesine bak
+  // Basitlik için: her cihazda ilk girişte kendine yeni bin yaratır,
+  // diğer cihaz aynı uid ile gelince master listesinden bulur
+  binId = await lookupBinByUid(uid);
+  if (binId) {
+    setBinId(binId);
+    return binId;
+  }
+  // Yeni bin yarat
+  binId = await createCloudBin(uid);
+  setBinId(binId);
+  await registerBinForUid(uid, binId);
+  return binId;
+}
+
+// Master indeks bin'i — uid → binId eşleşmesi
+const MASTER_INDEX_BIN = 'planner_master_index';
+async function getMasterIndexBinId() {
+  // Sabit bir index bin id kullanmak için ilk seferinde yarat ve LocalStorage'a koy
+  // Tüm kullanıcılar aynı index'e bakacak
+  let id = localStorage.getItem('planner_master_index_bin');
+  if (id) return id;
+  // İndex bin'i ara — yoksa yarat
+  // Pratik çözüm: sabit bir bin id'si kullanırız, kullanıcılar paylaşır
+  return null;
+}
+
+async function lookupBinByUid(uid) {
+  const indexBinId = localStorage.getItem('planner_master_index_bin');
+  if (!indexBinId) return null;
+  try {
+    const res = await fetch(`${JSONBIN_API}/b/${indexBinId}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    if (!res.ok) return null;
+    const r = await res.json();
+    return (r.record && r.record[uid]) || null;
+  } catch(e) { return null; }
+}
+
+async function registerBinForUid(uid, binId) {
+  let indexBinId = localStorage.getItem('planner_master_index_bin');
+  let index = {};
+  if (indexBinId) {
+    try {
+      const res = await fetch(`${JSONBIN_API}/b/${indexBinId}/latest`, {
+        headers: { 'X-Master-Key': JSONBIN_KEY }
+      });
+      if (res.ok) { const r = await res.json(); index = r.record || {}; }
+    } catch(e) {}
+  }
+  index[uid] = binId;
+  if (!indexBinId) {
+    const res = await fetch(`${JSONBIN_API}/b`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Name':'planner-master-index' },
+      body: JSON.stringify(index)
+    });
+    const r = await res.json();
+    indexBinId = r.metadata.id;
+    localStorage.setItem('planner_master_index_bin', indexBinId);
+  } else {
+    await fetch(`${JSONBIN_API}/b/${indexBinId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: JSON.stringify(index)
+    });
+  }
+}
+
+// Buluta yükle
+async function pushToCloud() {
+  const password = getCloudPassword();
+  const uid = getCloudUserId();
+  if (!password || !uid) throw new Error('Şifre veya kullanıcı kimliği yok');
+  const data = collectLocalData();
+  const encrypted = await encryptData(JSON.stringify(data), password);
+  const binId = await findOrCreateBin(uid, password);
+  const res = await fetch(`${JSONBIN_API}/b/${binId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY },
+    body: JSON.stringify({ data: encrypted, updatedAt: Date.now() })
+  });
+  if (!res.ok) throw new Error('Yükleme başarısız');
+  setLastSync(Date.now());
+}
+
+// Buluttan çek
+async function pullFromCloud() {
+  const password = getCloudPassword();
+  const uid = getCloudUserId();
+  if (!password || !uid) throw new Error('Şifre yok');
+  const binId = await findOrCreateBin(uid, password);
+  const res = await fetch(`${JSONBIN_API}/b/${binId}/latest`, {
+    headers: { 'X-Master-Key': JSONBIN_KEY }
+  });
+  if (!res.ok) {
+    if (res.status === 404) return false; // Bin boş
+    throw new Error('İndirme başarısız');
+  }
+  const r = await res.json();
+  if (!r.record || !r.record.data) return false;
+  try {
+    const decrypted = await decryptData(r.record.data, password);
+    const data = JSON.parse(decrypted);
+    applyCloudData(data);
+    setLastSync(Date.now());
+    return true;
+  } catch(e) {
+    throw new Error('Şifre yanlış veya veri bozuk');
+  }
+}
+
+// Otomatik senkron — manuel tetiklenir
+let cloudSyncEnabled = false;
+function isCloudSyncEnabled() {
+  return localStorage.getItem('planner_cloud_enabled') === '1';
+}
+function setCloudSyncEnabled(v) {
+  localStorage.setItem('planner_cloud_enabled', v ? '1' : '0');
+  cloudSyncEnabled = v;
+}
+
+// ==================== DEĞİŞİKLİK TAKİBİ ====================
+let cloudDirtyCount = 0;
+function markCloudDirty() {
+  cloudDirtyCount++;
+  updateCloudBtnText();
+}
+function clearCloudDirty() {
+  cloudDirtyCount = 0;
+  updateCloudBtnText();
+}
+
+// ==================== MOBİL TESPİT ====================
+function isDesktop() {
+  return !('ontouchstart' in window) && window.innerWidth > 900;
+}
+
+// ==================== ÇIKIŞTA OTOMATİK YÜKLE (SADECE MASAÜSTÜ) ====================
+window.addEventListener('beforeunload', () => {
+  if (!isDesktop()) return;
+  if (!isCloudSyncEnabled()) return;
+  if (cloudDirtyCount === 0) return;
+  // Senkron iş parçacıklı çağrı — beforeunload async beklemez
+  // sendBeacon kullanmak daha güvenli ama JSONBin desteklemiyor
+  // Bu yüzden hızlı bir fetch + keepalive ile gönder
+  pushToCloudSync();
+});
+
+// Senkron yükleme — beforeunload için özel sürüm
+async function pushToCloudSync() {
+  try {
+    const password = getCloudPassword();
+    const uid = getCloudUserId();
+    if (!password || !uid) return;
+    const data = collectLocalData();
+    const encrypted = await encryptData(JSON.stringify(data), password);
+    const binId = getBinId();
+    if (!binId) return;
+    fetch(`${JSONBIN_API}/b/${binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: JSON.stringify({ data: encrypted, updatedAt: Date.now() }),
+      keepalive: true
+    });
+  } catch(e) {}
+}
+
+async function manualSync(showMessages = true) {
+  if (!isCloudSyncEnabled()) return;
+  const btn = document.getElementById('cloud-sync-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Senkronize ediliyor...'; }
+  try {
+    // Önce uzaktakini çek (varsa), sonra yerel olanı yükle
+    await pullFromCloud();
+    await pushToCloud();
+    clearCloudDirty();
+    if (showMessages) showToast('☁️ Bulut ile senkronize edildi');
+    if (currentModule === 'summary') renderSummary();
+  } catch(e) {
+    if (showMessages) showToast('⚠️ Senkron hatası: ' + e.message);
+    console.error('Cloud sync error:', e);
+  } finally {
+    if (btn) { btn.disabled = false; updateCloudBtnText(); }
+  }
+}
+
+async function enableCloudSync() {
+  const password = prompt('Bulut senkronu için bir şifre belirle.\nBu şifre tüm cihazlarında AYNI olmalı.\nUnutursan verilere ulaşamazsın!\n\nÖnerilen: kendi giriş kodun (#abc4-7xk2 gibi) veya farklı bir şifre');
+  if (!password || password.length < 6) { showToast('⚠️ En az 6 karakter olmalı'); return; }
+  // Kullanıcı kimliği = şifrenin SHA-256 hash'i (ilk 16 karakter)
+  const uid = (await sha256('planner-uid-' + password)).slice(0, 24);
+  setCloudUserId(uid);
+  setCloudPassword(password, true);
+  setCloudSyncEnabled(true);
+  showToast('☁️ Bulut senkron etkinleştirildi');
+  await manualSync(true);
+  updateCloudBtnText();
+}
+
+function disableCloudSync() {
+  if (!confirm('Bulut senkronunu kapatmak istediğine emin misin?\nVerilerin cihazda kalır, sadece bulut bağlantısı kesilir.')) return;
+  setCloudSyncEnabled(false);
+  localStorage.removeItem('planner_cloud_pwd');
+  sessionStorage.removeItem('planner_cloud_pwd');
+  showToast('☁️ Bulut senkron kapatıldı');
+  updateCloudBtnText();
+}
+
+function updateCloudBtnText() {
+  const btn = document.getElementById('cloud-sync-btn');
+  const status = document.getElementById('cloud-sync-status');
+  const disableBtn = document.getElementById('cloud-sync-disable');
+  if (!btn) return;
+  if (isCloudSyncEnabled()) {
+    if (cloudDirtyCount > 0) {
+      btn.textContent = `☁️ Şimdi Senkronize Et • ${cloudDirtyCount} bekleyen`;
+      btn.style.borderColor = 'var(--accent-warning)';
+      btn.style.color = 'var(--accent-warning)';
+    } else {
+      btn.textContent = '☁️ Şimdi Senkronize Et';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+    if (status) {
+      const last = getLastSync();
+      const desktopNote = isDesktop() ? ' · Çıkışta otomatik kaydedilir' : '';
+      status.textContent = (last ? '✓ Son senkron: ' + new Date(last).toLocaleString('tr-TR') : 'Henüz senkronize edilmedi') + desktopNote;
+    }
+    if (disableBtn) disableBtn.style.display = 'block';
+  } else {
+    btn.textContent = '☁️ Bulut Senkronu Aç';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+    if (status) status.textContent = 'Kapalı';
+    if (disableBtn) disableBtn.style.display = 'none';
+  }
+}
+
+function cloudSyncBtnClick() {
+  if (isCloudSyncEnabled()) {
+    manualSync(true);
+  } else {
+    enableCloudSync();
+  }
+}
+
 // ==================== BAŞLATMA ====================
 function init() {
   setTheme(currentTheme);
@@ -2536,9 +3129,15 @@ function init() {
   updateHeaderDate();
   const hSel = document.getElementById('horizon-select');
   if (hSel) hSel.value = getHorizonDays();
+  initAuth();
   switchModule('summary');
   initNotifications();
   registerSW();
+  updateCloudBtnText();
+  // Eğer bulut senkronu açıksa, sayfa açılınca arka planda çek
+  if (isCloudSyncEnabled() && getCloudPassword()) {
+    setTimeout(() => manualSync(false), 1500);
+  }
   
   // Widgetların (Takvim vb.) ekran boyutuna göre yerleşimi
   relocateWidgets();
