@@ -3320,22 +3320,12 @@ async function findOrCreateBin(uid, password) {
 }
 
 // Master indeks bin'i — uid → binId eşleşmesi
-const MASTER_INDEX_BIN = 'planner_master_index';
-async function getMasterIndexBinId() {
-  // Sabit bir index bin id kullanmak için ilk seferinde yarat ve LocalStorage'a koy
-  // Tüm kullanıcılar aynı index'e bakacak
-  let id = localStorage.getItem('planner_master_index_bin');
-  if (id) return id;
-  // İndex bin'i ara — yoksa yarat
-  // Pratik çözüm: sabit bir bin id'si kullanırız, kullanıcılar paylaşır
-  return null;
-}
+// SABİT BIN ID — bütün kullanıcılar/cihazlar aynı indekse bakar
+const MASTER_INDEX_BIN_ID = '69fa0ab8aaba8821977463ef';
 
 async function lookupBinByUid(uid) {
-  const indexBinId = localStorage.getItem('planner_master_index_bin');
-  if (!indexBinId) return null;
   try {
-    const res = await fetch(`${JSONBIN_API}/b/${indexBinId}/latest`, {
+    const res = await fetch(`${JSONBIN_API}/b/${MASTER_INDEX_BIN_ID}/latest`, {
       headers: { 'X-Master-Key': JSONBIN_KEY }
     });
     if (!res.ok) return null;
@@ -3345,33 +3335,22 @@ async function lookupBinByUid(uid) {
 }
 
 async function registerBinForUid(uid, binId) {
-  let indexBinId = localStorage.getItem('planner_master_index_bin');
+  // Mevcut indeksi çek
   let index = {};
-  if (indexBinId) {
-    try {
-      const res = await fetch(`${JSONBIN_API}/b/${indexBinId}/latest`, {
-        headers: { 'X-Master-Key': JSONBIN_KEY }
-      });
-      if (res.ok) { const r = await res.json(); index = r.record || {}; }
-    } catch(e) {}
-  }
+  try {
+    const res = await fetch(`${JSONBIN_API}/b/${MASTER_INDEX_BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    if (res.ok) { const r = await res.json(); index = r.record || {}; }
+  } catch(e) {}
+  // Yeni eşleşmeyi ekle
   index[uid] = binId;
-  if (!indexBinId) {
-    const res = await fetch(`${JSONBIN_API}/b`, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Name':'planner-master-index' },
-      body: JSON.stringify(index)
-    });
-    const r = await res.json();
-    indexBinId = r.metadata.id;
-    localStorage.setItem('planner_master_index_bin', indexBinId);
-  } else {
-    await fetch(`${JSONBIN_API}/b/${indexBinId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: JSON.stringify(index)
-    });
-  }
+  // Aynı bin'e geri yaz (her zaman PUT, asla yeni bin yaratma)
+  await fetch(`${JSONBIN_API}/b/${MASTER_INDEX_BIN_ID}`, {
+    method: 'PUT',
+    headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY },
+    body: JSON.stringify(index)
+  });
 }
 
 // Buluta yükle
