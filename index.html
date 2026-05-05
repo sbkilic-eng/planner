@@ -1206,7 +1206,7 @@
     <textarea class="note-textarea active" id="m-note-body" placeholder="# Markdown Destekli Not&#10;- Madde 1&#10;- **Kalın** veya *Eğik*..."></textarea>
     <div class="note-preview" id="m-note-preview"></div>
     <div class="note-contacts" id="m-note-contacts" style="display:none;padding:4px 0;">
-      <div id="contacts-list" class="contact-list"></div>
+      <div id="note-contacts-list" class="contact-list"></div>
       <button class="btn-add" style="margin-top:12px;" onclick="addContactRow()">+ Kişi Ekle</button>
     </div>
   </div>
@@ -2217,7 +2217,24 @@ function switchNoteTab(m) {
   } else if (m === 'preview') {
     document.getElementById('tab-preview').classList.add('active');
     const md = document.getElementById('m-note-body').value;
-    document.getElementById('m-note-preview').innerHTML = md ? parseMD(md) : '<div style="color:var(--muted);font-style:italic">Boş...</div>';
+    let html = md ? parseMD(md) : '<div style="color:var(--muted);font-style:italic">Boş...</div>';
+
+    // Kişiler bölümü — varsa önizlemeye ekle
+    const contacts = collectContacts();
+    if (contacts.length) {
+      html += '<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">';
+      html += '<div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">👤 Kişiler (' + contacts.length + ')</div>';
+      html += contacts.map(c => {
+        const parts = [];
+        if (c.name)  parts.push(`<div style="font-weight:700;font-size:14px;color:var(--text);">${esc(c.name)}</div>`);
+        if (c.phone) parts.push(`<div style="font-size:13px;"><span style="color:var(--muted);">📱</span> <a href="tel:${esc(c.phone)}" style="color:var(--accent);text-decoration:none;">${esc(c.phone)}</a></div>`);
+        if (c.email) parts.push(`<div style="font-size:13px;"><span style="color:var(--muted);">📧</span> <a href="mailto:${esc(c.email)}" style="color:var(--accent);text-decoration:none;">${esc(c.email)}</a></div>`);
+        return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;">${parts.join('')}</div>`;
+      }).join('');
+      html += '</div>';
+    }
+
+    document.getElementById('m-note-preview').innerHTML = html;
     document.getElementById('m-note-preview').classList.add('active');
   } else if (m === 'contacts') {
     document.getElementById('tab-contacts').classList.add('active');
@@ -2320,12 +2337,14 @@ function collectContacts() {
 }
 
 function renderNoteContacts(contacts) {
-  const el = document.getElementById('contacts-list');
+  const el = document.getElementById('note-contacts-list');
+  if (!el) return;
   el.innerHTML = (contacts||[]).map(c => contactRowHTML(c)).join('');
 }
 
 function addContactRow() {
-  const el = document.getElementById('contacts-list');
+  const el = document.getElementById('note-contacts-list');
+  if (!el) return;
   const newId = id();
   el.insertAdjacentHTML('beforeend', contactRowHTML({ id: newId, name:'', phone:'', email:'' }));
   el.lastElementChild.querySelector('.ci-name').focus();
