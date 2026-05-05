@@ -181,6 +181,25 @@
   @media (max-width: 900px) { .btn-cal-header { display: flex; } }
   .btn-cal-header.active { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; }
 
+  /* Hava Durumu — iki konum, ekrana göre değişir */
+  .weather-inline {
+    display: none;
+    font-size: 12px; color: var(--muted); font-weight: 600;
+    margin-left: 10px; padding: 4px 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; white-space: nowrap;
+    vertical-align: middle;
+  }
+  /* Masaüstünde: header'da, module title'dakini gizle */
+  @media (min-width: 901px) {
+    .weather-inline { display: none !important; }
+  }
+  /* Mobilde: header'dakini gizle, module title'dakini göster (veri varsa) */
+  @media (max-width: 900px) {
+    #weather-widget { display: none !important; }
+    .weather-inline.has-data { display: inline-block !important; }
+  }
+
   /* Takvim dini bayram rengi */
   .cal-day.religious { background: rgba(155,111,208,0.13); }
   .cal-day.religious .cal-day-num { color: #9B6FD0; font-weight: 800; }
@@ -737,6 +756,7 @@
       <div class="section-main-title" id="module-header" style="display:none; margin-bottom: 24px;">
         <span id="module-title">Modül Adı</span>
         <span id="module-badge" class="context-badge"></span>
+        <span id="weather-widget-inline" class="weather-inline" onclick="openModal('modal-settings')" title="Şehir değiştirmek için ayarlara git"></span>
       </div>
 
       <div class="content-wrapper">
@@ -3347,11 +3367,15 @@ async function fetchWeather(lat, lon) {
 
 async function loadWeather() {
   const el = document.getElementById('weather-widget');
+  const el2 = document.getElementById('weather-widget-inline');
   const input = document.getElementById('weather-city-input');
   if (input) input.value = getWeatherCity();
-  if (!el) return;
   const city = getWeatherCity();
-  if (!city) { el.style.display = 'none'; return; }
+  if (!city) {
+    if (el)  el.style.display = 'none';
+    if (el2) el2.classList.remove('has-data');
+    return;
+  }
 
   // Cache kontrolü — 30 dakikada bir yenile
   const cacheKey = 'planner_weather_data_' + city.toLowerCase();
@@ -3372,22 +3396,38 @@ async function loadWeather() {
     localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), geo, data }));
     renderWeather(geo, data);
   } catch(e) {
-    el.style.display = 'inline-block';
-    el.textContent = '⚠️ ' + e.message;
-    el.style.color = 'var(--accent-danger)';
+    if (el) {
+      el.style.display = 'inline-block';
+      el.textContent = '⚠️ ' + e.message;
+      el.style.color = 'var(--accent-danger)';
+    }
+    if (el2) {
+      el2.classList.add('has-data');
+      el2.textContent = '⚠️ ' + e.message;
+      el2.style.color = 'var(--accent-danger)';
+    }
   }
 }
 
 function renderWeather(geo, data) {
-  const el = document.getElementById('weather-widget');
-  if (!el) return;
+  const el  = document.getElementById('weather-widget');
+  const el2 = document.getElementById('weather-widget-inline');
+  if (!el && !el2) return;
   const c = data.current;
   const d = data.daily;
   const todayIcon = WEATHER_ICONS[c.weather_code] || '🌡️';
   const tomorrowIcon = WEATHER_ICONS[d.weather_code[1]] || '🌡️';
-  el.innerHTML = `${todayIcon} ${geo.name} ${Math.round(c.temperature_2m)}° · Yarın ${tomorrowIcon} ${Math.round(d.temperature_2m_max[1])}°`;
-  el.style.display = 'inline-block';
-  el.style.color = 'var(--muted)';
+  const txt = `${todayIcon} ${geo.name} ${Math.round(c.temperature_2m)}° · Yarın ${tomorrowIcon} ${Math.round(d.temperature_2m_max[1])}°`;
+  if (el) {
+    el.innerHTML = txt;
+    el.style.display = 'inline-block';
+    el.style.color = 'var(--muted)';
+  }
+  if (el2) {
+    el2.innerHTML = txt;
+    el2.classList.add('has-data');
+    el2.style.color = 'var(--muted)';
+  }
 }
 
 
