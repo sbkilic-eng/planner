@@ -32,7 +32,7 @@
   [data-theme="sepia"]     { --bg: #F4ECD8; --surface: #FCF5E5; --border: #E6D8B8; --text: #433422; --muted: #8B7E66; --shadow: 0 4px 15px rgba(67,52,34,0.08); }
   [data-theme="midnight"]  { --bg: #000000; --surface: #121212; --border: #1F1F1F; --text: #E1E1E1; --muted: #666666; --shadow: none; }
   [data-theme="cortado"]   { --bg: #D1C7BD; --surface: #DFD6CD; --border: #B8ADA3; --text: #38312A; --muted: #7A6F66; --shadow: 0 4px 15px rgba(56,49,42,0.08); }
-  [data-theme="turkkahve"] { --bg: #1C2018; --surface: #252B20; --border: #343D2D; --text: #D4DBC8; --muted: #7A8A6A; --shadow: 0 4px 20px rgba(0,0,0,0.25); }
+  [data-theme="turkkahve"] { --bg: #2A1F18; --surface: #3A2E24; --border: #4D3D30; --text: #F0E5D4; --muted: #B89B82; --shadow: 0 4px 20px rgba(0,0,0,0.35); }
 
   /* ================= GENEL YAPI ================= */
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -723,6 +723,7 @@
           </div>
         </div>
         <span class="app-date" id="headerDate"></span>
+        <span id="weather-widget" style="display:none;font-size:12px;color:var(--muted);font-weight:600;margin-left:10px;padding:4px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;white-space:nowrap;" onclick="openModal('modal-settings')" title="Şehir değiştirmek için ayarlara git"></span>
       </div>
       <div class="header-right">
         <button class="btn-header-icon btn-cal-header" id="btn-cal-header" onclick="toggleMobileCal()" title="Takvim">📅</button>
@@ -863,6 +864,26 @@
   <div class="search-results" id="search-results"></div>
 </div>
 
+<!-- KİŞİSEL NOTLAR KİLİDİ -->
+<div class="modal-overlay" id="modal-notes-lock">
+  <div class="modal" style="max-width:380px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:12px;">🔒</div>
+    <div class="modal-title" style="margin-bottom:6px;">Kişisel Notlar Kilidi</div>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5;" id="notes-lock-desc">
+      Kişisel notlarınız AES-256 ile şifreli. Görüntülemek için şifrenizi girin.
+    </div>
+    <input type="password" id="notes-lock-pwd" placeholder="••••••••" 
+      onkeydown="if(event.key==='Enter') unlockNotes()"
+      style="width:100%;text-align:center;letter-spacing:2px;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;font-family:inherit;margin-bottom:8px;outline:none;">
+    <div id="notes-lock-error" style="font-size:12px;color:var(--accent-danger);min-height:18px;margin-bottom:10px;font-weight:600;"></div>
+    <div class="form-row-2">
+      <button class="btn-primary" onclick="unlockNotes()">Aç</button>
+      <button class="btn-ghost" onclick="closeNotesLock()">İptal</button>
+    </div>
+    <button class="btn-ghost" id="notes-lock-setup-btn" style="display:none;width:100%;margin-top:12px;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="resetNotesLock()">Şifreyi Sıfırla (notlar silinir)</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
@@ -877,7 +898,7 @@
         <button class="btn-ghost theme-btn" onclick="setTheme('sepia')"     id="t-sepia">🍮 Cappuccino</button>
         <button class="btn-ghost theme-btn" onclick="setTheme('light')"     id="t-light">🥛 Latte</button>
         <button class="btn-ghost theme-btn" onclick="setTheme('cortado')"   id="t-cortado">🥃 Cortado</button>
-        <button class="btn-ghost theme-btn" onclick="setTheme('turkkahve')" id="t-turkkahve">🌿 Türk Kahvesi</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('turkkahve')" id="t-turkkahve">☕️ Türk Kahvesi</button>
       </div>
     </div>
     <div class="form-row" style="margin-top:20px;">
@@ -897,17 +918,30 @@
       </select>
     </div>
     <div class="form-row" style="margin-top:20px;">
+      <label>🌤️ Hava Durumu Şehri</label>
+      <input type="text" id="weather-city-input" placeholder="Örn: Istanbul, Ankara, Izmir" onchange="setWeatherCity(this.value)" style="font-size:14px;">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">İngilizce yazmanız önerilir. Boş bırakırsanız hava durumu gösterilmez.</div>
+    </div>
+    <div class="form-row" style="margin-top:20px;">
       <label>Bildirimler</label>
       <button class="btn-ghost" style="width:100%;" onclick="allowNotifications()" id="notif-settings-btn">🔔 Bildirimleri Etkinleştir</button>
     </div>
     <div class="form-row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
       <label>☁️ Bulut Senkron</label>
       <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">
-        Verilerin tüm cihazlarında otomatik güncel kalır. Tüm cihazlarda <b>aynı şifreyi</b> kullanmalısın. Veriler şifreli iletilir, sadece sen okuyabilirsin.
+        Verilerin tüm cihazlarında güncel kalması için. Tüm cihazlarda <b>aynı şifreyi</b> kullanmalısın. Veriler şifreli iletilir, sadece sen okuyabilirsin.
       </div>
-      <button class="btn-ghost" style="width:100%;margin-bottom:6px;" id="cloud-sync-btn" onclick="cloudSyncBtnClick()">☁️ Bulut Senkronu Aç</button>
-      <div id="cloud-sync-status" style="font-size:11px;color:var(--muted);text-align:center;"></div>
-      <button class="btn-ghost" style="width:100%;margin-top:8px;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);display:none;" id="cloud-sync-disable" onclick="disableCloudSync()">Bulut Senkronu Kapat</button>
+
+      <!-- Bulut açık değilken -->
+      <button class="btn-ghost" style="width:100%;" id="cloud-enable-btn" onclick="enableCloudSync()">☁️ Bulut Senkronu Aç</button>
+
+      <!-- Bulut açıkken -->
+      <div id="cloud-sync-actions" style="display:none;">
+        <button class="btn-primary" style="width:100%;margin-bottom:8px;" id="cloud-push-btn" onclick="cloudPush()">⬆️ Verileri Buluta Yükle</button>
+        <button class="btn-ghost" style="width:100%;margin-bottom:8px;" id="cloud-pull-btn" onclick="cloudPull()">⬇️ Verileri Buluttan Çek</button>
+        <div id="cloud-sync-status" style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;"></div>
+        <button class="btn-ghost" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);" id="cloud-sync-disable" onclick="disableCloudSync()">Bulut Senkronu Kapat</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1165,11 +1199,11 @@ function updateThemeColors() {
   const root = document.querySelector(':root');
   if (currentTheme === 'turkkahve') {
     if (currentContext === 'work') {
-      root.style.setProperty('--accent', '#6A9E7A');
-      root.style.setProperty('--accent-light', 'rgba(106,158,122,0.18)');
+      root.style.setProperty('--accent', '#3FB8A6');       // Turkuaz
+      root.style.setProperty('--accent-light', 'rgba(63,184,166,0.18)');
     } else {
-      root.style.setProperty('--accent', '#7AB87A');
-      root.style.setProperty('--accent-light', 'rgba(122,184,122,0.18)');
+      root.style.setProperty('--accent', '#5DD4C4');       // Açık turkuaz
+      root.style.setProperty('--accent-light', 'rgba(93,212,196,0.18)');
     }
     return;
   }
@@ -1255,7 +1289,14 @@ function switchModule(mod, ctx='') {
   if(mod==='appointments') renderAppts();
   if(mod==='todos') { renderTodoTagFilter(); renderTodos(); }
   if(mod==='travels') renderTravels();
-  if(mod==='notes') renderNotes();
+  if(mod==='notes') {
+    // Kişisel notlar şifreli — kilitliyse aç
+    if (ctx === 'pers' && !isNotesUnlocked()) {
+      openNotesLock();
+      return;
+    }
+    renderNotes();
+  }
   if(mod==='habits') renderHabits();
   if(mod==='birthdays') renderBdays();
   if(mod==='lists') { renderLists(); }
@@ -1994,9 +2035,17 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-function openNoteEditor(eid=null) {
+async function openNoteEditor(eid=null) {
   currentEditId = eid;
-  const n = eid ? DB.get(getNoteKey(),[]).find(x=>x.id===eid) : null;
+  let n = null;
+  if (eid) {
+    if (currentContext === 'pers' && isNotesUnlocked()) {
+      const decrypted = await getDecryptedNotes();
+      n = decrypted.find(x => x.id === eid);
+    } else {
+      n = DB.get(getNoteKey(),[]).find(x => x.id === eid);
+    }
+  }
   document.getElementById('m-note-title').value = n ? n.title : '';
   document.getElementById('m-note-body').value  = n ? n.body  : '';
   switchNoteTab('write');
@@ -2024,39 +2073,53 @@ function switchNoteTab(m) {
   }
 }
 
-function saveNoteData() {
+async function saveNoteData() {
   const t = document.getElementById('m-note-title').value.trim();
   const b = document.getElementById('m-note-body').value.trim();
   const contacts = collectContacts();
   if (!t && !b) return false;
-  const k = getNoteKey(); const arr = DB.get(k,[]);
-  const idx = arr.findIndex(x => x.id === currentEditId);
-  const e = { id: currentEditId, title: t||'İsimsiz', body: b, contacts, d: new Date().toISOString() };
-  if (idx > -1) arr[idx] = e; else arr.unshift(e);
-  DB.set(k, arr);
+  const note = { id: currentEditId, title: t||'İsimsiz', body: b, contacts, d: new Date().toISOString() };
+  // Kişisel notlar şifreli, iş notları normal
+  if (currentContext === 'pers' && isNotesUnlocked()) {
+    await saveEncryptedNote(note);
+  } else {
+    const k = getNoteKey(); const arr = DB.get(k,[]);
+    const idx = arr.findIndex(x => x.id === currentEditId);
+    if (idx > -1) arr[idx] = note; else arr.unshift(note);
+    DB.set(k, arr);
+  }
   return true;
 }
 
-function saveNoteManual() {
-  if (saveNoteData()) showToast('✓ Kaydedildi');
+async function saveNoteManual() {
+  if (await saveNoteData()) showToast('✓ Kaydedildi');
 }
 
-function saveAndCloseNoteEditor() {
-  saveNoteData();
+async function saveAndCloseNoteEditor() {
+  await saveNoteData();
   document.getElementById('note-editor').classList.remove('open');
   renderNotes();
 }
 
-function deleteNote() {
+async function deleteNote() {
   if (!confirm('Bu notu kalıcı olarak silmek istediğinize emin misiniz?')) return;
-  const k = getNoteKey();
-  DB.set(k, DB.get(k,[]).filter(x => x.id !== currentEditId));
+  if (currentContext === 'pers' && isNotesUnlocked()) {
+    await deleteEncryptedNote(currentEditId);
+  } else {
+    const k = getNoteKey();
+    DB.set(k, DB.get(k,[]).filter(x => x.id !== currentEditId));
+  }
   document.getElementById('note-editor').classList.remove('open');
   renderNotes();
 }
 
-function renderNotes() {
-  const arr = DB.get(getNoteKey(),[]);
+async function renderNotes() {
+  let arr;
+  if (currentContext === 'pers' && isNotesUnlocked()) {
+    arr = await getDecryptedNotes();
+  } else {
+    arr = DB.get(getNoteKey(),[]);
+  }
   const el = document.getElementById('notes-list');
   if (!arr.length) { el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`; return; }
   el.innerHTML = arr.map(n => {
@@ -2080,10 +2143,14 @@ function renderNotes() {
   initSwipeForList('notes-list');
 }
 
-function deleteNoteById(nid) {
+async function deleteNoteById(nid) {
   if (!confirm('Silinsin mi?')) return;
-  const k = getNoteKey();
-  DB.set(k, DB.get(k,[]).filter(x => x.id !== nid));
+  if (currentContext === 'pers' && isNotesUnlocked()) {
+    await deleteEncryptedNote(nid);
+  } else {
+    const k = getNoteKey();
+    DB.set(k, DB.get(k,[]).filter(x => x.id !== nid));
+  }
   renderNotes();
 }
 
@@ -3008,71 +3075,67 @@ function clearCloudDirty() {
   updateCloudBtnText();
 }
 
-// ==================== MOBİL TESPİT ====================
-function isDesktop() {
-  return !('ontouchstart' in window) && window.innerWidth > 900;
-}
-
-// ==================== ÇIKIŞTA OTOMATİK YÜKLE (SADECE MASAÜSTÜ) ====================
-window.addEventListener('beforeunload', () => {
-  if (!isDesktop()) return;
+// ==================== MANUEL YÜKLE / İNDİR ====================
+async function cloudPush() {
   if (!isCloudSyncEnabled()) return;
-  if (cloudDirtyCount === 0) return;
-  // Senkron iş parçacıklı çağrı — beforeunload async beklemez
-  // sendBeacon kullanmak daha güvenli ama JSONBin desteklemiyor
-  // Bu yüzden hızlı bir fetch + keepalive ile gönder
-  pushToCloudSync();
-});
-
-// Senkron yükleme — beforeunload için özel sürüm
-async function pushToCloudSync() {
+  const btn = document.getElementById('cloud-push-btn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Yükleniyor...';
   try {
-    const password = getCloudPassword();
-    const uid = getCloudUserId();
-    if (!password || !uid) return;
-    const data = collectLocalData();
-    const encrypted = await encryptData(JSON.stringify(data), password);
-    const binId = getBinId();
-    if (!binId) return;
-    fetch(`${JSONBIN_API}/b/${binId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: JSON.stringify({ data: encrypted, updatedAt: Date.now() }),
-      keepalive: true
-    });
-  } catch(e) {}
-}
-
-async function manualSync(showMessages = true) {
-  if (!isCloudSyncEnabled()) return;
-  const btn = document.getElementById('cloud-sync-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Senkronize ediliyor...'; }
-  try {
-    // Önce uzaktakini çek (varsa), sonra yerel olanı yükle
-    await pullFromCloud();
     await pushToCloud();
     clearCloudDirty();
-    if (showMessages) showToast('☁️ Bulut ile senkronize edildi');
-    if (currentModule === 'summary') renderSummary();
+    showToast('⬆️ Veriler buluta yüklendi');
   } catch(e) {
-    if (showMessages) showToast('⚠️ Senkron hatası: ' + e.message);
-    console.error('Cloud sync error:', e);
+    showToast('⚠️ Yükleme hatası: ' + e.message);
+    console.error(e);
   } finally {
-    if (btn) { btn.disabled = false; updateCloudBtnText(); }
+    btn.disabled = false; btn.textContent = orig;
+    updateCloudBtnText();
+  }
+}
+
+async function cloudPull() {
+  if (!isCloudSyncEnabled()) return;
+  if (!confirm('Buluttan veriler indirilecek ve cihazdaki veriler ÜZERİNE YAZILACAK.\n\nMevcut cihaz verilerin kaybolabilir. Devam edilsin mi?')) return;
+  const btn = document.getElementById('cloud-pull-btn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ İndiriliyor...';
+  try {
+    const ok = await pullFromCloud();
+    if (ok) {
+      clearCloudDirty();
+      showToast('⬇️ Veriler buluttan çekildi');
+      if (currentModule === 'summary') renderSummary();
+    } else {
+      showToast('ℹ️ Bulutta kayıtlı veri yok');
+    }
+  } catch(e) {
+    showToast('⚠️ İndirme hatası: ' + e.message);
+    console.error(e);
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+    updateCloudBtnText();
   }
 }
 
 async function enableCloudSync() {
   const password = prompt('Bulut senkronu için bir şifre belirle.\nBu şifre tüm cihazlarında AYNI olmalı.\nUnutursan verilere ulaşamazsın!\n\nÖnerilen: kendi giriş kodun (#abc4-7xk2 gibi) veya farklı bir şifre');
   if (!password || password.length < 6) { showToast('⚠️ En az 6 karakter olmalı'); return; }
-  // Kullanıcı kimliği = şifrenin SHA-256 hash'i (ilk 16 karakter)
+  // Kullanıcı kimliği
   const uid = (await sha256('planner-uid-' + password)).slice(0, 24);
   setCloudUserId(uid);
   setCloudPassword(password, true);
   setCloudSyncEnabled(true);
   showToast('☁️ Bulut senkron etkinleştirildi');
-  await manualSync(true);
   updateCloudBtnText();
+  // İlk girişte kullanıcıya sor
+  setTimeout(() => {
+    if (confirm('İlk kez bu cihazda bulut senkronu açtın.\n\n• Yeni cihaz mıyım, buluttan veri çekeyim mi? (Tamam)\n• Yoksa bu cihazdaki verileri buluta yükleyeyim mi? (İptal)')) {
+      cloudPull();
+    } else {
+      cloudPush();
+    }
+  }, 400);
 }
 
 function disableCloudSync() {
@@ -3085,44 +3148,249 @@ function disableCloudSync() {
 }
 
 function updateCloudBtnText() {
-  const btn = document.getElementById('cloud-sync-btn');
-  const status = document.getElementById('cloud-sync-status');
-  const disableBtn = document.getElementById('cloud-sync-disable');
-  if (!btn) return;
+  const enableBtn  = document.getElementById('cloud-enable-btn');
+  const actions    = document.getElementById('cloud-sync-actions');
+  const status     = document.getElementById('cloud-sync-status');
+  const pushBtn    = document.getElementById('cloud-push-btn');
+  if (!enableBtn) return;
+
   if (isCloudSyncEnabled()) {
-    if (cloudDirtyCount > 0) {
-      btn.textContent = `☁️ Şimdi Senkronize Et • ${cloudDirtyCount} bekleyen`;
-      btn.style.borderColor = 'var(--accent-warning)';
-      btn.style.color = 'var(--accent-warning)';
-    } else {
-      btn.textContent = '☁️ Şimdi Senkronize Et';
-      btn.style.borderColor = '';
-      btn.style.color = '';
+    enableBtn.style.display = 'none';
+    if (actions) actions.style.display = 'block';
+    if (pushBtn) {
+      pushBtn.textContent = cloudDirtyCount > 0
+        ? `⬆️ Verileri Buluta Yükle • ${cloudDirtyCount} bekleyen`
+        : '⬆️ Verileri Buluta Yükle';
     }
     if (status) {
       const last = getLastSync();
-      const desktopNote = isDesktop() ? ' · Çıkışta otomatik kaydedilir' : '';
-      status.textContent = (last ? '✓ Son senkron: ' + new Date(last).toLocaleString('tr-TR') : 'Henüz senkronize edilmedi') + desktopNote;
+      status.textContent = last
+        ? '✓ Son işlem: ' + new Date(last).toLocaleString('tr-TR')
+        : 'Henüz senkronize edilmedi';
     }
-    if (disableBtn) disableBtn.style.display = 'block';
   } else {
-    btn.textContent = '☁️ Bulut Senkronu Aç';
-    btn.style.borderColor = '';
-    btn.style.color = '';
-    if (status) status.textContent = 'Kapalı';
-    if (disableBtn) disableBtn.style.display = 'none';
+    enableBtn.style.display = 'block';
+    if (actions) actions.style.display = 'none';
   }
 }
 
 function cloudSyncBtnClick() {
-  if (isCloudSyncEnabled()) {
-    manualSync(true);
+  // Eski referans — kullanılmıyor ama kırılmasın
+  if (isCloudSyncEnabled()) cloudPush();
+  else enableCloudSync();
+}
+
+// ==================== KİŞİSEL NOTLAR KİLİDİ ====================
+let notesUnlockedPwd = null; // Oturum boyunca cache
+
+function isNotesLockSet() {
+  return localStorage.getItem('planner_notes_lock_check') !== null;
+}
+
+function isNotesUnlocked() {
+  return notesUnlockedPwd !== null;
+}
+
+function lockNotes() {
+  notesUnlockedPwd = null;
+  showToast('🔒 Kişisel notlar kilitlendi');
+}
+
+function openNotesLock(setupMode = false) {
+  const modal = document.getElementById('modal-notes-lock');
+  const desc  = document.getElementById('notes-lock-desc');
+  const err   = document.getElementById('notes-lock-error');
+  const setupBtn = document.getElementById('notes-lock-setup-btn');
+  err.textContent = '';
+  document.getElementById('notes-lock-pwd').value = '';
+  if (setupMode || !isNotesLockSet()) {
+    desc.innerHTML = '<b>İlk kullanım:</b> Kişisel notlarınız için bir şifre belirleyin. Bu şifre sadece sizde, unutmayın!';
+    setupBtn.style.display = 'none';
   } else {
-    enableCloudSync();
+    desc.textContent = 'Kişisel notlarınız AES-256 ile şifreli. Görüntülemek için şifrenizi girin.';
+    setupBtn.style.display = 'block';
+  }
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('notes-lock-pwd').focus(), 200);
+}
+
+function closeNotesLock() {
+  document.getElementById('modal-notes-lock').classList.remove('open');
+  // Eğer notes modülündeyse ana sayfaya dön
+  if (currentModule === 'notes' && currentContext === 'pers' && !isNotesUnlocked()) {
+    switchModule('summary');
   }
 }
 
-// ==================== BAŞLATMA ====================
+async function unlockNotes() {
+  const pwd = document.getElementById('notes-lock-pwd').value;
+  const err = document.getElementById('notes-lock-error');
+  if (!pwd || pwd.length < 4) {
+    err.textContent = 'Şifre en az 4 karakter olmalı';
+    return;
+  }
+
+  if (!isNotesLockSet()) {
+    // İLK KURULUM — şifreyi kaydet (hash olarak)
+    const check = await encryptData('NOTES_LOCK_OK', pwd);
+    localStorage.setItem('planner_notes_lock_check', check);
+    notesUnlockedPwd = pwd;
+    showToast('🔓 Kişisel notlar şifresi belirlendi');
+    document.getElementById('modal-notes-lock').classList.remove('open');
+    renderNotes();
+    return;
+  }
+
+  // GİRİŞ — şifreyi doğrula
+  try {
+    const check = localStorage.getItem('planner_notes_lock_check');
+    const decrypted = await decryptData(check, pwd);
+    if (decrypted !== 'NOTES_LOCK_OK') throw new Error('bad');
+    notesUnlockedPwd = pwd;
+    showToast('🔓 Kişisel notlar açıldı');
+    document.getElementById('modal-notes-lock').classList.remove('open');
+    renderNotes();
+  } catch(e) {
+    err.textContent = 'Yanlış şifre';
+    document.getElementById('notes-lock-pwd').value = '';
+  }
+}
+
+function resetNotesLock() {
+  if (!confirm('DİKKAT: Bu işlem TÜM kişisel notlarınızı silecek (şifreli oldukları için kurtarılamaz).\n\nDevam edilsin mi?')) return;
+  localStorage.removeItem('planner_notes_lock_check');
+  DB.set('pers_notes', []);
+  notesUnlockedPwd = null;
+  document.getElementById('modal-notes-lock').classList.remove('open');
+  showToast('🔄 Kişisel notlar şifresi sıfırlandı');
+  switchModule('summary');
+}
+
+// Şifrelenmiş notları al/kaydet
+async function getDecryptedNotes() {
+  const arr = DB.get('pers_notes', []);
+  if (!notesUnlockedPwd) return [];
+  const decrypted = [];
+  for (const n of arr) {
+    try {
+      if (n.encrypted) {
+        const plainText = await decryptData(n.encrypted, notesUnlockedPwd);
+        const data = JSON.parse(plainText);
+        decrypted.push({ ...data, id: n.id, d: n.d });
+      } else {
+        // Eski şifrelenmemiş not — şifrele
+        decrypted.push(n);
+      }
+    } catch(e) {
+      console.error('Not çözülemedi:', n.id);
+    }
+  }
+  return decrypted;
+}
+
+async function saveEncryptedNote(note) {
+  if (!notesUnlockedPwd) return;
+  const arr = DB.get('pers_notes', []);
+  const idx = arr.findIndex(x => x.id === note.id);
+  // Yalnızca duyarlı veriyi şifrele (id ve d hariç)
+  const sensitive = { title: note.title, body: note.body, contacts: note.contacts || [] };
+  const encrypted = await encryptData(JSON.stringify(sensitive), notesUnlockedPwd);
+  const stored = { id: note.id, d: note.d, encrypted };
+  if (idx > -1) arr[idx] = stored; else arr.unshift(stored);
+  DB.set('pers_notes', arr);
+}
+
+async function deleteEncryptedNote(nid) {
+  const arr = DB.get('pers_notes', []).filter(x => x.id !== nid);
+  DB.set('pers_notes', arr);
+}
+
+
+const WEATHER_ICONS = {
+  0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+  45: '🌫️', 48: '🌫️',
+  51: '🌦️', 53: '🌦️', 55: '🌦️',
+  61: '🌧️', 63: '🌧️', 65: '🌧️',
+  71: '🌨️', 73: '🌨️', 75: '🌨️',
+  77: '🌨️', 80: '🌧️', 81: '🌧️', 82: '🌧️',
+  85: '🌨️', 86: '🌨️',
+  95: '⛈️', 96: '⛈️', 99: '⛈️'
+};
+
+function getWeatherCity() { return localStorage.getItem('planner_weather_city') || ''; }
+function setWeatherCity(city) {
+  city = (city || '').trim();
+  localStorage.setItem('planner_weather_city', city);
+  loadWeather();
+}
+
+async function geocodeCity(city) {
+  // Önce cache kontrol
+  const cached = localStorage.getItem('planner_weather_geo_' + city.toLowerCase());
+  if (cached) {
+    try { return JSON.parse(cached); } catch(e) {}
+  }
+  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=tr`);
+  if (!res.ok) throw new Error('Şehir bulunamadı');
+  const r = await res.json();
+  if (!r.results || !r.results.length) throw new Error('Şehir bulunamadı');
+  const geo = { lat: r.results[0].latitude, lon: r.results[0].longitude, name: r.results[0].name };
+  localStorage.setItem('planner_weather_geo_' + city.toLowerCase(), JSON.stringify(geo));
+  return geo;
+}
+
+async function fetchWeather(lat, lon) {
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max&current=temperature_2m,weather_code&timezone=auto&forecast_days=2`);
+  if (!res.ok) throw new Error('Hava durumu alınamadı');
+  return res.json();
+}
+
+async function loadWeather() {
+  const el = document.getElementById('weather-widget');
+  const input = document.getElementById('weather-city-input');
+  if (input) input.value = getWeatherCity();
+  if (!el) return;
+  const city = getWeatherCity();
+  if (!city) { el.style.display = 'none'; return; }
+
+  // Cache kontrolü — 30 dakikada bir yenile
+  const cacheKey = 'planner_weather_data_' + city.toLowerCase();
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      const obj = JSON.parse(cached);
+      if (Date.now() - obj.t < 30 * 60 * 1000) {
+        renderWeather(obj.geo, obj.data);
+        return;
+      }
+    } catch(e) {}
+  }
+
+  try {
+    const geo = await geocodeCity(city);
+    const data = await fetchWeather(geo.lat, geo.lon);
+    localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), geo, data }));
+    renderWeather(geo, data);
+  } catch(e) {
+    el.style.display = 'inline-block';
+    el.textContent = '⚠️ ' + e.message;
+    el.style.color = 'var(--accent-danger)';
+  }
+}
+
+function renderWeather(geo, data) {
+  const el = document.getElementById('weather-widget');
+  if (!el) return;
+  const c = data.current;
+  const d = data.daily;
+  const todayIcon = WEATHER_ICONS[c.weather_code] || '🌡️';
+  const tomorrowIcon = WEATHER_ICONS[d.weather_code[1]] || '🌡️';
+  el.innerHTML = `${todayIcon} ${geo.name} ${Math.round(c.temperature_2m)}° · Yarın ${tomorrowIcon} ${Math.round(d.temperature_2m_max[1])}°`;
+  el.style.display = 'inline-block';
+  el.style.color = 'var(--muted)';
+}
+
+
 function init() {
   setTheme(currentTheme);
   applyTranslations();
@@ -3134,14 +3402,12 @@ function init() {
   initNotifications();
   registerSW();
   updateCloudBtnText();
-  // Eğer bulut senkronu açıksa, sayfa açılınca arka planda çek
-  if (isCloudSyncEnabled() && getCloudPassword()) {
-    setTimeout(() => manualSync(false), 1500);
-  }
   
   // Widgetların (Takvim vb.) ekran boyutuna göre yerleşimi
   relocateWidgets();
-  renderListsWidget();(() => { if(currentModule==='summary') renderSummary(); }, 60000);
+  renderListsWidget();
+  loadWeather();
+  setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
 }
 init();
 </script>
