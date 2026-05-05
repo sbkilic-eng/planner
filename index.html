@@ -1264,6 +1264,8 @@ const DB = {
 function id() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function formatDate(d) { if(!d) return ''; const p=d.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; }
+// Türkçe uyumlu küçük harf — RİSK → risk (görünmez nokta yok)
+function trLower(s) { return String(s||'').toLocaleLowerCase('tr-TR'); }
 
 // ==================== MODALS & SIDEBAR ====================
 function openModal(mid) { document.getElementById(mid).classList.add('open'); }
@@ -1470,7 +1472,7 @@ function closeSearch() {
 document.getElementById('search-overlay').addEventListener('click', function(e) { if(e.target===this) closeSearch(); });
 
 function performSearch() {
-  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const q = trLower(document.getElementById('search-input').value.trim());
   const el = document.getElementById('search-results');
   
   if(q.length === 0) { el.innerHTML = ''; return; }
@@ -1480,7 +1482,7 @@ function performSearch() {
   const push = (items, icon, ctx, mod, getTitle, getSub) => {
     (items||[]).forEach(i => {
       const t = getTitle(i); const s = getSub(i);
-      if((t+' '+s).toLowerCase().includes(q)) results.push({icon, ctx, mod, title:t, sub:s});
+      if(trLower(t+' '+s).includes(q)) results.push({icon, ctx, mod, title:t, sub:s});
     });
   };
   push(DB.get('work_appts',[]),'🗓️','work','appointments',i=>i.title,i=>formatDate(i.date)+(i.time?' '+i.time:''));
@@ -1495,9 +1497,24 @@ function performSearch() {
   ['work_notes','pers_notes'].forEach(key => {
     const ctx = key.includes('work')?'work':'pers';
     (DB.get(key,[])||[]).forEach(n => {
-      if((n.title+' '+n.body).toLowerCase().includes(q))
-        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:n.body.slice(0,60)});
+      // Şifrelenmiş notlar atlanır (içeriği okunamaz, başlığı yok)
+      if (n.encrypted) return;
+      if(trLower((n.title||'')+' '+(n.body||'')).includes(q))
+        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:(n.body||'').slice(0,60)});
     });
+  });
+
+  // Kişi rehberi
+  (DB.get('work_contacts',[])||[]).forEach(c => {
+    const fullname = `${c.firstname||''} ${c.lastname||''}`.trim();
+    const haystack = trLower([fullname, c.company, c.title, c.phone, c.phone2, c.email, c.tag].filter(Boolean).join(' '));
+    if (haystack.includes(q)) {
+      results.push({
+        icon: '📇', ctx: 'work', mod: 'contacts',
+        title: fullname || 'İsimsiz',
+        sub: [c.title, c.company].filter(Boolean).join(' · ') || (c.phone || c.email || '')
+      });
+    }
   });
 
   if(!results.length) { el.innerHTML='<div class="search-empty">Sonuç bulunamadı.</div>'; return; }
@@ -2141,6 +2158,7 @@ function renderBdays() {
               <div style="display:flex;gap:12px;align-items:center;">
                   <button class="btn-icon" onclick="event.stopPropagation();openBdayForm('${x.id}')" title="Düzenle">&#9998;</button>
                   <button class="btn-icon" onclick="event.stopPropagation();downloadICS('${x.name} D.Günü','${dStr}',null,'Kutlama')" title="Takvime Ekle">&#128197;</button>
+                  <button class="btn-icon swipe-hide-mobile" onclick="event.stopPropagation();delBday('${x.id}')" title="Sil">&#10005;</button>
                   <span class="chevron" id="bc-${x.id}">▼</span>
               </div>
           </div>
@@ -2473,7 +2491,7 @@ function exportContactVCard(cid) {
 function renderContacts() {
   const listEl = document.getElementById('contacts-list');
   const tagsEl = document.getElementById('contact-tags');
-  const search = (document.getElementById('contact-search')?.value || '').toLowerCase().trim();
+  const search = trLower(document.getElementById('contact-search')?.value || '').trim();
 
   // Etiket filtreleri
   const allTags = getAllContactTags();
@@ -2488,11 +2506,11 @@ function renderContacts() {
   if (activeContactTag) arr = arr.filter(c => c.tag === activeContactTag);
   if (search) {
     arr = arr.filter(c =>
-      (c.firstname + ' ' + c.lastname).toLowerCase().includes(search) ||
-      (c.company || '').toLowerCase().includes(search) ||
+      trLower(c.firstname + ' ' + c.lastname).includes(search) ||
+      trLower(c.company || '').includes(search) ||
       (c.phone || '').includes(search) ||
       (c.phone2 || '').includes(search) ||
-      (c.email || '').toLowerCase().includes(search)
+      trLower(c.email || '').includes(search)
     );
   }
   // İsme göre sırala
