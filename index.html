@@ -33,6 +33,7 @@
   [data-theme="midnight"]  { --bg: #000000; --surface: #121212; --border: #1F1F1F; --text: #E1E1E1; --muted: #666666; --shadow: none; }
   [data-theme="cortado"]   { --bg: #D1C7BD; --surface: #DFD6CD; --border: #B8ADA3; --text: #38312A; --muted: #7A6F66; --shadow: 0 4px 15px rgba(56,49,42,0.08); }
   [data-theme="turkkahve"] { --bg: #2A1F18; --surface: #3A2E24; --border: #4D3D30; --text: #F0E5D4; --muted: #B89B82; --shadow: 0 4px 20px rgba(0,0,0,0.35); }
+  [data-theme="turkcayi"]  { --bg: #2E0D0D; --surface: #43181A; --border: #6E2828; --text: #F5E6E0; --muted: #C9A89A; --shadow: 0 4px 20px rgba(0,0,0,0.4); }
 
   /* ================= GENEL YAPI ================= */
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -414,6 +415,55 @@
     .swipe-hide-mobile                              { display: none !important; }
   }
 
+  /* ================= KİŞİ REHBERİ ================= */
+  .contact-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px; margin-bottom: 0;
+    box-shadow: var(--shadow); border-left: 4px solid var(--accent);
+    transition: transform 0.15s;
+  }
+  .contact-row { display: flex; align-items: flex-start; gap: 14px; }
+  .contact-avatar {
+    width: 50px; height: 50px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, black));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 20px; flex-shrink: 0;
+  }
+  .contact-info { flex: 1; min-width: 0; }
+  .contact-name { font-size: 16px; font-weight: 700; color: var(--text); margin: 0; }
+  .contact-meta { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .contact-tag-pill {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 8px;
+    background: var(--accent-light); color: var(--accent);
+    margin-top: 4px;
+  }
+  .contact-fields { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: none; }
+  .contact-fields.open { display: block; animation: fadeIn 0.2s; }
+  .contact-field {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0;
+    font-size: 13px; color: var(--text);
+  }
+  .contact-field-icon { width: 24px; flex-shrink: 0; font-size: 16px; }
+  .contact-field a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .contact-field a:hover { text-decoration: underline; }
+  .contact-field-empty { color: var(--muted); font-style: italic; font-size: 12px; }
+  .contact-tag-pick {
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--muted); font-size: 12px; padding: 6px 12px;
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .contact-tag-pick:hover { color: var(--text); }
+  .contact-tag-pick.selected { background: var(--accent); color: white; border-color: var(--accent); }
+  .contact-filter-tag {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); font-size: 12px; padding: 6px 12px;
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .contact-filter-tag.active { background: var(--accent); color: white; border-color: var(--accent); }
+
   /* ================= GİRİŞ EKRANI ================= */
   #login-screen {
     display: none; position: fixed; inset: 0; z-index: 9999;
@@ -603,7 +653,7 @@
           <div class="fan-header-icon work">💼</div>
           <div class="fan-header-text">
             <div class="fan-header-title" data-i18n="nav_work">İŞ DÜNYASI</div>
-            <div class="fan-header-sub" id="fan-work-sub">4 bölüm</div>
+            <div class="fan-header-sub" id="fan-work-sub">5 bölüm</div>
           </div>
           <span class="fan-arrow">▼</span>
         </button>
@@ -623,6 +673,10 @@
           <button class="fan-item" onclick="switchModule('notes','work')" id="fani-work-notes">
             <span class="fan-item-icon">📄</span>
             <span class="fan-item-label" data-i18n="nav_work_notes">Şirket Notları</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('contacts','work')" id="fani-work-contacts">
+            <span class="fan-item-icon">📇</span>
+            <span class="fan-item-label">Kişi Rehberi</span>
           </button>
         </div>
       </div>
@@ -814,6 +868,15 @@
             <button class="btn-add" onclick="openQNoteEditor()">+ Hızlı Not Ekle</button>
             <div id="qnotes-list"></div>
           </div>
+
+          <div class="section" id="sec-contacts">
+            <button class="btn-add" onclick="openContactForm()">+ Yeni Kişi Ekle</button>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+              <input type="text" id="contact-search" placeholder="🔍 İsim, şirket veya telefon ara..." oninput="renderContacts()" style="flex:1;padding:10px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;outline:none;">
+            </div>
+            <div id="contact-tags" style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;flex-wrap:wrap;"></div>
+            <div id="contacts-list"></div>
+          </div>
         </div>
 
         <aside class="widget-column" id="widget-col">
@@ -919,6 +982,7 @@
         <button class="btn-ghost theme-btn" onclick="setTheme('light')"     id="t-light">🥛 Latte</button>
         <button class="btn-ghost theme-btn" onclick="setTheme('cortado')"   id="t-cortado">🥃 Cortado</button>
         <button class="btn-ghost theme-btn" onclick="setTheme('turkkahve')" id="t-turkkahve">☕️ Türk Kahvesi</button>
+        <button class="btn-ghost theme-btn" onclick="setTheme('turkcayi')" id="t-turkcayi"><svg width="14" height="14" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:4px;display:inline-block;"><defs><linearGradient id="teaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C92020"/><stop offset="100%" stop-color="#7A0E0E"/></linearGradient></defs><path d="M8 4 L16 4 L15 9 Q15 13 12 14 Q9 13 9 9 Z" fill="url(#teaGrad)" stroke="#fff" stroke-width="0.6"/><path d="M8 4 L16 4 L15.5 5.5 L8.5 5.5 Z" fill="rgba(255,255,255,0.25)"/><ellipse cx="12" cy="15" rx="4" ry="0.6" fill="#A02020"/><rect x="9" y="14.5" width="6" height="2" rx="0.3" fill="#999" stroke="#666" stroke-width="0.3"/></svg> Türk Çayı</button>
       </div>
     </div>
     <div class="form-row" style="margin-top:20px;">
@@ -1079,6 +1143,45 @@
   </div>
 </div>
 
+<!-- Kişi Rehberi Modal -->
+<div class="modal-overlay" id="modal-contact">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title" id="contact-modal-title">Yeni Kişi</div>
+    <div class="form-row-2">
+      <div><label>Ad *</label><input type="text" id="m-contact-firstname" placeholder="Ahmet"></div>
+      <div><label>Soyad</label><input type="text" id="m-contact-lastname" placeholder="Yılmaz"></div>
+    </div>
+    <div class="form-row"><label>Pozisyon / Ünvan</label><input type="text" id="m-contact-title" placeholder="Satın Alma Müdürü"></div>
+    <div class="form-row"><label>Şirket</label><input type="text" id="m-contact-company" placeholder="ABC A.Ş."></div>
+    <div class="form-row-2">
+      <div><label>📱 Cep</label><input type="tel" id="m-contact-phone" placeholder="0532..."></div>
+      <div><label>☎️ Sabit</label><input type="tel" id="m-contact-phone2" placeholder="0212..."></div>
+    </div>
+    <div class="form-row"><label>📧 E-posta</label><input type="email" id="m-contact-email" placeholder="ahmet@firma.com"></div>
+    <div class="form-row"><label>📍 Adres</label><textarea id="m-contact-address" placeholder="Tam adres..." style="min-height:50px;resize:none;"></textarea></div>
+    <div class="form-row"><label>🌐 Web Sitesi</label><input type="url" id="m-contact-website" placeholder="https://..."></div>
+    <div class="form-row"><label>💼 LinkedIn</label><input type="url" id="m-contact-linkedin" placeholder="https://linkedin.com/in/..."></div>
+    <div class="form-row">
+      <label>🏷️ Etiket</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="contact-tag-buttons">
+        <button type="button" class="contact-tag-pick" data-tag="Müşteri" onclick="pickContactTag('Müşteri')">Müşteri</button>
+        <button type="button" class="contact-tag-pick" data-tag="Tedarikçi" onclick="pickContactTag('Tedarikçi')">Tedarikçi</button>
+        <button type="button" class="contact-tag-pick" data-tag="İş Ortağı" onclick="pickContactTag('İş Ortağı')">İş Ortağı</button>
+        <button type="button" class="contact-tag-pick" data-tag="Çalışan" onclick="pickContactTag('Çalışan')">Çalışan</button>
+        <button type="button" class="contact-tag-pick" data-tag="Aile" onclick="pickContactTag('Aile')">Aile</button>
+        <button type="button" class="contact-tag-pick" data-tag="Arkadaş" onclick="pickContactTag('Arkadaş')">Arkadaş</button>
+        <button type="button" class="contact-tag-pick" data-tag="Diğer" onclick="pickContactTag('Diğer')">Diğer</button>
+      </div>
+      <input type="text" id="m-contact-tag" placeholder="Veya kendin yaz..." style="margin-top:8px;font-size:13px;">
+    </div>
+    <div class="form-row"><label>📝 Notlar</label><textarea id="m-contact-notes" placeholder="Bu kişi hakkında hatırlamak istedikleriniz..." style="min-height:60px;resize:none;"></textarea></div>
+    <div class="form-row-2">
+      <button class="btn-primary" onclick="saveContact()">Kaydet</button>
+      <button class="btn-ghost" onclick="closeModal('modal-contact')">İptal</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-newlist">
   <div class="modal">
     <div class="modal-title">Yeni Liste Kategorisi</div>
@@ -1227,6 +1330,16 @@ function updateThemeColors() {
     }
     return;
   }
+  if (currentTheme === 'turkcayi') {
+    if (currentContext === 'work') {
+      root.style.setProperty('--accent', '#D44545');       // Türk bayrağı kırmızısı
+      root.style.setProperty('--accent-light', 'rgba(212,69,69,0.18)');
+    } else {
+      root.style.setProperty('--accent', '#E86060');       // Açık kırmızı
+      root.style.setProperty('--accent-light', 'rgba(232,96,96,0.18)');
+    }
+    return;
+  }
   if (currentTheme === 'sepia') {
     if (currentContext === 'work') {
       root.style.setProperty('--accent', '#7A6EA8');
@@ -1320,6 +1433,7 @@ function switchModule(mod, ctx='') {
   if(mod==='habits') renderHabits();
   if(mod==='birthdays') renderBdays();
   if(mod==='lists') { renderLists(); }
+  if(mod==='contacts') renderContacts();
   if(mod==='quicknotes') renderQNotes();
 }
 
@@ -2238,6 +2352,198 @@ function saveQNote() {
 }
 
 // WIDGET ÜZERİNDEN HIZLI NOT KAYDETME
+// ==================== KİŞİ REHBERİ ====================
+const CONTACTS_KEY = 'work_contacts';
+let activeContactTag = '';
+let openContactId = null;
+let editContactId = null;
+
+function getContacts() { return DB.get(CONTACTS_KEY, []); }
+function saveContacts(arr) { DB.set(CONTACTS_KEY, arr); }
+
+function pickContactTag(tag) {
+  document.getElementById('m-contact-tag').value = tag;
+  document.querySelectorAll('.contact-tag-pick').forEach(b => {
+    b.classList.toggle('selected', b.dataset.tag === tag);
+  });
+}
+
+function openContactForm(eid = null) {
+  editContactId = eid;
+  const c = eid ? getContacts().find(x => x.id === eid) : null;
+  document.getElementById('contact-modal-title').textContent = c ? 'Kişiyi Düzenle' : 'Yeni Kişi';
+  document.getElementById('m-contact-firstname').value = c?.firstname || '';
+  document.getElementById('m-contact-lastname').value  = c?.lastname  || '';
+  document.getElementById('m-contact-title').value     = c?.title     || '';
+  document.getElementById('m-contact-company').value   = c?.company   || '';
+  document.getElementById('m-contact-phone').value     = c?.phone     || '';
+  document.getElementById('m-contact-phone2').value    = c?.phone2    || '';
+  document.getElementById('m-contact-email').value     = c?.email     || '';
+  document.getElementById('m-contact-address').value   = c?.address   || '';
+  document.getElementById('m-contact-website').value   = c?.website   || '';
+  document.getElementById('m-contact-linkedin').value  = c?.linkedin  || '';
+  document.getElementById('m-contact-tag').value       = c?.tag       || '';
+  document.getElementById('m-contact-notes').value     = c?.notes     || '';
+  document.querySelectorAll('.contact-tag-pick').forEach(b => {
+    b.classList.toggle('selected', b.dataset.tag === (c?.tag || ''));
+  });
+  openModal('modal-contact');
+}
+
+function saveContact() {
+  const firstname = document.getElementById('m-contact-firstname').value.trim();
+  if (!firstname) { showToast('⚠️ En az isim girilmeli'); return; }
+  const data = {
+    firstname,
+    lastname:  document.getElementById('m-contact-lastname').value.trim(),
+    title:     document.getElementById('m-contact-title').value.trim(),
+    company:   document.getElementById('m-contact-company').value.trim(),
+    phone:     document.getElementById('m-contact-phone').value.trim(),
+    phone2:    document.getElementById('m-contact-phone2').value.trim(),
+    email:     document.getElementById('m-contact-email').value.trim(),
+    address:   document.getElementById('m-contact-address').value.trim(),
+    website:   document.getElementById('m-contact-website').value.trim(),
+    linkedin:  document.getElementById('m-contact-linkedin').value.trim(),
+    tag:       document.getElementById('m-contact-tag').value.trim(),
+    notes:     document.getElementById('m-contact-notes').value.trim(),
+  };
+  const arr = getContacts();
+  if (editContactId) {
+    const idx = arr.findIndex(x => x.id === editContactId);
+    if (idx > -1) arr[idx] = { ...arr[idx], ...data };
+  } else {
+    arr.push({ id: id(), createdAt: Date.now(), ...data });
+  }
+  saveContacts(arr);
+  closeModal('modal-contact');
+  renderContacts();
+}
+
+function deleteContact(cid) {
+  if (!confirm('Kişi silinsin mi?')) return;
+  saveContacts(getContacts().filter(x => x.id !== cid));
+  renderContacts();
+}
+
+function toggleContactCard(cid) {
+  openContactId = (openContactId === cid) ? null : cid;
+  renderContacts();
+}
+
+function getAllContactTags() {
+  const tags = new Set();
+  getContacts().forEach(c => { if (c.tag) tags.add(c.tag); });
+  return Array.from(tags).sort();
+}
+
+function setContactTagFilter(tag) {
+  activeContactTag = (activeContactTag === tag) ? '' : tag;
+  renderContacts();
+}
+
+// vCard çıkışı — telefona kaydetmek için
+function exportContactVCard(cid) {
+  const c = getContacts().find(x => x.id === cid);
+  if (!c) return;
+  const fullname = `${c.firstname} ${c.lastname}`.trim();
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${fullname}`,
+    `N:${c.lastname || ''};${c.firstname || ''};;;`,
+  ];
+  if (c.title)   lines.push(`TITLE:${c.title}`);
+  if (c.company) lines.push(`ORG:${c.company}`);
+  if (c.phone)   lines.push(`TEL;TYPE=CELL:${c.phone}`);
+  if (c.phone2)  lines.push(`TEL;TYPE=WORK:${c.phone2}`);
+  if (c.email)   lines.push(`EMAIL:${c.email}`);
+  if (c.address) lines.push(`ADR:;;${c.address.replace(/\n/g,', ')};;;;`);
+  if (c.website) lines.push(`URL:${c.website}`);
+  if (c.notes)   lines.push(`NOTE:${c.notes.replace(/\n/g,'\\n')}`);
+  lines.push('END:VCARD');
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/vcard' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${fullname || 'kisi'}.vcf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderContacts() {
+  const listEl = document.getElementById('contacts-list');
+  const tagsEl = document.getElementById('contact-tags');
+  const search = (document.getElementById('contact-search')?.value || '').toLowerCase().trim();
+
+  // Etiket filtreleri
+  const allTags = getAllContactTags();
+  if (tagsEl) {
+    tagsEl.innerHTML = allTags.length
+      ? allTags.map(t => `<button class="contact-filter-tag ${activeContactTag===t?'active':''}" onclick="setContactTagFilter('${esc(t).replace(/'/g,"\\'")}')">${esc(t)}</button>`).join('')
+      : '';
+  }
+
+  // Filtreleme
+  let arr = getContacts();
+  if (activeContactTag) arr = arr.filter(c => c.tag === activeContactTag);
+  if (search) {
+    arr = arr.filter(c =>
+      (c.firstname + ' ' + c.lastname).toLowerCase().includes(search) ||
+      (c.company || '').toLowerCase().includes(search) ||
+      (c.phone || '').includes(search) ||
+      (c.phone2 || '').includes(search) ||
+      (c.email || '').toLowerCase().includes(search)
+    );
+  }
+  // İsme göre sırala
+  arr.sort((a, b) => (a.firstname + a.lastname).localeCompare(b.firstname + b.lastname, 'tr'));
+
+  if (!arr.length) {
+    listEl.innerHTML = `<div class="empty">${search || activeContactTag ? 'Eşleşen kişi yok.' : 'Henüz kişi eklenmedi. + ile başla.'}</div>`;
+    return;
+  }
+
+  listEl.innerHTML = arr.map(c => {
+    const fullname = `${c.firstname} ${c.lastname}`.trim();
+    const initial  = (c.firstname[0] || '?').toUpperCase();
+    const isOpen   = openContactId === c.id;
+    const safeName = esc(fullname);
+    return `<div class="swipe-wrap" style="margin-bottom:10px;">
+      <div class="swipe-del-btn" onclick="deleteContact('${c.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
+      <div class="contact-card" data-id="${c.id}">
+        <div class="contact-row" style="cursor:pointer;" onclick="toggleContactCard('${c.id}')">
+          <div class="contact-avatar">${initial}</div>
+          <div class="contact-info">
+            <div class="contact-name">${safeName}</div>
+            ${c.title || c.company
+              ? `<div class="contact-meta">${[esc(c.title), esc(c.company)].filter(Boolean).join(' · ')}</div>` : ''}
+            ${c.tag ? `<span class="contact-tag-pill">${esc(c.tag)}</span>` : ''}
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn-icon swipe-hide-mobile" onclick="event.stopPropagation();openContactForm('${c.id}')" title="Düzenle">&#9998;</button>
+            <button class="btn-icon swipe-hide-mobile" onclick="event.stopPropagation();deleteContact('${c.id}')" title="Sil">&#10005;</button>
+            <span class="chevron ${isOpen?'open':''}">▼</span>
+          </div>
+        </div>
+        <div class="contact-fields ${isOpen?'open':''}">
+          ${c.phone   ? `<div class="contact-field"><span class="contact-field-icon">📱</span><a href="tel:${esc(c.phone)}">${esc(c.phone)}</a></div>` : ''}
+          ${c.phone2  ? `<div class="contact-field"><span class="contact-field-icon">☎️</span><a href="tel:${esc(c.phone2)}">${esc(c.phone2)}</a></div>` : ''}
+          ${c.email   ? `<div class="contact-field"><span class="contact-field-icon">📧</span><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></div>` : ''}
+          ${c.address ? `<div class="contact-field"><span class="contact-field-icon">📍</span><a href="https://maps.google.com/?q=${encodeURIComponent(c.address)}" target="_blank" rel="noopener">${esc(c.address)}</a></div>` : ''}
+          ${c.website ? `<div class="contact-field"><span class="contact-field-icon">🌐</span><a href="${esc(c.website.startsWith('http')?c.website:'https://'+c.website)}" target="_blank" rel="noopener">${esc(c.website)}</a></div>` : ''}
+          ${c.linkedin? `<div class="contact-field"><span class="contact-field-icon">💼</span><a href="${esc(c.linkedin.startsWith('http')?c.linkedin:'https://'+c.linkedin)}" target="_blank" rel="noopener">LinkedIn Profili</a></div>` : ''}
+          ${c.notes   ? `<div class="contact-field" style="align-items:flex-start;"><span class="contact-field-icon">📝</span><span style="white-space:pre-wrap;">${esc(c.notes)}</span></div>` : ''}
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <button class="btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="openContactForm('${c.id}')">✏️ Düzenle</button>
+            <button class="btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="exportContactVCard('${c.id}')">📥 vCard İndir</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  initSwipeForList('contacts-list');
+}
+
 function saveWidgetQNote() {
     const t = document.getElementById('widget-qnote-textarea').value.trim();
     if(!t) return;
