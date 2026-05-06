@@ -3302,17 +3302,20 @@ function setLastSync(t) { localStorage.setItem('planner_cloud_lastsync', t.toStr
 
 // Kullanıcının bin ID'sini bul (uid'den hash ile)
 async function findOrCreateBin(uid, password) {
+  // ÖNCE master indekse bak — gerçek doğru ID orada
+  let masterBinId = await lookupBinByUid(uid);
+  if (masterBinId) {
+    setBinId(masterBinId);  // localStorage'ı güncelle
+    return masterBinId;
+  }
+  // Master indekste yoksa, localStorage'ı kontrol et (eski cihaz?)
   let binId = getBinId();
-  if (binId) return binId;
-  // Yoksa uid'den hash üret, master listesine bak
-  // Basitlik için: her cihazda ilk girişte kendine yeni bin yaratır,
-  // diğer cihaz aynı uid ile gelince master listesinden bulur
-  binId = await lookupBinByUid(uid);
   if (binId) {
-    setBinId(binId);
+    // localStorage'da varsa master indekse de kaydet
+    await registerBinForUid(uid, binId);
     return binId;
   }
-  // Yeni bin yarat
+  // Hiçbir yerde yoksa yeni bin yarat
   binId = await createCloudBin(uid);
   setBinId(binId);
   await registerBinForUid(uid, binId);
