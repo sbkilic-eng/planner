@@ -3360,13 +3360,26 @@ async function pushToCloud() {
   if (!password || !uid) throw new Error('Şifre veya kullanıcı kimliği yok');
   const data = collectLocalData();
   const encrypted = await encryptData(JSON.stringify(data), password);
-  const binId = await findOrCreateBin(uid, password);
-  const res = await fetch(`${JSONBIN_API}/b/${binId}`, {
+  let binId = await findOrCreateBin(uid, password);
+  let res = await fetch(`${JSONBIN_API}/b/${binId}`, {
     method: 'PUT',
     headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY },
     body: JSON.stringify({ data: encrypted, updatedAt: Date.now() })
   });
-  if (!res.ok) throw new Error('Yükleme başarısız');
+  // 404 ise eski bin silinmiş, yeni bir tane yarat
+  if (res.status === 404) {
+    console.log('Eski bin bulunamadı, yenisi yaratılıyor...');
+    localStorage.removeItem('planner_cloud_binid');
+    binId = await createCloudBin(uid);
+    setBinId(binId);
+    await registerBinForUid(uid, binId);
+    res = await fetch(`${JSONBIN_API}/b/${binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: JSON.stringify({ data: encrypted, updatedAt: Date.now() })
+    });
+  }
+  if (!res.ok) throw new Error('Yükleme başarısız (HTTP ' + res.status + ')');
   setLastSync(Date.now());
 }
 
@@ -3375,14 +3388,20 @@ async function pullFromCloud() {
   const password = getCloudPassword();
   const uid = getCloudUserId();
   if (!password || !uid) throw new Error('Şifre yok');
-  const binId = await findOrCreateBin(uid, password);
-  const res = await fetch(`${JSONBIN_API}/b/${binId}/latest`, {
+  let binId = await findOrCreateBin(uid, password);
+  let res = await fetch(`${JSONBIN_API}/b/${binId}/latest`, {
     headers: { 'X-Master-Key': JSONBIN_KEY }
   });
-  if (!res.ok) {
-    if (res.status === 404) return false; // Bin boş
-    throw new Error('İndirme başarısız');
+  // 404 ise eski bin silinmiş, yeni bir tane yarat (henüz veri yok)
+  if (res.status === 404) {
+    console.log('Eski bin bulunamadı, yenisi yaratılıyor...');
+    localStorage.removeItem('planner_cloud_binid');
+    binId = await createCloudBin(uid);
+    setBinId(binId);
+    await registerBinForUid(uid, binId);
+    return false; // Yeni bin, henüz veri yok
   }
+  if (!res.ok) throw new Error('İndirme başarısız (HTTP ' + res.status + ')');
   const r = await res.json();
   if (!r.record || !r.record.data) return false;
   try {
