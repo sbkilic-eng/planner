@@ -582,15 +582,19 @@
     </svg>
     <div class="login-title">Planner Pro</div>
     <div class="login-sub">Giriş kodunu girin</div>
-    <input class="login-input" id="login-pwd" type="password"
-      placeholder="••••-••••"
-      onkeydown="if(event.key==='Enter') checkLogin()"
-      autocomplete="current-password">
-    <label style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px;cursor:pointer;font-size:13px;color:var(--muted);">
-      <input type="checkbox" id="login-remember" checked style="width:16px;height:16px;accent-color:#3A6EA8;cursor:pointer;">
-      Beni hatırla (30 gün)
-    </label>
-    <button class="login-btn" onclick="checkLogin()">Giriş Yap</button>
+    <form onsubmit="event.preventDefault();checkLogin();" autocomplete="on" style="margin:0;">
+      <input type="text" name="username" id="login-username" autocomplete="username"
+        value="planner-user" style="display:none;" tabindex="-1" readonly>
+      <input class="login-input" id="login-pwd" name="password" type="password"
+        placeholder="••••-••••"
+        autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') checkLogin()">
+      <label style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px;cursor:pointer;font-size:13px;color:var(--muted);">
+        <input type="checkbox" id="login-remember" checked style="width:16px;height:16px;accent-color:#3A6EA8;cursor:pointer;">
+        Beni hatırla (30 gün)
+      </label>
+      <button type="submit" class="login-btn">Giriş Yap</button>
+    </form>
     <div class="login-error" id="login-error"></div>
     <div class="login-footer">Planner Pro · Kişisel Planlayıcı</div>
   </div>
@@ -871,7 +875,10 @@
           </div>
 
           <div class="section" id="sec-quicknotes">
-            <button class="btn-add" onclick="openQNoteEditor()">+ Hızlı Not Ekle</button>
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <button class="btn-add" style="margin:0;flex:1;" onclick="openQNoteEditor()">+ Hızlı Not Ekle</button>
+              <button class="btn-ghost" style="padding:10px 16px;font-size:13px;font-weight:700;" onclick="printAllQNotes()" title="Tümünü Yazdır / PDF">🖨️ Tümünü Yazdır</button>
+            </div>
             <div id="qnotes-list"></div>
           </div>
 
@@ -961,15 +968,47 @@
     <div style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5;" id="notes-lock-desc">
       Kişisel notlarınız AES-256 ile şifreli. Görüntülemek için şifrenizi girin.
     </div>
-    <input type="password" id="notes-lock-pwd" placeholder="••••••••" 
-      onkeydown="if(event.key==='Enter') unlockNotes()"
-      style="width:100%;text-align:center;letter-spacing:2px;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;font-family:inherit;margin-bottom:8px;outline:none;">
-    <div id="notes-lock-error" style="font-size:12px;color:var(--accent-danger);min-height:18px;margin-bottom:10px;font-weight:600;"></div>
-    <div class="form-row-2">
-      <button class="btn-primary" onclick="unlockNotes()">Aç</button>
-      <button class="btn-ghost" onclick="closeNotesLock()">İptal</button>
+    <form onsubmit="event.preventDefault();unlockNotes();" autocomplete="on" style="margin:0;">
+      <input type="text" name="username" autocomplete="username" value="notlar" style="display:none;" tabindex="-1" readonly>
+      <input type="password" id="notes-lock-pwd" name="password" placeholder="••••••••"
+        autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') unlockNotes()"
+        style="width:100%;text-align:center;letter-spacing:2px;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;font-family:inherit;margin-bottom:8px;outline:none;">
+      <div id="notes-lock-error" style="font-size:12px;color:var(--accent-danger);min-height:18px;margin-bottom:10px;font-weight:600;"></div>
+      <div class="form-row-2">
+        <button type="submit" class="btn-primary">Aç</button>
+        <button type="button" class="btn-ghost" onclick="closeNotesLock()">İptal</button>
+      </div>
+      <button type="button" class="btn-ghost" id="notes-lock-setup-btn" style="display:none;width:100%;margin-top:12px;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="resetNotesLock()">Şifreyi Sıfırla (notlar silinir)</button>
+    </form>
+  </div>
+</div>
+
+<!-- KİŞİSEL NOTLAR ŞİFRE DEĞİŞTİRME -->
+<div class="modal-overlay" id="modal-notes-changepwd">
+  <div class="modal" style="max-width:400px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:12px;">🔑</div>
+    <div class="modal-title" style="margin-bottom:6px;">Notlar Şifresini Değiştir</div>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5;">
+      Tüm notların yeni şifreyle yeniden şifrelenecek.
     </div>
-    <button class="btn-ghost" id="notes-lock-setup-btn" style="display:none;width:100%;margin-top:12px;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="resetNotesLock()">Şifreyi Sıfırla (notlar silinir)</button>
+    <div class="form-row">
+      <label style="text-align:left;">Mevcut Şifre</label>
+      <input type="password" id="cp-old" autocomplete="current-password" style="text-align:center;letter-spacing:2px;">
+    </div>
+    <div class="form-row">
+      <label style="text-align:left;">Yeni Şifre</label>
+      <input type="password" id="cp-new" autocomplete="new-password" style="text-align:center;letter-spacing:2px;">
+    </div>
+    <div class="form-row">
+      <label style="text-align:left;">Yeni Şifre (Tekrar)</label>
+      <input type="password" id="cp-new2" autocomplete="new-password" style="text-align:center;letter-spacing:2px;">
+    </div>
+    <div id="cp-error" style="font-size:12px;color:var(--accent-danger);min-height:18px;margin-bottom:10px;font-weight:600;"></div>
+    <div class="form-row-2">
+      <button class="btn-primary" onclick="changeNotesPassword()">Değiştir</button>
+      <button class="btn-ghost" onclick="closeModal('modal-notes-changepwd')">İptal</button>
+    </div>
   </div>
 </div>
 
@@ -1015,6 +1054,11 @@
     <div class="form-row" style="margin-top:20px;">
       <label>Bildirimler</label>
       <button class="btn-ghost" style="width:100%;" onclick="allowNotifications()" id="notif-settings-btn">🔔 Bildirimleri Etkinleştir</button>
+    </div>
+    <div class="form-row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
+      <label>🔒 Kişisel Notlar Şifresi</label>
+      <div id="notes-pwd-status" style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;"></div>
+      <button class="btn-ghost" style="width:100%;" id="notes-pwd-change-btn" onclick="openNotesChangePwd()">🔑 Notlar Şifresini Değiştir</button>
     </div>
     <div class="form-row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
       <label>☁️ Bulut Senkron</label>
@@ -1201,6 +1245,7 @@
     <button class="btn-icon" onclick="saveAndCloseNoteEditor()" style="font-size:24px;">&#8592;</button>
     <input class="note-editor-title" id="m-note-title" placeholder="Başlık...">
     <button class="btn-primary" onclick="saveNoteManual()" style="padding:8px 16px;font-size:13px;">💾 Kaydet</button>
+    <button class="btn-ghost" onclick="printCurrentNote()" style="padding:8px 12px;font-size:13px;font-weight:700;margin-left:8px;" title="Yazdır / PDF">🖨️</button>
     <button class="btn-ghost" onclick="deleteNote()" style="color:var(--accent-danger); border-color:var(--accent-danger); padding:8px 16px; font-size:13px; font-weight:700; margin-left:8px;">🗑️ Sil</button>
   </div>
   <div class="note-tabs">
@@ -1274,7 +1319,32 @@ function formatDate(d) { if(!d) return ''; const p=d.split('-'); return `${p[2]}
 function trLower(s) { return String(s||'').toLocaleLowerCase('tr-TR'); }
 
 // ==================== MODALS & SIDEBAR ====================
-function openModal(mid) { document.getElementById(mid).classList.add('open'); }
+function openModal(mid) {
+  document.getElementById(mid).classList.add('open');
+  // Settings açılınca Notlar şifre durumunu güncelle
+  if (mid === 'modal-settings') updateNotesPwdStatus();
+}
+
+function updateNotesPwdStatus() {
+  const status = document.getElementById('notes-pwd-status');
+  const btn    = document.getElementById('notes-pwd-change-btn');
+  if (!status || !btn) return;
+  if (!isNotesLockSet()) {
+    status.textContent = 'Henüz şifre belirlenmedi. Kişisel Notlar bölümüne ilk girişte oluşturulur.';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+  } else {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    if (isNotesUnlocked()) {
+      status.textContent = '✓ Şifre belirlenmiş, oturum aktif. İstediğin zaman değiştirebilirsin.';
+    } else {
+      status.textContent = 'Şifre belirlenmiş ama oturum kapalı. Değiştirmek için önce Kişisel Notlar bölümüne girip şifreyle aç.';
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+    }
+  }
+}
 function closeModal(mid) { document.getElementById(mid).classList.remove('open'); currentEditId=null; }
 document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e) { if(e.target===this) closeModal(this.id); }));
 
@@ -2918,6 +2988,91 @@ function initSwipeForList(listId) {
 }
 
 // ==================== YAZDIR ====================
+// ==================== TEK NOT YAZDIR ====================
+async function printCurrentNote() {
+  const title = document.getElementById('m-note-title').value.trim() || 'İsimsiz Not';
+  const body  = document.getElementById('m-note-body').value.trim();
+  const contacts = collectContacts();
+  const dateStr = new Date().toLocaleDateString('tr-TR', { year:'numeric', month:'long', day:'numeric' });
+
+  // Markdown → HTML çevir
+  const bodyHtml = body ? parseMD(body) : '<p style="color:#888;font-style:italic;">Boş not</p>';
+
+  // Kişiler bölümü
+  let contactsHtml = '';
+  if (contacts.length) {
+    contactsHtml = `<div class="contacts-section">
+      <h2>Kişiler (${contacts.length})</h2>
+      ${contacts.map(c => `
+        <div class="contact-block">
+          ${c.name  ? `<div class="contact-name">${esc(c.name)}</div>` : ''}
+          ${c.phone ? `<div class="contact-line">📱 ${esc(c.phone)}</div>` : ''}
+          ${c.email ? `<div class="contact-line">📧 ${esc(c.email)}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  openPrintWindow(title, dateStr, bodyHtml + contactsHtml);
+}
+
+// ==================== TÜM HIZLI NOTLAR YAZDIR ====================
+function printAllQNotes() {
+  const arr = DB.get('quick_notes', []);
+  if (!arr.length) { showToast('⚠️ Yazdırılacak hızlı not yok'); return; }
+  const dateStr = new Date().toLocaleDateString('tr-TR', { year:'numeric', month:'long', day:'numeric' });
+
+  const bodyHtml = arr.map(n => {
+    const d = new Date(n.d);
+    const dStr = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    return `<div class="qnote-print">
+      <div class="qnote-print-date">${dStr}</div>
+      <div class="qnote-print-text">${esc(n.body).replace(/\n/g,'<br>')}</div>
+    </div>`;
+  }).join('');
+
+  openPrintWindow('Hızlı Notlar', dateStr, `<p style="margin-bottom:24px;color:#666;">Toplam ${arr.length} not</p>` + bodyHtml);
+}
+
+// ==================== ORTAK YAZDIRMA PENCERESİ ====================
+function openPrintWindow(title, dateStr, contentHtml) {
+  const w = window.open('', '_blank', 'width=800,height=900');
+  if (!w) { showToast('⚠️ Pencere açılamadı (popup engellenmiş)'); return; }
+  w.document.write(`<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>${esc(title)}</title>
+<style>
+  @page { size: A4; margin: 20mm; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #000; background: #fff; line-height: 1.6; padding: 0; margin: 0; max-width: 800px; margin: 0 auto; padding: 30px; }
+  h1.note-title { font-size: 26px; margin: 0 0 6px; color: #000; border-bottom: 2px solid #000; padding-bottom: 12px; }
+  .note-date { font-size: 13px; color: #666; margin-bottom: 30px; }
+  .note-body { font-size: 15px; }
+  .note-body h1 { font-size: 22px; margin: 20px 0 10px; }
+  .note-body h2 { font-size: 18px; margin: 18px 0 8px; }
+  .note-body h3 { font-size: 16px; margin: 16px 0 6px; }
+  .note-body strong { font-weight: 700; }
+  .note-body em { font-style: italic; }
+  .note-body ul { margin: 10px 0; padding-left: 24px; }
+  .note-body li { margin: 4px 0; }
+  .contacts-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; }
+  .contacts-section h2 { font-size: 16px; color: #444; margin-bottom: 14px; }
+  .contact-block { margin-bottom: 12px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; page-break-inside: avoid; }
+  .contact-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .contact-line { font-size: 13px; color: #444; margin: 2px 0; }
+  .qnote-print { margin-bottom: 14px; padding: 12px; border-left: 3px solid #999; background: #fafafa; page-break-inside: avoid; }
+  .qnote-print-date { font-size: 11px; color: #666; font-weight: 700; margin-bottom: 6px; }
+  .qnote-print-text { font-size: 14px; white-space: pre-wrap; }
+  @media print { body { padding: 0; } .qnote-print { background: transparent; } }
+</style></head><body>
+<h1 class="note-title">${esc(title)}</h1>
+<div class="note-date">${dateStr}</div>
+<div class="note-body">${contentHtml}</div>
+</body></html>`);
+  w.document.close();
+  // Print diyaloğunu aç
+  setTimeout(() => { w.focus(); w.print(); }, 300);
+}
+
 function printPage() {
   const now = new Date();
   const dateStr = now.toLocaleDateString('tr-TR', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
@@ -3673,6 +3828,82 @@ async function saveEncryptedNote(note) {
 async function deleteEncryptedNote(nid) {
   const arr = DB.get('pers_notes', []).filter(x => x.id !== nid);
   DB.set('pers_notes', arr);
+}
+
+// Şifre değiştirme modal'ını aç
+function openNotesChangePwd() {
+  if (!isNotesLockSet()) {
+    showToast('⚠️ Önce kişisel notlara şifre belirleyin');
+    return;
+  }
+  document.getElementById('cp-old').value = '';
+  document.getElementById('cp-new').value = '';
+  document.getElementById('cp-new2').value = '';
+  document.getElementById('cp-error').textContent = '';
+  closeModal('modal-settings');
+  setTimeout(() => {
+    openModal('modal-notes-changepwd');
+    setTimeout(() => document.getElementById('cp-old').focus(), 200);
+  }, 100);
+}
+
+// Şifreyi değiştir
+async function changeNotesPassword() {
+  const oldPwd = document.getElementById('cp-old').value;
+  const newPwd = document.getElementById('cp-new').value;
+  const newPwd2 = document.getElementById('cp-new2').value;
+  const err = document.getElementById('cp-error');
+  err.textContent = '';
+
+  if (!oldPwd || !newPwd || !newPwd2) { err.textContent = 'Tüm alanları doldurun'; return; }
+  if (newPwd.length < 4) { err.textContent = 'Yeni şifre en az 4 karakter olmalı'; return; }
+  if (newPwd !== newPwd2) { err.textContent = 'Yeni şifreler eşleşmiyor'; return; }
+  if (oldPwd === newPwd) { err.textContent = 'Yeni şifre eskisinden farklı olmalı'; return; }
+
+  // Eski şifreyi doğrula
+  try {
+    const check = localStorage.getItem('planner_notes_lock_check');
+    const decrypted = await decryptData(check, oldPwd);
+    if (decrypted !== 'NOTES_LOCK_OK') throw new Error('bad');
+  } catch(e) {
+    err.textContent = 'Mevcut şifre yanlış';
+    document.getElementById('cp-old').value = '';
+    document.getElementById('cp-old').focus();
+    return;
+  }
+
+  // Tüm notları eski şifreyle çöz, yeni şifreyle yeniden şifrele
+  try {
+    const arr = DB.get('pers_notes', []);
+    const reencrypted = [];
+    for (const n of arr) {
+      if (n.encrypted) {
+        const plainText = await decryptData(n.encrypted, oldPwd);
+        const newEnc = await encryptData(plainText, newPwd);
+        reencrypted.push({ id: n.id, d: n.d, encrypted: newEnc });
+      } else {
+        // Şifrelenmemiş eski not (varsa) → yeni şifreyle şifrele
+        const sensitive = { title: n.title, body: n.body, contacts: n.contacts || [] };
+        const enc = await encryptData(JSON.stringify(sensitive), newPwd);
+        reencrypted.push({ id: n.id, d: n.d, encrypted: enc });
+      }
+    }
+    DB.set('pers_notes', reencrypted);
+
+    // Lock check kaydını yenile
+    const newCheck = await encryptData('NOTES_LOCK_OK', newPwd);
+    localStorage.setItem('planner_notes_lock_check', newCheck);
+
+    // Aktif oturumu da güncelle
+    notesUnlockedPwd = newPwd;
+
+    closeModal('modal-notes-changepwd');
+    showToast('🔓 Notlar şifresi başarıyla değiştirildi');
+    if (currentModule === 'notes' && currentContext === 'pers') renderNotes();
+  } catch(e) {
+    err.textContent = 'Şifre değiştirme hatası: ' + e.message;
+    console.error(e);
+  }
 }
 
 
