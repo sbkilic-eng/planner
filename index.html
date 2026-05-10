@@ -984,6 +984,40 @@
   </div>
 </div>
 
+<!-- KATMAN 1: BULUT SENKRON ÖNERİ POPUP -->
+<div class="modal-overlay" id="modal-cloud-suggest">
+  <div class="modal" style="max-width:420px;text-align:center;">
+    <div style="font-size:56px;margin-bottom:8px;">☁️</div>
+    <div class="modal-title" style="margin-bottom:14px;">Verilerini Güvende Tut</div>
+    <div style="color:var(--text);font-size:14px;line-height:1.6;margin-bottom:18px;text-align:left;">
+      <p style="margin:0 0 12px;">Bulut senkronu açarsan:</p>
+      <ul style="margin:0;padding-left:20px;">
+        <li>Tarayıcı geçmişini silsen bile verilerin kaybolmaz</li>
+        <li>Tüm cihazların arasında veri eşitlenir</li>
+        <li>Veriler şifreli iletilir, sadece sen okuyabilirsin</li>
+      </ul>
+    </div>
+    <div style="background:var(--accent-light);border-radius:8px;padding:10px;font-size:12px;color:var(--accent);margin-bottom:18px;line-height:1.4;">
+      💡 <b>İpucu:</b> Bulut senkronu açmadığın takdirde verilerin sadece bu cihazda kalır. Tarayıcı geçmişini temizlersen veya çerezleri silersen veriler gider.
+    </div>
+    <div class="form-row-2">
+      <button class="btn-primary" onclick="dismissCloudSuggestion('open')">⚙️ Ayarlardan Aç</button>
+      <button class="btn-ghost" onclick="dismissCloudSuggestion('later')">Sonra</button>
+    </div>
+  </div>
+</div>
+
+<!-- KATMAN 2: 7 GÜN YEDEK HATIRLATMA BANNER -->
+<div id="backup-reminder" style="display:none;position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#D44545,#A03030);color:white;padding:12px 16px;z-index:9998;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+  <span style="font-size:20px;">⚠️</span>
+  <div style="flex:1;font-size:13px;line-height:1.4;">
+    <b>Yedek almadığın <span id="backup-reminder-days"></span> oldu.</b>
+    <span style="opacity:0.85;">Verilerini kaybetmemek için yedek al.</span>
+  </div>
+  <button onclick="backupNowFromReminder()" style="background:white;color:#A03030;border:none;font-weight:700;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap;">💾 Şimdi Yedek Al</button>
+  <button onclick="dismissBackupReminder()" style="background:transparent;color:white;border:1px solid rgba(255,255,255,0.4);font-size:14px;padding:8px 12px;border-radius:8px;cursor:pointer;font-family:inherit;flex-shrink:0;">✕</button>
+</div>
+
 <!-- KİŞİSEL NOTLAR ŞİFRE DEĞİŞTİRME -->
 <div class="modal-overlay" id="modal-notes-changepwd">
   <div class="modal" style="max-width:400px;text-align:center;">
@@ -1059,6 +1093,16 @@
       <label>🔒 Kişisel Notlar Şifresi</label>
       <div id="notes-pwd-status" style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;"></div>
       <button class="btn-ghost" style="width:100%;" id="notes-pwd-change-btn" onclick="openNotesChangePwd()">🔑 Notlar Şifresini Değiştir</button>
+    </div>
+    <div class="form-row" id="auto-backup-row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;display:none;">
+      <label>💾 Otomatik Günlük Yedek</label>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+        Açıkken: Uygulamayı her açtığında günde bir kez veriler otomatik <b>İndirilenler</b> klasörüne TXT olarak iner. Sadece bilgisayarda çalışır.
+      </div>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;">
+        <input type="checkbox" id="auto-backup-toggle" onchange="toggleAutoBackup()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;">
+        <span>Otomatik günlük yedek aktif</span>
+      </label>
     </div>
     <div class="form-row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
       <label>☁️ Bulut Senkron</label>
@@ -1321,8 +1365,17 @@ function trLower(s) { return String(s||'').toLocaleLowerCase('tr-TR'); }
 // ==================== MODALS & SIDEBAR ====================
 function openModal(mid) {
   document.getElementById(mid).classList.add('open');
-  // Settings açılınca Notlar şifre durumunu güncelle
-  if (mid === 'modal-settings') updateNotesPwdStatus();
+  // Settings açılınca durumları güncelle
+  if (mid === 'modal-settings') {
+    updateNotesPwdStatus();
+    // Otomatik yedek satırı sadece masaüstünde
+    const row = document.getElementById('auto-backup-row');
+    const cb = document.getElementById('auto-backup-toggle');
+    if (row && cb) {
+      row.style.display = isMobileDevice() ? 'none' : 'block';
+      cb.checked = isAutoBackupEnabled();
+    }
+  }
 }
 
 function updateNotesPwdStatus() {
@@ -4011,6 +4064,114 @@ function renderWeather(geo, data) {
   }
 }
 
+// ==================== 3-KATMANLI YEDEK KORUMA ====================
+function isMobileDevice() {
+  return ('ontouchstart' in window) || window.innerWidth <= 900;
+}
+function getLastBackupTime() { return parseInt(localStorage.getItem('planner_last_backup') || '0'); }
+function setLastBackupTime(t) { localStorage.setItem('planner_last_backup', String(t)); }
+function getDaysSinceLastBackup() {
+  const last = getLastBackupTime();
+  if (!last) return 999;
+  return Math.floor((Date.now() - last) / 86400000);
+}
+function isAutoBackupEnabled() { return localStorage.getItem('planner_auto_backup') === '1'; }
+function setAutoBackupEnabled(v) { localStorage.setItem('planner_auto_backup', v ? '1' : '0'); }
+function wasCloudSyncSuggested() { return localStorage.getItem('planner_cloud_suggested') === '1'; }
+function markCloudSyncSuggested() { localStorage.setItem('planner_cloud_suggested', '1'); }
+
+// Sessiz TXT yedek indirme
+function silentBackupDownload() {
+  try {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('planner_') && !['planner_cloud_pwd','planner_auth_ok','planner_auth_at'].includes(k)) {
+        data[k] = localStorage.getItem(k);
+      }
+    }
+    const text = JSON.stringify(data, null, 2);
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    a.href = url;
+    a.download = `planner-yedek-${dateStr}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setLastBackupTime(Date.now());
+    return true;
+  } catch(e) { console.error('Yedek hatası:', e); return false; }
+}
+
+// Katman 1: Bulut öneri popup
+function showCloudSuggestionIfNeeded() {
+  if (isCloudSyncEnabled()) return;
+  if (wasCloudSyncSuggested()) return;
+  setTimeout(() => {
+    const wrap = document.getElementById('app-shell-wrap');
+    if (!wrap || wrap.style.display === 'none') return;
+    openModal('modal-cloud-suggest');
+    markCloudSyncSuggested();
+  }, 5000);
+}
+function dismissCloudSuggestion(action) {
+  closeModal('modal-cloud-suggest');
+  if (action === 'open') setTimeout(() => openModal('modal-settings'), 300);
+}
+
+// Katman 2: 7 gün yedek hatırlatma
+function showBackupReminderIfNeeded() {
+  if (isCloudSyncEnabled()) return;
+  const days = getDaysSinceLastBackup();
+  if (days < 7) return;
+  if (sessionStorage.getItem('planner_backup_reminded') === '1') return;
+  sessionStorage.setItem('planner_backup_reminded', '1');
+  setTimeout(() => {
+    const banner = document.getElementById('backup-reminder');
+    if (banner) {
+      document.getElementById('backup-reminder-days').textContent = days === 999 ? 'Hiç' : days + ' gün';
+      banner.style.display = 'flex';
+    }
+  }, 8000);
+}
+function dismissBackupReminder() {
+  document.getElementById('backup-reminder').style.display = 'none';
+}
+function backupNowFromReminder() {
+  if (silentBackupDownload()) {
+    showToast('💾 Yedek indirildi');
+    dismissBackupReminder();
+  }
+}
+
+// Katman 3: Otomatik günlük yedek (sadece masaüstü)
+function tryAutoBackup() {
+  if (isMobileDevice()) return;
+  if (!isAutoBackupEnabled()) return;
+  const days = getDaysSinceLastBackup();
+  if (days < 1) return;
+  if (silentBackupDownload()) {
+    setTimeout(() => showToast('💾 Otomatik günlük yedek alındı'), 2000);
+  }
+}
+function toggleAutoBackup() {
+  const cb = document.getElementById('auto-backup-toggle');
+  setAutoBackupEnabled(cb.checked);
+  showToast(cb.checked ? '✓ Otomatik yedek açıldı' : '✓ Otomatik yedek kapatıldı');
+}
+
+// exportData fonksiyonu zaten var, biz onun çağrıldığı zaman lastBackup'ı güncelleyelim
+const _origExportData = window.exportData;
+if (typeof exportData === 'function') {
+  const _orig = exportData;
+  window.exportData = function() {
+    const result = _orig.apply(this, arguments);
+    setLastBackupTime(Date.now());
+    return result;
+  };
+}
 
 function init() {
   setTheme(currentTheme);
@@ -4029,6 +4190,11 @@ function init() {
   renderListsWidget();
   loadWeather();
   setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
+  
+  // 3-Katmanlı Yedek Koruma
+  showCloudSuggestionIfNeeded();   // Katman 1: Bulut öneri
+  showBackupReminderIfNeeded();    // Katman 2: 7 gün uyarı
+  tryAutoBackup();                  // Katman 3: Otomatik günlük (masaüstü)
 }
 init();
 </script>
