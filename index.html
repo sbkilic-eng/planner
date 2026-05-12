@@ -152,6 +152,29 @@
   .lw-link:hover { text-decoration:underline; }
   .lw-header { font-size:14px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
 
+  /* Alışkanlık Takibi Widget */
+  .hw-detail { padding:4px 0; }
+  .hw-week { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:14px; }
+  .hw-day {
+    aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:var(--bg); border:1px solid var(--border); border-radius:8px;
+    cursor:pointer; transition:all 0.15s; user-select:none;
+  }
+  .hw-day:hover { border-color:var(--accent); }
+  .hw-day.today { border-color:var(--accent); border-width:2px; }
+  .hw-day.checked {
+    background:var(--accent); border-color:var(--accent); color:white;
+  }
+  .hw-day.checked.today { background:var(--accent); }
+  .hw-day-lb { font-size:9px; font-weight:700; opacity:0.7; }
+  .hw-day.checked .hw-day-lb { opacity:1; }
+  .hw-day-n { font-size:12px; font-weight:700; line-height:1; margin-top:2px; }
+  .hw-progress { margin-top:6px; }
+  .hw-prog-text {
+    display:flex; justify-content:space-between;
+    font-size:11px; color:var(--muted); font-weight:700; margin-bottom:4px;
+  }
+
   .section { display: none; animation: fadeIn 0.3s ease; } .section.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .section-main-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
@@ -908,10 +931,13 @@
               <textarea id="widget-qnote-textarea" style="width:100%; height:140px; resize:none; border-radius:12px; background:var(--bg); border:1px solid var(--border); padding:12px; font-size:14px; color:var(--text); font-family:inherit; outline:none;" placeholder="Aklına gelenleri hemen buraya dök..."></textarea>
               <button class="btn-primary" style="width:100%; margin-top:12px; padding:10px; border-radius:10px;" onclick="saveWidgetQNote()">Hemen Kaydet</button>
             </div>
-            <div class="widget-panel widget-color-4" id="widget-4" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:240px; opacity:0.6; border-style:dashed;">
-              <div style="font-size:28px; margin-bottom:8px;">⏳</div>
-              <div style="font-size:14px; font-weight:600; color:var(--muted);">Boş Blok 2</div>
-              <div style="font-size:11px; color:var(--muted); margin-top:4px;">(Odak Saati / Pomodoro)</div>
+            <div class="widget-panel widget-color-4" id="widget-4">
+              <div class="lw-header"><span>🌱</span><span>Alışkanlık Takibi</span></div>
+              <div class="lw-tabs" id="hw-tabs"></div>
+              <div id="hw-content"></div>
+              <div class="lw-footer">
+                <button class="lw-link" onclick="switchModule('habits','pers')">Tüm gelişim takibi →</button>
+              </div>
             </div>
           </div>
         </aside>
@@ -1872,6 +1898,7 @@ function renderSummary() {
   el.innerHTML = html;
   renderCalendar();
   renderListsWidget();
+  renderHabitsWidget();
   requestAnimationFrame(() => {
     restoreCollapsible('sum-future-list','sum-future-inner','sum-future-arrow', futureOpen);
     restoreCollapsible('sum-past-list',  'sum-past-inner',  'sum-past-arrow',   pastOpen);
@@ -2010,13 +2037,14 @@ function saveHabit() {
 function togHabit(hid, dStr) {
   const arr = DB.get('pers_habits',[]);
   const o = arr.find(x => x.id === hid);
-  if (o) { o.c[dStr] = !o.c[dStr]; DB.set('pers_habits', arr); renderHabits(); }
+  if (o) { o.c[dStr] = !o.c[dStr]; DB.set('pers_habits', arr); renderHabits(); renderHabitsWidget(); }
 }
 
 function delHabit(hid) {
   if (confirm('Silinsin mi?')) {
     DB.set('pers_habits', DB.get('pers_habits',[]).filter(x => x.id !== hid));
     renderHabits();
+    renderHabitsWidget();
   }
 }
 
@@ -2092,6 +2120,7 @@ function renderHabits() {
     </div>`;
   }).join('');
   initSwipeForList('habit-list');
+  renderHabitsWidget();
 }
 
 // ==================== 6. LISTS ====================
@@ -2747,6 +2776,109 @@ function renderListsWidget() {
 function lwSwitchCat(cat) {
   lwActiveCat = cat;
   renderListsWidget();
+}
+
+// ==================== ALIŞKANLIK TAKİBİ WIDGET ====================
+let hwActiveId = null;
+
+function renderHabitsWidget() {
+  const tabsEl = document.getElementById('hw-tabs');
+  const contEl = document.getElementById('hw-content');
+  if (!tabsEl || !contEl) return;
+
+  const allHabits = DB.get('pers_habits', []);
+  const habits = allHabits.slice(0, 3); // İlk 3 alışkanlık
+
+  if (!habits.length) {
+    tabsEl.innerHTML = '';
+    contEl.innerHTML = `<div class="lw-empty">Henüz alışkanlık eklenmedi.<br><span style="font-size:11px;">Gelişim & Rutin bölümünden ekleyin.</span></div>`;
+    return;
+  }
+
+  // Aktif alışkanlığı belirle
+  if (!hwActiveId || !habits.find(h => h.id === hwActiveId)) {
+    hwActiveId = habits[0].id;
+  }
+
+  // Sekmeleri çiz
+  tabsEl.innerHTML = habits.map(h =>
+    `<button class="lw-tab ${h.id===hwActiveId?'active':''}" onclick="hwSwitch('${h.id}')" title="${esc(h.n)}">${esc(h.n.length > 10 ? h.n.slice(0,10)+'…' : h.n)}</button>`
+  ).join('');
+
+  // Aktif alışkanlığın detayını çiz
+  const h = habits.find(x => x.id === hwActiveId);
+  const ch = h.c || {};
+
+  // Bu haftanın günleri
+  const today = new Date(); today.setHours(0,0,0,0);
+  const wDays = (() => {
+    const m = new Date(today);
+    m.setDate(today.getDate() - ((today.getDay()+6)%7));
+    const l = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
+    return Array.from({length:7}, (_,i) => {
+      const x = new Date(m); x.setDate(m.getDate()+i);
+      return { ds: x.toISOString().split('T')[0], lb: l[i], n: x.getDate(), td: x.toDateString()===today.toDateString() };
+    });
+  })();
+
+  const dw = wDays.filter(d => ch[d.ds]).length;
+  const pct = Math.min(100, Math.round((dw / h.tg) * 100));
+
+  // 7 gün noktaları
+  const dots = wDays.map(d => `
+    <div class="hw-day ${ch[d.ds]?'checked':''} ${d.td?'today':''}" onclick="hwToggle('${h.id}','${d.ds}')">
+      <span class="hw-day-lb">${d.lb}</span>
+      <span class="hw-day-n">${d.n}</span>
+    </div>
+  `).join('');
+
+  // Süre hedefi varsa onu da göster
+  let durHTML = '';
+  if (h.dur > 0 && h.startDate) {
+    const start = new Date(h.startDate+'T00:00');
+    const endDate = new Date(start); endDate.setDate(start.getDate() + h.dur);
+    const totalDone = Object.values(ch).filter(Boolean).length;
+    const daysLeft = Math.max(0, Math.ceil((endDate - today) / 86400000));
+    const durPct = Math.min(100, Math.round((totalDone / h.dur) * 100));
+    if (daysLeft === 0 && durPct >= 100) {
+      durHTML = `<div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:8px;padding:8px;margin-top:10px;text-align:center;font-size:11px;font-weight:700;color:var(--accent);">🎉 ${h.dur} Günlük Hedef Tamamlandı!</div>`;
+    } else {
+      durHTML = `<div style="margin-top:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px;">
+          <span>⏱️ ${totalDone}/${h.dur} gün</span><span>${daysLeft} gün kaldı</span>
+        </div>
+        <div class="goal-bar-bg" style="margin:0;height:5px;"><div class="goal-bar-fill" style="width:${durPct}%;"></div></div>
+      </div>`;
+    }
+  }
+
+  contEl.innerHTML = `
+    <div class="hw-detail">
+      <div class="hw-week">${dots}</div>
+      <div class="hw-progress">
+        <div class="hw-prog-text"><span>${dw}/${h.tg} bu hafta</span><span>%${pct}</span></div>
+        <div class="goal-bar-bg" style="margin:0;height:5px;"><div class="goal-bar-fill" style="width:${pct}%;"></div></div>
+      </div>
+      ${durHTML}
+    </div>
+  `;
+}
+
+function hwSwitch(hid) {
+  hwActiveId = hid;
+  renderHabitsWidget();
+}
+
+function hwToggle(hid, dStr) {
+  const arr = DB.get('pers_habits', []);
+  const h = arr.find(x => x.id === hid);
+  if (!h) return;
+  h.c = h.c || {};
+  h.c[dStr] = !h.c[dStr];
+  DB.set('pers_habits', arr);
+  renderHabitsWidget();
+  // Eğer habits modülündeyse onu da güncelle
+  if (currentModule === 'habits') renderHabits();
 }
 
 function closeQNoteEditor() {
@@ -4175,6 +4307,7 @@ function init() {
   // Widgetların (Takvim vb.) ekran boyutuna göre yerleşimi
   relocateWidgets();
   renderListsWidget();
+  renderHabitsWidget();
   loadWeather();
   setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
   
