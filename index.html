@@ -135,7 +135,7 @@
   
   /* Daha Sonra Renklendirebilmen İçin Özel Class'lar */
   .widget-color-1 { background: var(--surface); } /* Takvim Bloğu */
-  .widget-color-2 { background: var(--surface); border: 1px solid #D84040; } /* Hızlı Not Bloğu (Kırmızı Çerçeve) */
+  .widget-color-2 { background: var(--surface); border: 1px solid #6E1822; } /* Hızlı Not Bloğu (Bordo Çerçeve) */
   .widget-color-3 { background: var(--surface); }
   .widget-color-4 { background: var(--surface); }
   .lw-tabs { display:flex; gap:6px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
@@ -276,7 +276,7 @@
 
   /* ================= FAB ================= */
   .fab-container { position: fixed; bottom: 28px; right: 28px; z-index: 200; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 10px; }
-  .fab { width: 58px; height: 58px; border-radius: 50%; background: #D84040; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 24px rgba(216,64,64,0.45); transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); padding: 0; overflow: hidden; }
+  .fab { width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg, #6E1822, #3A0810); border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 24px rgba(110,24,34,0.5); transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); padding: 0; overflow: hidden; }
   .fab:hover { transform: scale(1.1); }
   .fab:active { transform: scale(0.95); }
   .fab-menu { display: flex; flex-direction: column-reverse; gap: 10px; overflow: hidden; }
@@ -350,7 +350,7 @@
   .contact-detail a { color:var(--accent); text-decoration:none; }
 
   /* Hızlı not post-it */
-  .qnote-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:10px; cursor:pointer; transition:transform 0.15s; box-shadow:var(--shadow); border-left:4px solid #D84040; }
+  .qnote-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:10px; cursor:pointer; transition:transform 0.15s; box-shadow:var(--shadow); border-left:4px solid #6E1822; }
   .qnote-card:hover { transform:translateX(5px); }
   .swipe-wrap .qnote-card:hover { transform:none; }
   .qnote-text { font-size:14px; color:var(--text); line-height:1.6; white-space:pre-wrap; }
@@ -708,7 +708,7 @@
             <span class="fan-item-label" data-i18n="nav_pers_todo">Görevler</span>
           </button>
           <button class="fan-item" onclick="switchModule('habits','pers')" id="fani-pers-habits">
-            <span class="fan-item-icon">⚡</span>
+            <span class="fan-item-icon">🌱</span>
             <span class="fan-item-label" data-i18n="nav_pers_habits">Gelişim & Rutin</span>
           </button>
           <button class="fan-item" onclick="switchModule('lists','pers')" id="fani-pers-lists">
@@ -733,23 +733,17 @@
         <button class="fan-header" onclick="switchModule('quicknotes')" id="fan-quicknotes" style="margin:0;width:100%;">
           <div style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,0.2);overflow:hidden;">
             <svg viewBox="0 0 100 100" width="46" height="46" xmlns="http://www.w3.org/2000/svg">
-              <defs><linearGradient id="fqn" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D84040"/><stop offset="100%" stop-color="#901010"/></linearGradient></defs>
+              <defs>
+                <linearGradient id="fqn" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6E1822"/><stop offset="100%" stop-color="#3A0810"/></linearGradient>
+                <linearGradient id="fqnBolt" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4DA6FF"/><stop offset="100%" stop-color="#1A5FCC"/></linearGradient>
+              </defs>
               <rect width="100" height="100" rx="22" fill="url(#fqn)"/>
-              <rect x="14" y="33" width="3" height="16" rx="1" fill="white" opacity="0.9"/>
-              <rect x="10" y="33" width="13" height="3" rx="1" fill="white" opacity="0.9"/>
-              <path d="M78 61 L78 53 Q76 47 70 45 L57 43 Q51 37 43 36 L33 37 Q25 39 22 45 L18 53 L18 61 Z" fill="white" opacity="0.95"/>
-              <path d="M55 43 Q51 37 43 36 L37 37 Q41 43 47 44 Z" fill="#1A1A3A" opacity="0.75"/>
-              <ellipse cx="46" cy="40" rx="5" ry="4" fill="#FFD700" opacity="0.9"/>
-              <path d="M78 53 L90 57 L78 61" fill="white" opacity="0.85"/>
-              <path d="M84 61 L90 61 L90 63 L80 63" fill="white" opacity="0.85"/>
-              <path d="M18 61 L12 59 L12 63 L18 63" fill="white" opacity="0.7"/>
-              <circle cx="30" cy="64" r="8" fill="#1A1A2E"/>
-              <circle cx="30" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-              <circle cx="67" cy="64" r="8" fill="#1A1A2E"/>
-              <circle cx="67" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-              <line x1="4" y1="46" x2="9" y2="46" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
-              <line x1="3" y1="53" x2="9" y2="53" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
-              <line x1="4" y1="60" x2="9" y2="60" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.28"/>
+              <!-- Şimşek dış glow -->
+              <path d="M58 18 L34 54 L48 54 L42 82 L66 46 L52 46 Z" fill="#4DA6FF" opacity="0.35" filter="blur(2px)"/>
+              <!-- Ana şimşek -->
+              <path d="M58 18 L34 54 L48 54 L42 82 L66 46 L52 46 Z" fill="url(#fqnBolt)" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+              <!-- Beyaz parlama -->
+              <path d="M56 22 L40 50 L48 50 L46 60 Z" fill="white" opacity="0.45"/>
             </svg>
           </div>
           <div class="fan-header-text">
@@ -932,21 +926,12 @@
 <div class="fab-container" id="fab-container">
   <button class="fab" id="fab-main" onclick="openQNoteEditor()" title="Hızlı Not">
     <svg viewBox="0 0 100 100" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
-      <rect x="14" y="33" width="3" height="16" rx="1" fill="white" opacity="0.9"/>
-      <rect x="10" y="33" width="13" height="3" rx="1" fill="white" opacity="0.9"/>
-      <path d="M78 61 L78 53 Q76 47 70 45 L57 43 Q51 37 43 36 L33 37 Q25 39 22 45 L18 53 L18 61 Z" fill="white" opacity="0.95"/>
-      <path d="M55 43 Q51 37 43 36 L37 37 Q41 43 47 44 Z" fill="#1A1A3A" opacity="0.75"/>
-      <ellipse cx="46" cy="40" rx="5" ry="4" fill="#FFD700" opacity="0.9"/>
-      <path d="M78 53 L90 57 L78 61" fill="white" opacity="0.85"/>
-      <path d="M84 61 L90 61 L90 63 L80 63" fill="white" opacity="0.85"/>
-      <path d="M18 61 L12 59 L12 63 L18 63" fill="white" opacity="0.7"/>
-      <circle cx="30" cy="64" r="8" fill="#1A1A2E"/>
-      <circle cx="30" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-      <circle cx="67" cy="64" r="8" fill="#1A1A2E"/>
-      <circle cx="67" cy="64" r="4.5" fill="#666" opacity="0.55"/>
-      <line x1="4" y1="46" x2="9" y2="46" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
-      <line x1="3" y1="53" x2="9" y2="53" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
-      <line x1="4" y1="60" x2="9" y2="60" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.28"/>
+      <defs>
+        <linearGradient id="fabBolt" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4DA6FF"/><stop offset="100%" stop-color="#1A5FCC"/></linearGradient>
+      </defs>
+      <path d="M58 18 L34 54 L48 54 L42 82 L66 46 L52 46 Z" fill="#4DA6FF" opacity="0.4"/>
+      <path d="M58 18 L34 54 L48 54 L42 82 L66 46 L52 46 Z" fill="url(#fabBolt)" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M56 22 L40 50 L48 50 L46 60 Z" fill="white" opacity="0.5"/>
     </svg>
   </button>
 </div>
@@ -1315,7 +1300,7 @@
     <button class="btn-ghost" onclick="deleteQNote()" style="color:var(--accent-danger); border-color:var(--accent-danger); padding:8px 16px; font-size:13px; font-weight:700; margin-left:8px;">🗑️ Sil</button>
   </div>
   <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;background:var(--bg);">
-    <textarea id="qnote-body" style="flex:1;min-height:200px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:15px;font-family:inherit;color:var(--text);resize:none;line-height:1.7;border-left:4px solid #D84040;" placeholder="Aklındaki her şeyi buraya yaz..."></textarea>
+    <textarea id="qnote-body" style="flex:1;min-height:200px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:15px;font-family:inherit;color:var(--text);resize:none;line-height:1.7;border-left:4px solid #6E1822;" placeholder="Aklındaki her şeyi buraya yaz..."></textarea>
   </div>
 </div>
 
@@ -1621,7 +1606,7 @@ function performSearch() {
   push(DB.get('work_travels',[]),'✈️','work','travels',i=>i.dest,i=>formatDate(i.start));
   push(DB.get('pers_travels',[]),'🎒','pers','travels',i=>i.dest,i=>formatDate(i.start));
   push(DB.get('pers_birthdays',[]),'🎂','pers','birthdays',i=>i.name,i=>`${i.day} ${MONTHS_TR[i.month]}`);
-  push(DB.get('pers_habits',[]),'⚡','pers','habits',i=>i.n,i=>'');
+  push(DB.get('pers_habits',[]),'🌱','pers','habits',i=>i.n,i=>'');
 
   ['work_notes','pers_notes'].forEach(key => {
     const ctx = key.includes('work')?'work':'pers';
@@ -1809,27 +1794,25 @@ function renderSummary() {
     });
   };
 
-  pushEv('work_appts',  '🗓️', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
-  pushEv('pers_appts',  '📍', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
-  pushEv('work_travels','✈️', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), title:i.dest, sub:formatDate(i.start) } : null);
-  pushEv('pers_travels','🎒', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), title:i.dest, sub:formatDate(i.start) } : null);
-  pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), title:i.title, sub:formatDate(i.date) } : null);
-  pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), title:i.title, sub:formatDate(i.date) } : null);
+  pushEv('work_appts',  '🗓️', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('pers_appts',  '📍', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('work_travels','✈️', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), rawDate:i.start, rawTime:null, title:i.dest, sub:formatDate(i.start) } : null);
+  pushEv('pers_travels','🎒', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), rawDate:i.start, rawTime:null, title:i.dest, sub:formatDate(i.start) } : null);
+  pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), rawDate:i.date, rawTime:null, title:i.title, sub:formatDate(i.date) } : null);
+  pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), rawDate:i.date, rawTime:null, title:i.title, sub:formatDate(i.date) } : null);
 
   const ty = new Date().getFullYear();
   DB.get('pers_birthdays',[]).forEach(b => {
     let n = new Date(ty, b.month-1, b.day);
     if (n.getTime() < tMs) n = new Date(ty+1, b.month-1, b.day);
-    const ev = { t:n.getTime(), tObj:new Date(n.getFullYear(),b.month-1,b.day,23,59,59), title:b.name, sub:`${b.day} ${MONTHS_TR[b.month]}`, icon:'🎂', ctx:'pers', mod:'birthdays' };
+    const ev = { t:n.getTime(), tObj:new Date(n.getFullYear(),b.month-1,b.day,23,59,59), rawDate:`${n.getFullYear()}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`, rawTime:null, title:b.name, sub:`${b.day} ${MONTHS_TR[b.month]}`, icon:'🎂', ctx:'pers', mod:'birthdays' };
     if (ev.t < horizonMs) near.push(ev); else future.push(ev);
   });
 
   near.sort((a,b)=>a.t-b.t); future.sort((a,b)=>a.t-b.t); past.sort((a,b)=>b.t-a.t);
 
   const cardHTML = (e, isPast=false) => {
-    const dStr = e.tObj.toISOString().split('T')[0];
-    const tStr = e.tObj.toISOString().split('T')[1].substring(0,5);
-    const cd   = getCountdown(dStr, tStr==='23:59'?null:tStr);
+    const cd   = getCountdown(e.rawDate, e.rawTime);
     const ctxC = isPast ? 'ctx-past' : `ctx-${e.ctx}`;
     const icnC = isPast ? '' : `ctx-${e.ctx}`;
     return `<div class="summary-item ${ctxC}" onclick="switchModule('${e.mod}','${e.ctx}')">
@@ -3779,9 +3762,13 @@ function openNotesLock(setupMode = false) {
   const desc  = document.getElementById('notes-lock-desc');
   const err   = document.getElementById('notes-lock-error');
   const setupBtn = document.getElementById('notes-lock-setup-btn');
+  const pwdInput = document.getElementById('notes-lock-pwd');
   err.textContent = '';
-  document.getElementById('notes-lock-pwd').value = '';
-  if (setupMode || !isNotesLockSet()) {
+  pwdInput.value = '';
+  const isFirstSetup = setupMode || !isNotesLockSet();
+  // autocomplete'i dinamik ayarla: ilk kurulumda new-password, mevcut şifre için current-password
+  pwdInput.setAttribute('autocomplete', isFirstSetup ? 'new-password' : 'current-password');
+  if (isFirstSetup) {
     desc.innerHTML = '<b>İlk kullanım:</b> Kişisel notlarınız için bir şifre belirleyin. Bu şifre sadece sizde, unutmayın!';
     setupBtn.style.display = 'none';
   } else {
@@ -3789,7 +3776,7 @@ function openNotesLock(setupMode = false) {
     setupBtn.style.display = 'block';
   }
   modal.classList.add('open');
-  setTimeout(() => document.getElementById('notes-lock-pwd').focus(), 200);
+  setTimeout(() => pwdInput.focus(), 200);
 }
 
 function closeNotesLock() {
