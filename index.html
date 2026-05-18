@@ -1118,7 +1118,8 @@
     <div class="form-row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
       <label>☁️ Bulut Senkron</label>
       <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">
-        Verilerin tüm cihazlarında güncel kalması için. Tüm cihazlarda <b>aynı şifreyi</b> kullanmalısın. Veriler şifreli iletilir, sadece sen okuyabilirsin.
+        Verilerin tüm cihazlarında güncel kalması için. Tüm cihazlarda <b>aynı şifreyi</b> kullanmalısın. Veriler şifreli iletilir, sadece sen okuyabilirsin.<br><br>
+        <span style="color:var(--accent);">✨ Akıllı Birleştirme:</span> Telefondaki ve bilgisayardaki kayıtlar otomatik birleştirilir, hiçbiri kaybolmaz. Sildiğin kayıtlar geri gelmez.
       </div>
 
       <!-- Bulut açık değilken -->
@@ -1358,9 +1359,53 @@ let selectedTagColor = 'blue';
 let activeTagFilter = '';
 let fabOpen = false;
 
+// ==================== TOMBSTONE (Silme Kayıt İzleme) ====================
+const TOMBSTONE_KEY = 'planner__tombstones';
+
+function getTombstones() {
+  try { return JSON.parse(localStorage.getItem(TOMBSTONE_KEY)) || []; } catch(e) { return []; }
+}
+
+function setTombstones(arr) {
+  // 30 günden eski tombstone'ları temizle
+  const cutoff = Date.now() - 30 * 86400000;
+  const cleaned = arr.filter(t => t && t.t > cutoff);
+  localStorage.setItem(TOMBSTONE_KEY, JSON.stringify(cleaned));
+}
+
+function addTombstone(key, itemId) {
+  if (!itemId) return;
+  const arr = getTombstones();
+  // Aynısını eklemeye çalışıyorsa atla
+  if (arr.some(t => t.key === key && t.id === itemId)) return;
+  arr.push({ key, id: itemId, t: Date.now() });
+  setTombstones(arr);
+}
+
+function isTombstoned(key, itemId) {
+  return getTombstones().some(t => t.key === key && t.id === itemId);
+}
+
 const DB = {
   get: (k, def) => { try { return JSON.parse(localStorage.getItem('planner_' + k)) || def; } catch(e) { return def; } },
   set: (k, v) => {
+    // Otomatik tombstone takibi: array'den silinen kayıtları yakala
+    try {
+      if (Array.isArray(v)) {
+        const oldRaw = localStorage.getItem('planner_' + k);
+        if (oldRaw) {
+          const old = JSON.parse(oldRaw);
+          if (Array.isArray(old)) {
+            const newIds = new Set(v.map(x => x && x.id).filter(Boolean));
+            old.forEach(x => {
+              if (x && x.id && !newIds.has(x.id)) {
+                addTombstone(k, x.id);
+              }
+            });
+          }
+        }
+      }
+    } catch(e) {}
     localStorage.setItem('planner_' + k, JSON.stringify(v));
     // Bulut senkron için bekleyen değişiklik işaretle
     if (typeof markCloudDirty === 'function') markCloudDirty();
@@ -3596,6 +3641,143 @@ function applyCloudData(data) {
   });
 }
 
+// ==================== AKILLI BİRLEŞTİRME ====================
+// id'den zaman damgasını çıkar (id = Date.now().toString(36) + random)
+function extractTimeFromId(id) {
+  if (!id || typeof id !== 'string') return 0;
+  try {
+    // İlk parça base36'da zaman damgası
+    const firstPart = id.split('-')[0] || id;
+    const t = parseInt(firstPart, 36);
+    if (isNaN(t)) return 0;
+    // Geçerli aralık kontrolü (2020-2100)
+    if (t < 1577836800000 || t > 4102444800000) return 0;
+    return t;
+  } catch(e) { return 0; }
+}
+
+// Kaydın zamanını al — önce updatedAt, sonra d (date), sonra id'den çıkar
+function getItemTime(item) {
+  if (!item) return 0;
+  if (item.updatedAt) return new Date(item.updatedAt).getTime();
+  if (item.d) {
+    const t = new Date(item.d).getTime();
+    if (!isNaN(t)) return t;
+  }
+  return extractTimeFromId(item.id);
+}
+
+// İki array'i id bazlı akıllıca birleştir
+function mergeArrays(localArr, cloudArr, tombstones, key) {
+  const tombstonedIds = new Set(
+    tombstones.filter(t => t.key === key).map(t => t.id)
+  );
+
+  const merged = new Map();
+
+  // Bulutu önce ekle
+  (cloudArr || []).forEach(item => {
+    if (!item || !item.id) return;
+    if (tombstonedIds.has(item.id)) return;  // Silinmiş kayıt, atla
+    merged.set(item.id, item);
+  });
+
+  // Sonra yereli karşılaştır - daha yenisi kazanır
+  (localArr || []).forEach(item => {
+    if (!item || !item.id) return;
+    if (tombstonedIds.has(item.id)) return;
+    const existing = merged.get(item.id);
+    if (!existing) {
+      merged.set(item.id, item);
+    } else {
+      // Daha yeni olanı seç
+      const lt = getItemTime(item);
+      const et = getItemTime(existing);
+      merged.set(item.id, lt >= et ? item : existing);
+    }
+  });
+
+  return Array.from(merged.values());
+}
+
+// Tombstone'ları birleştir (her ikisi de korunur)
+function mergeTombstones(localTomb, cloudTomb) {
+  const seen = new Set();
+  const result = [];
+  [...(localTomb || []), ...(cloudTomb || [])].forEach(t => {
+    if (!t || !t.key || !t.id) return;
+    const key = t.key + '|' + t.id;
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(t);
+  });
+  // 30 günden eskileri at
+  const cutoff = Date.now() - 30 * 86400000;
+  return result.filter(t => t.t > cutoff);
+}
+
+// Tüm DB verisini akıllıca birleştir
+function smartMergeData(localData, cloudData) {
+  const merged = {};
+
+  // Tombstone'ları birleştir önce
+  let localTomb = [];
+  let cloudTomb = [];
+  try { localTomb = JSON.parse(localData[TOMBSTONE_KEY] || '[]'); } catch(e) {}
+  try { cloudTomb = JSON.parse(cloudData[TOMBSTONE_KEY] || '[]'); } catch(e) {}
+  const allTombstones = mergeTombstones(localTomb, cloudTomb);
+  merged[TOMBSTONE_KEY] = JSON.stringify(allTombstones);
+
+  // Tüm benzersiz key'leri bul
+  const allKeys = new Set([
+    ...Object.keys(localData || {}),
+    ...Object.keys(cloudData || {})
+  ]);
+
+  allKeys.forEach(k => {
+    if (k === TOMBSTONE_KEY) return; // Zaten halledildi
+
+    const localRaw = localData[k];
+    const cloudRaw = cloudData[k];
+
+    // İkisinden biri yoksa diğerini kullan
+    if (localRaw === undefined) { merged[k] = cloudRaw; return; }
+    if (cloudRaw === undefined) { merged[k] = localRaw; return; }
+
+    // İçeriği parse et
+    let localVal, cloudVal;
+    try { localVal = JSON.parse(localRaw); } catch(e) { merged[k] = localRaw; return; }
+    try { cloudVal = JSON.parse(cloudRaw); } catch(e) { merged[k] = cloudRaw; return; }
+
+    // Her iki taraf da array ve id'li öğeleri varsa → akıllı birleştir
+    if (Array.isArray(localVal) && Array.isArray(cloudVal)) {
+      const hasIds = (arr) => arr.length === 0 || arr.some(x => x && x.id);
+      if (hasIds(localVal) || hasIds(cloudVal)) {
+        const mergedArr = mergeArrays(localVal, cloudVal, allTombstones, k);
+        merged[k] = JSON.stringify(mergedArr);
+        return;
+      }
+    }
+
+    // Array değilse veya id yoksa: daha yeni olan kazanır
+    // (uid, binid, last_backup gibi config değerleri için yereli koru — bunlar cihaza özel)
+    const cihazaOzel = ['planner_cloud_uid', 'planner_cloud_binid', 'planner_cloud_pwd',
+                        'planner_cloud_lastsync', 'planner_master_index_bin',
+                        'planner_auth_ok', 'planner_auth_at', 'planner_last_backup',
+                        'planner_auto_backup', 'planner_cloud_suggested',
+                        'planner_notes_lock_check'];
+    if (cihazaOzel.includes(k)) {
+      merged[k] = localRaw;
+      return;
+    }
+
+    // Diğer durumlar: yereli koru
+    merged[k] = localRaw;
+  });
+
+  return merged;
+}
+
 // Şifreyi cihazda sakla (token veya yedek şifre)
 function getCloudPassword() {
   return sessionStorage.getItem('planner_cloud_pwd') || localStorage.getItem('planner_cloud_pwd');
@@ -3686,21 +3868,67 @@ async function registerBinForUid(uid, binId) {
 }
 
 // Buluta yükle
+// Buluttan veriyi indir ve şifre çöz (helper)
+async function fetchCloudData(password, uid) {
+  let binId = await findOrCreateBin(uid, password);
+  let res = await fetch(`${JSONBIN_API}/b/${binId}/latest`, {
+    headers: { 'X-Master-Key': JSONBIN_KEY }
+  });
+  if (res.status === 404) {
+    // Eski bin silinmiş — yenisini yarat
+    localStorage.removeItem('planner_cloud_binid');
+    binId = await createCloudBin(uid);
+    setBinId(binId);
+    await registerBinForUid(uid, binId);
+    return null; // boş bin
+  }
+  if (!res.ok) throw new Error('İndirme başarısız (HTTP ' + res.status + ')');
+  const r = await res.json();
+  if (!r.record || !r.record.data) return null;
+  try {
+    const decrypted = await decryptData(r.record.data, password);
+    return JSON.parse(decrypted);
+  } catch(e) {
+    throw new Error('Şifre yanlış veya veri bozuk');
+  }
+}
+
+// AKILLI YÜKLEME: önce buluttan çek → birleştir → yükle
 async function pushToCloud() {
   const password = getCloudPassword();
   const uid = getCloudUserId();
   if (!password || !uid) throw new Error('Şifre veya kullanıcı kimliği yok');
-  const data = collectLocalData();
-  const encrypted = await encryptData(JSON.stringify(data), password);
+
+  // 1. Buluttaki veriyi çek (varsa)
+  let cloudData = null;
+  try {
+    cloudData = await fetchCloudData(password, uid);
+  } catch(e) {
+    console.warn('Bulut verisi çekilemedi, sadece yerel yüklenecek:', e.message);
+  }
+
+  // 2. Yerel veriyi al
+  const localData = collectLocalData();
+
+  // 3. Akıllı birleştir
+  const merged = cloudData ? smartMergeData(localData, cloudData) : localData;
+
+  // 4. Birleştirilmiş veriyi yerele uygula (geri kalan cihazda da görünsün)
+  if (cloudData) {
+    Object.keys(merged).forEach(k => {
+      localStorage.setItem(k, merged[k]);
+    });
+  }
+
+  // 5. Buluta gönder
+  const encrypted = await encryptData(JSON.stringify(merged), password);
   let binId = await findOrCreateBin(uid, password);
   let res = await fetch(`${JSONBIN_API}/b/${binId}`, {
     method: 'PUT',
     headers: { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY },
     body: JSON.stringify({ data: encrypted, updatedAt: Date.now() })
   });
-  // 404 ise eski bin silinmiş, yeni bir tane yarat
   if (res.status === 404) {
-    console.log('Eski bin bulunamadı, yenisi yaratılıyor...');
     localStorage.removeItem('planner_cloud_binid');
     binId = await createCloudBin(uid);
     setBinId(binId);
@@ -3715,36 +3943,29 @@ async function pushToCloud() {
   setLastSync(Date.now());
 }
 
-// Buluttan çek
+// AKILLI ÇEKME: bulut + yerel birleştir (silinenleri geri getirmez)
 async function pullFromCloud() {
   const password = getCloudPassword();
   const uid = getCloudUserId();
   if (!password || !uid) throw new Error('Şifre yok');
-  let binId = await findOrCreateBin(uid, password);
-  let res = await fetch(`${JSONBIN_API}/b/${binId}/latest`, {
-    headers: { 'X-Master-Key': JSONBIN_KEY }
+
+  // 1. Buluttaki veriyi çek
+  const cloudData = await fetchCloudData(password, uid);
+  if (!cloudData) return false; // Bulutta veri yok
+
+  // 2. Yerel veriyi al
+  const localData = collectLocalData();
+
+  // 3. Akıllı birleştir (yerel silmeler korunur, yerel düzenlemeler kaybolmaz)
+  const merged = smartMergeData(localData, cloudData);
+
+  // 4. Birleştirilmiş veriyi uygula
+  Object.keys(merged).forEach(k => {
+    localStorage.setItem(k, merged[k]);
   });
-  // 404 ise eski bin silinmiş, yeni bir tane yarat (henüz veri yok)
-  if (res.status === 404) {
-    console.log('Eski bin bulunamadı, yenisi yaratılıyor...');
-    localStorage.removeItem('planner_cloud_binid');
-    binId = await createCloudBin(uid);
-    setBinId(binId);
-    await registerBinForUid(uid, binId);
-    return false; // Yeni bin, henüz veri yok
-  }
-  if (!res.ok) throw new Error('İndirme başarısız (HTTP ' + res.status + ')');
-  const r = await res.json();
-  if (!r.record || !r.record.data) return false;
-  try {
-    const decrypted = await decryptData(r.record.data, password);
-    const data = JSON.parse(decrypted);
-    applyCloudData(data);
-    setLastSync(Date.now());
-    return true;
-  } catch(e) {
-    throw new Error('Şifre yanlış veya veri bozuk');
-  }
+
+  setLastSync(Date.now());
+  return true;
 }
 
 // Otomatik senkron — manuel tetiklenir
@@ -3789,7 +4010,7 @@ async function cloudPush() {
 
 async function cloudPull() {
   if (!isCloudSyncEnabled()) return;
-  if (!confirm('Buluttan veriler indirilecek ve cihazdaki veriler ÜZERİNE YAZILACAK.\n\nMevcut cihaz verilerin kaybolabilir. Devam edilsin mi?')) return;
+  if (!confirm('Buluttaki veriler bu cihazdaki verilerle akıllıca birleştirilecek.\n\n• Yeni kayıtlar her iki taraftan da gelir\n• Aynı kaydın güncel hali kazanır\n• Bu cihazda silinen kayıtlar geri gelmez\n\nDevam edilsin mi?')) return;
   const btn = document.getElementById('cloud-pull-btn');
   const orig = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ İndiriliyor...';
