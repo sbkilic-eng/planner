@@ -1157,7 +1157,10 @@
       <div><label>Öncelik</label><select id="m-todo-pri"><option value="normal">Normal</option><option value="high">Yüksek</option></select></div>
       <div><label>Tekrar</label><select id="m-todo-rec"><option value="">Tek Seferlik</option><option value="1">Günlük</option><option value="7">Haftalık</option><option value="30">Aylık</option></select></div>
     </div>
-    <div class="form-row"><label data-i18n="date">Tarih</label><input type="date" id="m-todo-date"></div>
+    <div class="form-row-2">
+      <div><label data-i18n="date">Tarih</label><input type="date" id="m-todo-date"></div>
+      <div><label>Saat <span style="font-weight:400;color:var(--muted);font-size:11px;">(opsiyonel)</span></label><input type="time" id="m-todo-time"></div>
+    </div>
     <div class="form-row"><label>Not</label><input type="text" id="m-todo-note"></div>
     <div class="form-row">
       <label>Etiket</label>
@@ -1869,8 +1872,8 @@ function renderSummary() {
   pushEv('pers_appts',  '📍', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
   pushEv('work_travels','✈️', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), rawDate:i.start, rawTime:null, title:i.dest, sub:formatDate(i.start) } : null);
   pushEv('pers_travels','🎒', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), rawDate:i.start, rawTime:null, title:i.dest, sub:formatDate(i.start) } : null);
-  pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), rawDate:i.date, rawTime:null, title:i.title, sub:formatDate(i.date) } : null);
-  pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+'T23:59:59'), rawDate:i.date, rawTime:null, title:i.title, sub:formatDate(i.date) } : null);
+  pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time||null, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time||null, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
 
   const ty = new Date().getFullYear();
   DB.get('pers_birthdays',[]).forEach(b => {
@@ -1981,6 +1984,7 @@ function openTodoForm(eid=null) {
   document.getElementById('m-todo-pri').value=d?d.pri||'normal':'normal';
   document.getElementById('m-todo-rec').value=d?d.rec||'':'';
   document.getElementById('m-todo-date').value=d?d.date||'':new Date().toISOString().split('T')[0];
+  document.getElementById('m-todo-time').value=d?d.time||'':'';
   document.getElementById('m-todo-note').value=d?d.note||'':'';
   document.getElementById('m-todo-tag').value=d?d.tag||'':'';
   selectedTagColor=d?d.tagColor||'blue':'blue';
@@ -1990,7 +1994,7 @@ function openTodoForm(eid=null) {
 function saveTodo() {
   const t=document.getElementById('m-todo-title').value.trim(); if(!t)return;
   const k=getTodoKey(); const arr=DB.get(k,[]);
-  const p={id:currentEditId||id(),title:t,pri:document.getElementById('m-todo-pri').value,rec:parseInt(document.getElementById('m-todo-rec').value)||null,date:document.getElementById('m-todo-date').value,note:document.getElementById('m-todo-note').value.trim(),tag:document.getElementById('m-todo-tag').value.trim(),tagColor:selectedTagColor,done:false};
+  const p={id:currentEditId||id(),title:t,pri:document.getElementById('m-todo-pri').value,rec:parseInt(document.getElementById('m-todo-rec').value)||null,date:document.getElementById('m-todo-date').value,time:document.getElementById('m-todo-time').value||'',note:document.getElementById('m-todo-note').value.trim(),tag:document.getElementById('m-todo-tag').value.trim(),tagColor:selectedTagColor,done:false,updatedAt:new Date().toISOString()};
   if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.done=arr[i].done;arr[i]=p;}}else{arr.push(p);}
   DB.set(k,arr); closeModal('modal-todo'); renderTodoTagFilter(); renderTodos(); checkAndNotify();
 }
@@ -2005,15 +2009,16 @@ function renderTodos() {
   const un=arr.filter(t=>!t.done).sort((a,b)=>po[a.pri]-po[b.pri]||(a.date>b.date?1:-1));
   const dn=arr.filter(t=>t.done);
   const r=(t)=>{
-    const cd=getCountdown(t.date,null); const rl=t.rec===1?'1 Gün':t.rec===7?'1 Hafta':t.rec===30?'1 Ay':'';
+    const cd=getCountdown(t.date,t.time||null); const rl=t.rec===1?'1 Gün':t.rec===7?'1 Hafta':t.rec===30?'1 Ay':'';
+    const dateLabel = formatDate(t.date) + (t.time?' '+t.time:'');
     return `<div class="swipe-wrap">
       <div class="swipe-del-btn" onclick="delTodo('${t.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
       <div class="todo-item priority-${t.pri} ${t.done?'done':''}" data-id="${t.id}">
         <div class="list-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div>
         <div style="flex:1;"><div style="font-weight:600;font-size:15px;">${esc(t.title)}${t.tag?tagPill(t.tag,t.tagColor):''}</div>
-        <div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:formatDate(t.date)}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div>
+        <div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:dateLabel}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div>
         <button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button>
-        ${t.date?`<button class="btn-icon" onclick="downloadICS('${esc(t.title)}','${t.date}',null,'${esc(t.note||'')}')" title="Takvime Ekle">&#128197;</button>`:''}
+        ${t.date?`<button class="btn-icon" onclick="downloadICS('${esc(t.title)}','${t.date}','${t.time||''}','${esc(t.note||'')}')" title="Takvime Ekle">&#128197;</button>`:''}
         <button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button>
       </div>
     </div>`;
