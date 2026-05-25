@@ -325,10 +325,14 @@
   .summary-item:hover { transform: translateX(6px); border-color: var(--muted); }
   .summary-item.ctx-work { border-left-color: #5C8BB8; }
   .summary-item.ctx-pers { border-left-color: #5C9E78; }
+  .summary-item.ctx-holiday-national { border-left-color: #D86D6D; }
+  .summary-item.ctx-holiday-religious { border-left-color: #9B6FD0; }
   .summary-item.ctx-past { opacity: 0.55; border-left-color: var(--border); }
   .sum-icon { font-size: 22px; width: 44px; height: 44px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); flex-shrink: 0; }
   .sum-icon.ctx-work { background: rgba(92,139,184,0.18); border-color: rgba(92,139,184,0.35); }
   .sum-icon.ctx-pers { background: rgba(92,158,120,0.18); border-color: rgba(92,158,120,0.35); }
+  .sum-icon.ctx-holiday-national { background: rgba(216,109,109,0.18); border-color: rgba(216,109,109,0.35); }
+  .sum-icon.ctx-holiday-religious { background: rgba(155,111,208,0.18); border-color: rgba(155,111,208,0.35); }
   .sum-past-toggle { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; border-radius: 12px; border: 1px dashed var(--border); background: none; width: 100%; color: var(--muted); font-size: 13px; font-weight: 700; font-family: inherit; transition: background 0.2s; margin-top: 8px; }
   .sum-past-toggle:hover { background: var(--surface); }
   .sum-past-list { overflow: hidden; height: 0; transition: height 0.4s cubic-bezier(0.4,0,0.2,1); }
@@ -1097,6 +1101,20 @@
       <div style="font-size:11px;color:var(--muted);margin-top:4px;">İngilizce yazmanız önerilir. Boş bırakırsanız hava durumu gösterilmez.</div>
     </div>
     <div class="form-row" style="margin-top:20px;">
+      <label>🗓️ Resmî & Dinî Tatiller</label>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+        Açıkken ana sayfadaki kayıtların arasında resmî ve dinî tatiller de görünür. Bayramların her günü ayrı gösterilir.
+      </div>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;">
+        <input type="checkbox" id="holiday-toggle" onchange="toggleHolidays()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;">
+        <span>Tatilleri ana sayfada göster</span>
+      </label>
+      <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--muted);">
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#D86D6D;display:inline-block;"></span> 🇹🇷 Millî</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#9B6FD0;display:inline-block;"></span> 🌙 Dinî</span>
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:20px;">
       <label>Bildirimler</label>
       <button class="btn-ghost" style="width:100%;" onclick="allowNotifications()" id="notif-settings-btn">🔔 Bildirimleri Etkinleştir</button>
     </div>
@@ -1434,6 +1452,9 @@ function openModal(mid) {
       row.style.display = isMobileDevice() ? 'none' : 'block';
       cb.checked = isAutoBackupEnabled();
     }
+    // Tatil toggle senkronu
+    const hcb = document.getElementById('holiday-toggle');
+    if (hcb) hcb.checked = localStorage.getItem('planner_show_holidays') === '1';
   }
 }
 
@@ -1870,8 +1891,6 @@ function renderSummary() {
 
   pushEv('work_appts',  '🗓️', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
   pushEv('pers_appts',  '📍', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
-  pushEv('work_travels','✈️', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), rawDate:i.start, rawTime:null, title:i.dest, sub:formatDate(i.start) } : null);
-  pushEv('pers_travels','🎒', i => i.start ? { t:new Date(i.start+'T00:00').getTime(), tObj:new Date(i.start+'T23:59:59'), rawDate:i.start, rawTime:null, title:i.dest, sub:formatDate(i.start) } : null);
   pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time||null, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
   pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time||null, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
 
@@ -1883,13 +1902,66 @@ function renderSummary() {
     if (ev.t < horizonMs) near.push(ev); else future.push(ev);
   });
 
+  // SEYAHAT GÜNLERİ — her günü ayrı ayrı göster
+  ['work_travels','pers_travels'].forEach(key => {
+    const ctx = key.includes('work') ? 'work' : 'pers';
+    const icon = ctx === 'work' ? '✈️' : '🎒';
+    DB.get(key,[]).forEach(tr => {
+      if (!tr.start) return;
+      const start = new Date(tr.start+'T00:00');
+      const end = tr.end ? new Date(tr.end+'T00:00') : start;
+      const totalDays = Math.max(1, Math.round((end - start)/86400000) + 1);
+      for (let d = 0; d < totalDays; d++) {
+        const cur = new Date(start); cur.setDate(start.getDate()+d);
+        const ds = cur.toISOString().split('T')[0];
+        const dayLabel = totalDays > 1 ? ` (${d+1}/${totalDays}. gün)` : '';
+        const ev = {
+          t: cur.getTime(),
+          tObj: new Date(cur.getFullYear(),cur.getMonth(),cur.getDate(),23,59,59),
+          rawDate: ds, rawTime: null,
+          title: tr.dest + dayLabel,
+          sub: formatDate(ds),
+          icon, ctx, mod:'travels'
+        };
+        if (ev.tObj.getTime() < nowMs) past.push(ev);
+        else if (ev.t < horizonMs) near.push(ev);
+        else future.push(ev);
+      }
+    });
+  });
+
+  // RESMİ & DİNİ TATİLLER — ayardan açıksa göster
+  if (localStorage.getItem('planner_show_holidays') === '1') {
+    const startScan = new Date(tMs);
+    const endScan = new Date(tMs + 366 * 86400000); // 1 yıl ileri tara
+    for (let d = new Date(startScan); d <= endScan; d.setDate(d.getDate()+1)) {
+      const ds = d.toISOString().split('T')[0];
+      const hol = getHolidayName(ds);
+      if (hol) {
+        const ev = {
+          t: d.getTime(),
+          tObj: new Date(d.getFullYear(),d.getMonth(),d.getDate(),23,59,59),
+          rawDate: ds, rawTime: null,
+          title: hol.name,
+          sub: formatDate(ds),
+          icon: hol.type === 'religious' ? '🌙' : '🇹🇷',
+          ctx: 'holiday-' + hol.type,
+          mod: 'summary'
+        };
+        if (ev.t < horizonMs) near.push(ev); else future.push(ev);
+      }
+    }
+  }
+
   near.sort((a,b)=>a.t-b.t); future.sort((a,b)=>a.t-b.t); past.sort((a,b)=>b.t-a.t);
 
   const cardHTML = (e, isPast=false) => {
     const cd   = getCountdown(e.rawDate, e.rawTime);
+    const isHoliday = e.ctx.startsWith('holiday');
     const ctxC = isPast ? 'ctx-past' : `ctx-${e.ctx}`;
     const icnC = isPast ? '' : `ctx-${e.ctx}`;
-    return `<div class="summary-item ${ctxC}" onclick="switchModule('${e.mod}','${e.ctx}')">
+    const clickAction = isHoliday ? `switchModule('summary')` : `switchModule('${e.mod}','${e.ctx}')`;
+    return `<div class="summary-item ${ctxC}" onclick="${clickAction}">
       <div class="sum-icon ${icnC}">${e.icon}</div>
       <div style="flex:1;min-width:0;">
         <div class="card-title" style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.title)}</div>
@@ -4505,6 +4577,13 @@ function toggleAutoBackup() {
   const cb = document.getElementById('auto-backup-toggle');
   setAutoBackupEnabled(cb.checked);
   showToast(cb.checked ? '✓ Otomatik yedek açıldı' : '✓ Otomatik yedek kapatıldı');
+}
+
+function toggleHolidays() {
+  const cb = document.getElementById('holiday-toggle');
+  localStorage.setItem('planner_show_holidays', cb.checked ? '1' : '0');
+  showToast(cb.checked ? '🗓️ Tatiller ana sayfada gösterilecek' : '🗓️ Tatiller gizlendi');
+  if (currentModule === 'summary') renderSummary();
 }
 
 // exportData fonksiyonu zaten var, biz onun çağrıldığı zaman lastBackup'ı güncelleyelim
