@@ -3231,6 +3231,10 @@ function registerSW() {
     const sw = `
       self.addEventListener('install', e => { self.skipWaiting(); });
       self.addEventListener('fetch', e => {
+        // Sadece aynı origin (kendi sitemiz) isteklerini intercept et
+        // Open-Meteo, JSONBin gibi external API'leri tarayıcıya bırak
+        const url = new URL(e.request.url);
+        if (url.origin !== self.location.origin) return;
         e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
       });
     `;
@@ -4395,25 +4399,64 @@ function setWeatherCity(city) {
   loadWeather();
 }
 
+// Şehir adını cache key için güvenli hale getir
+function weatherCacheKey(city, prefix) {
+  // Türkçe karakterleri normalize et ve ASCII'ye çevir (cache key için)
+  const normalized = String(city||'').trim()
+    .replace(/ş/gi,'s').replace(/ğ/gi,'g').replace(/ı/g,'i').replace(/İ/g,'i')
+    .replace(/ö/gi,'o').replace(/ü/gi,'u').replace(/ç/gi,'c')
+    .toLowerCase();
+  return prefix + normalized;
+}
+
+// Timeout'lu fetch helper
+async function fetchWithTimeout(url, ms = 10000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function geocodeCity(city) {
   // Önce cache kontrol
-  const cached = localStorage.getItem('planner_weather_geo_' + city.toLowerCase());
+  const cacheK = weatherCacheKey(city, 'planner_weather_geo_');
+  const cached = localStorage.getItem(cacheK);
   if (cached) {
     try { return JSON.parse(cached); } catch(e) {}
   }
-  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=tr`);
-  if (!res.ok) throw new Error('Şehir bulunamadı');
-  const r = await res.json();
-  if (!r.results || !r.results.length) throw new Error('Şehir bulunamadı');
-  const geo = { lat: r.results[0].latitude, lon: r.results[0].longitude, name: r.results[0].name };
-  localStorage.setItem('planner_weather_geo_' + city.toLowerCase(), JSON.stringify(geo));
-  return geo;
+  try {
+    const res = await fetchWithTimeout(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=tr`, 8000);
+    if (!res.ok) throw new Error('Şehir bulunamadı (' + res.status + ')');
+    const r = await res.json();
+    if (!r.results || !r.results.length) throw new Error('Şehir bulunamadı');
+    const geo = { lat: r.results[0].latitude, lon: r.results[0].longitude, name: r.results[0].name };
+    localStorage.setItem(cacheK, JSON.stringify(geo));
+    return geo;
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error('İstek zaman aşımına uğradı');
+    if (e.message === 'Failed to fetch' || e.message === 'Load failed' || e.message.includes('NetworkError')) {
+      throw new Error('İnternet bağlantısı yok');
+    }
+    throw e;
+  }
 }
 
 async function fetchWeather(lat, lon) {
-  const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max&current=temperature_2m,weather_code&timezone=auto&forecast_days=2`);
-  if (!res.ok) throw new Error('Hava durumu alınamadı');
-  return res.json();
+  try {
+    const res = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max&current=temperature_2m,weather_code&timezone=auto&forecast_days=2`, 8000);
+    if (!res.ok) throw new Error('Hava verisi alınamadı (' + res.status + ')');
+    return res.json();
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error('İstek zaman aşımına uğradı');
+    if (e.message === 'Failed to fetch' || e.message === 'Load failed' || e.message.includes('NetworkError')) {
+      throw new Error('İnternet bağlantısı yok');
+    }
+    throw e;
+  }
 }
 
 async function loadWeather() {
@@ -4429,7 +4472,7 @@ async function loadWeather() {
   }
 
   // Cache kontrolü — 30 dakikada bir yenile
-  const cacheKey = 'planner_weather_data_' + city.toLowerCase();
+  const cacheKey = weatherCacheKey(city, 'planner_weather_data_');
   const cached = localStorage.getItem(cacheKey);
   if (cached) {
     try {
@@ -4447,6 +4490,15 @@ async function loadWeather() {
     localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), geo, data }));
     renderWeather(geo, data);
   } catch(e) {
+    // Internet yoksa veya bağlantı sorunu varsa, eski cache'i kullanmaya çalış (bayat olsa bile)
+    const stale = localStorage.getItem(cacheKey);
+    if (stale) {
+      try {
+        const obj = JSON.parse(stale);
+        renderWeather(obj.geo, obj.data);
+        return;
+      } catch(_) {}
+    }
     if (el) {
       el.style.display = 'inline-block';
       el.textContent = '⚠️ ' + e.message;
