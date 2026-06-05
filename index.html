@@ -1061,34 +1061,6 @@
   </div>
 </div>
 
-<!-- GITHUB TOKEN MODAL -->
-<div class="modal-overlay" id="modal-github-token">
-  <div class="modal" style="max-width:420px;">
-    <div style="font-size:40px;text-align:center;margin-bottom:8px;">🐙</div>
-    <div class="modal-title" style="text-align:center;margin-bottom:6px;">GitHub ile Bağlan</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;text-align:center;">
-      Personal Access Token'ını gir.<br>
-      <a href="https://github.com/settings/tokens/new?scopes=gist&description=Planner+Pro" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;">Token oluştur →</a>
-      <span style="color:var(--muted);"> (sadece "gist" yetkisi yeterli)</span>
-    </div>
-    <div class="form-row">
-      <label>Token</label>
-      <input type="password" id="github-token-input"
-        placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-        autocomplete="off" spellcheck="false"
-        style="font-size:13px;letter-spacing:1px;">
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:12px;">
-      Token şuna benzer: <code style="background:var(--bg);padding:2px 5px;border-radius:4px;font-size:11px;">ghp_</code> ile başlar
-    </div>
-    <div id="github-token-error" style="font-size:12px;color:var(--accent-danger);margin-bottom:10px;min-height:16px;font-weight:600;"></div>
-    <div class="form-row-2">
-      <button class="btn-primary" id="github-token-btn" onclick="submitGithubToken()">Bağlan</button>
-      <button class="btn-ghost" onclick="closeModal('modal-github-token')">İptal</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
@@ -3740,28 +3712,22 @@ function setGithubLastSync(t) { localStorage.setItem('planner_github_lastsync', 
 async function githubFetch(url, options = {}) {
   const token = getGithubToken();
   if (!token) throw new Error('GitHub token yok');
-  const fetchOptions = {
-    method: options.method || 'GET',
+  const res = await fetchWithTimeout(`${GITHUB_API}${url}`, 15000, {
+    ...options,
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
     }
-  };
-  if (options.body) {
-    fetchOptions.body = options.body;
-    fetchOptions.headers['Content-Type'] = 'application/json';
-  }
-  const res = await fetchWithTimeout(`${GITHUB_API}${url}`, 15000, fetchOptions);
+  });
   return res;
 }
 
 // Kullanıcı bilgisini al
 async function githubGetUser() {
   const res = await githubFetch('/user');
-  if (res.status === 401) throw new Error('Token geçersiz — token\u2019u kontrol et');
-  if (res.status === 403) throw new Error('Yetki yok — "gist" yetkisi gerekli');
-  if (!res.ok) throw new Error(`GitHub hatası (HTTP ${res.status})`);
+  if (!res.ok) throw new Error('Token geçersiz veya yetki yok');
   const data = await res.json();
   return data.login;
 }
@@ -3827,45 +3793,31 @@ async function githubWriteData(data) {
   setGithubLastSync(Date.now());
 }
 
-// Token modal aç
-function startGithubSync() {
-  document.getElementById('github-token-input').value = '';
-  document.getElementById('github-token-error').textContent = '';
-  const btn = document.getElementById('github-token-btn');
-  if (btn) { btn.disabled = false; btn.textContent = 'Bağlan'; }
-  closeModal('modal-settings');
-  setTimeout(() => {
-    openModal('modal-github-token');
-    setTimeout(() => { const el = document.getElementById('github-token-input'); if(el) el.focus(); }, 300);
-  }, 150);
-}
+// GitHub'a bağlan
+async function startGithubSync() {
+  const token = prompt('GitHub Personal Access Token\'ını gir.\n\nToken oluşturmak için:\ngithub.com → Settings → Developer settings\n→ Personal access tokens → Tokens (classic)\n→ Generate new token (classic)\n→ Sadece "gist" seçeneğini işaretle\n\nToken şuna benzer: ghp_xxxxxxxxxxxx');
+  if (!token || !token.trim()) return;
+  const t = token.trim();
 
-// Token doğrula ve bağlan
-async function submitGithubToken() {
-  const input = document.getElementById('github-token-input');
-  const errEl = document.getElementById('github-token-error');
-  const btn   = document.getElementById('github-token-btn');
-  const t = (input ? input.value : '').trim();
-  errEl.textContent = '';
-  if (!t) { errEl.textContent = 'Token boş olamaz'; return; }
-  if (!t.startsWith('ghp_') && !t.startsWith('github_pat_')) {
-    errEl.textContent = 'Geçersiz format — ghp_ ile başlamalı';
-    return;
-  }
-  btn.disabled = true;
-  btn.textContent = '⏳ Doğrulanıyor...';
+  // Token doğrula
   setGithubToken(t);
   try {
+    const btn = document.getElementById('cloud-enable-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Bağlanıyor...'; }
+
     const username = await githubGetUser();
     setGithubUser(username);
     setGithubSyncEnabled(true);
-    btn.textContent = '⏳ Gist hazırlanıyor...';
+
+    // Gist bul veya yarat
     await githubFindOrCreateGist();
-    closeModal('modal-github-token');
+
     showToast(`🐙 GitHub'a bağlandı: @${username}`);
     updateCloudBtnText();
+
+    // İlk bağlantıda ne yapacağını sor
     setTimeout(() => {
-      if (confirm(`@${username} olarak bağlandın.\n\nBu cihazdan verileri buluta yükleyeyim mi?\n\n• Tamam → Mevcut verileri GitHub'a yükle\n• İptal → Önce GitHub'dan çek`)) {
+      if (confirm(`GitHub'a başarıyla bağlandın (@${username}).\n\nBu cihazdan verileri buluta yükleyeyim mi?\n\n• Tamam → Mevcut verileri GitHub'a yükle\n• İptal → Önce GitHub'dan çek (başka cihazda veri varsa)`)) {
         githubPush();
       } else {
         githubPull();
@@ -3874,9 +3826,11 @@ async function submitGithubToken() {
   } catch(e) {
     setGithubToken('');
     setGithubSyncEnabled(false);
-    errEl.textContent = e.message;
-    btn.disabled = false;
-    btn.textContent = 'Bağlan';
+    showToast('⚠️ ' + e.message);
+    updateCloudBtnText();
+    if (document.getElementById('cloud-enable-btn')) {
+      document.getElementById('cloud-enable-btn').disabled = false;
+    }
   }
 }
 
