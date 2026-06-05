@@ -4049,11 +4049,27 @@ async function decryptData(b64, password) {
 }
 
 // Tüm planner_ verilerini topla
+// Buluta YÜKLENMEMESİ gereken hassas/cihaza özel anahtarlar
+const SYNC_EXCLUDE_KEYS = new Set([
+  'planner_cloud_uid', 'planner_cloud_binid', 'planner_cloud_lastsync',
+  'planner_auth_ok', 'planner_auth_at',
+  'planner_github_token',      // ← Token asla buluta gitmesin!
+  'planner_github_gist_id',    // ← Cihaza özel
+  'planner_github_lastsync',   // ← Cihaza özel
+  'planner_github_enabled',    // ← Cihaza özel
+  'planner_github_auto',       // ← Cihaza özel
+  'planner_github_user',       // ← Cihaza özel
+  'planner_cloud_pwd',         // ← Şifre asla buluta gitmesin!
+  'planner_auto_backup',       // ← Cihaza özel
+  'planner_last_backup',       // ← Cihaza özel
+  'planner_cloud_suggested',   // ← Cihaza özel
+]);
+
 function collectLocalData() {
   const data = {};
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
-    if (k.startsWith('planner_') && k !== 'planner_cloud_uid' && k !== 'planner_cloud_binid' && k !== 'planner_cloud_lastsync' && k !== 'planner_auth_ok' && k !== 'planner_auth_at') {
+    if (k && k.startsWith('planner_') && !SYNC_EXCLUDE_KEYS.has(k)) {
       data[k] = localStorage.getItem(k);
     }
   }
@@ -4062,7 +4078,10 @@ function collectLocalData() {
 
 function applyCloudData(data) {
   Object.keys(data).forEach(k => {
-    if (k.startsWith('planner_')) localStorage.setItem(k, data[k]);
+    // Hassas anahtarları asla üzerine yazma
+    if (k.startsWith('planner_') && !SYNC_EXCLUDE_KEYS.has(k)) {
+      localStorage.setItem(k, data[k]);
+    }
   });
 }
 
@@ -4184,14 +4203,11 @@ function smartMergeData(localData, cloudData) {
       }
     }
 
-    // Array değilse veya id yoksa: daha yeni olan kazanır
-    // (uid, binid, last_backup gibi config değerleri için yereli koru — bunlar cihaza özel)
-    const cihazaOzel = ['planner_cloud_uid', 'planner_cloud_binid', 'planner_cloud_pwd',
-                        'planner_cloud_lastsync', 'planner_master_index_bin',
-                        'planner_auth_ok', 'planner_auth_at', 'planner_last_backup',
-                        'planner_auto_backup', 'planner_cloud_suggested',
-                        'planner_notes_lock_check'];
-    if (cihazaOzel.includes(k)) {
+    // Cihaza özel anahtarlar — SYNC_EXCLUDE_KEYS + diğerleri yereli koru
+    if (SYNC_EXCLUDE_KEYS.has(k) ||
+        ['planner_master_index_bin', 'planner_notes_lock_check',
+         'planner_cloud_suggested', 'planner_show_holidays',
+         'planner_weather_city'].includes(k)) {
       merged[k] = localRaw;
       return;
     }
