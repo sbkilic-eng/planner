@@ -3914,11 +3914,20 @@ async function githubPush() {
     // Önce buluttan çek, birleştir
     let cloudData = null;
     try { cloudData = await githubFetchData(); } catch(e) {}
-    const localData = collectLocalData();
+    const localData = collectLocalData(); // Token zaten hariç
     const merged = cloudData ? smartMergeData(localData, cloudData) : localData;
-    // Birleştirilmiş veriyi yerele uygula
-    if (cloudData) Object.keys(merged).forEach(k => localStorage.setItem(k, merged[k]));
-    // GitHub'a yaz
+
+    // Güvenlik: merged içinden hassas anahtarları çıkar
+    SYNC_EXCLUDE_KEYS.forEach(k => delete merged[k]);
+
+    // Birleştirilmiş veriyi yerele uygula (token'a dokunma)
+    if (cloudData) {
+      Object.keys(merged).forEach(k => {
+        if (!SYNC_EXCLUDE_KEYS.has(k)) localStorage.setItem(k, merged[k]);
+      });
+    }
+
+    // GitHub'a yaz (token içermiyor)
     await githubWriteData(merged);
     clearCloudDirty();
     showToast('🐙 GitHub\'a yüklendi');
@@ -4179,7 +4188,18 @@ function smartMergeData(localData, cloudData) {
   ]);
 
   allKeys.forEach(k => {
-    if (k === TOMBSTONE_KEY) return; // Zaten halledildi
+    if (k === TOMBSTONE_KEY) return;
+
+    // Hassas/cihaza özel anahtarlar — en başta kontrol et, asla cloud'dan gelmesin
+    if (SYNC_EXCLUDE_KEYS.has(k) ||
+        ['planner_master_index_bin', 'planner_notes_lock_check',
+         'planner_cloud_suggested', 'planner_show_holidays',
+         'planner_weather_city'].includes(k)) {
+      // Sadece localde varsa ekle, yoksa hiç ekleme
+      const localRaw = localData[k];
+      if (localRaw !== undefined) merged[k] = localRaw;
+      return;
+    }
 
     const localRaw = localData[k];
     const cloudRaw = cloudData[k];
@@ -4201,15 +4221,6 @@ function smartMergeData(localData, cloudData) {
         merged[k] = JSON.stringify(mergedArr);
         return;
       }
-    }
-
-    // Cihaza özel anahtarlar — SYNC_EXCLUDE_KEYS + diğerleri yereli koru
-    if (SYNC_EXCLUDE_KEYS.has(k) ||
-        ['planner_master_index_bin', 'planner_notes_lock_check',
-         'planner_cloud_suggested', 'planner_show_holidays',
-         'planner_weather_city'].includes(k)) {
-      merged[k] = localRaw;
-      return;
     }
 
     // Diğer durumlar: yereli koru
