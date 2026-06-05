@@ -3723,8 +3723,15 @@ const JSONBIN_API = 'https://api.jsonbin.io/v3';
 const GITHUB_API = 'https://api.github.com';
 const GITHUB_GIST_FILENAME = 'planner-pro-data.json';
 
-function getGithubToken() { return localStorage.getItem('planner_github_token') || ''; }
-function setGithubToken(t) { localStorage.setItem('planner_github_token', t); }
+function getGithubToken() {
+  return localStorage.getItem('planner_github_token')
+    || sessionStorage.getItem('planner_github_token')
+    || '';
+}
+function setGithubToken(t) {
+  localStorage.setItem('planner_github_token', t);
+  sessionStorage.setItem('planner_github_token', t);
+}
 function getGithubGistId() { return localStorage.getItem('planner_github_gist_id') || ''; }
 function setGithubGistId(id) { localStorage.setItem('planner_github_gist_id', id); }
 function getGithubUser() { return localStorage.getItem('planner_github_user') || ''; }
@@ -3965,6 +3972,7 @@ function disconnectGithub() {
   setGithubSyncEnabled(false);
   setGithubAutoEnabled(false);
   localStorage.removeItem('planner_github_token');
+  sessionStorage.removeItem('planner_github_token');
   localStorage.removeItem('planner_github_gist_id');
   localStorage.removeItem('planner_github_user');
   clearInterval(githubAutoInterval);
@@ -4531,7 +4539,14 @@ function updateCloudBtnText() {
     if (ghActions) ghActions.style.display = 'block';
     const userEl = document.getElementById('github-sync-user');
     const user = getGithubUser();
-    if (userEl) userEl.textContent = user ? `@${user}` : '';
+    // Token kontrolü
+    const hasToken = !!getGithubToken();
+    if (userEl) {
+      userEl.innerHTML = hasToken
+        ? (user ? `@${user}` : '')
+        : `<span style="color:var(--accent-danger);">⚠️ Token bulunamadı — 
+           <button onclick="startGithubSync()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-weight:700;font-family:inherit;font-size:inherit;padding:0;text-decoration:underline;">Yeniden Bağlan</button></span>`;
+    }
     if (ghAutoTog) ghAutoTog.checked = isGithubAutoEnabled();
     if (ghStatus) {
       const last = getGithubLastSync();
@@ -5067,8 +5082,16 @@ function init() {
 
   // GitHub otomatik senkron
   if (isGithubSyncEnabled()) {
-    setTimeout(() => githubAutoLoadOnOpen(), 2000); // Sayfa açılınca çek
-    if (isGithubAutoEnabled()) startGithubAutoSync(); // Otomatik interval
+    // Token kaybolmuşsa yeniden bağlanma gerekir
+    if (!getGithubToken()) {
+      // Token yok — enabled bayrağını koru ama kullanıcıya sor
+      setTimeout(() => {
+        showToast('⚠️ GitHub token bulunamadı — Ayarlar\'dan yeniden bağlan');
+      }, 2000);
+    } else {
+      setTimeout(() => githubAutoLoadOnOpen(), 2000);
+      if (isGithubAutoEnabled()) startGithubAutoSync();
+    }
   }
 }
 init();
