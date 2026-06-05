@@ -1135,20 +1135,49 @@
     </div>
     <div class="form-row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
       <label>☁️ Bulut Senkron</label>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">
-        Verilerin tüm cihazlarında güncel kalması için. Tüm cihazlarda <b>aynı şifreyi</b> kullanmalısın. Veriler şifreli iletilir, sadece sen okuyabilirsin.<br><br>
-        <span style="color:var(--accent);">✨ Akıllı Birleştirme:</span> Telefondaki ve bilgisayardaki kayıtlar otomatik birleştirilir, hiçbiri kaybolmaz. Sildiğin kayıtlar geri gelmez.
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">
+        Verilerini tüm cihazlarında güncel tut. İki seçenek var — birini seç:
       </div>
 
-      <!-- Bulut açık değilken -->
-      <button class="btn-ghost" style="width:100%;" id="cloud-enable-btn" onclick="enableCloudSync()">☁️ Bulut Senkronu Aç</button>
+      <!-- Senkron kapalıyken seçim -->
+      <div id="cloud-choose" style="display:none;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn-primary" style="width:100%;" onclick="startGithubSync()">
+            <span style="font-size:16px;">🐙</span> GitHub ile Bağlan
+            <div style="font-size:10px;opacity:0.85;font-weight:400;margin-top:2px;">Önerilen · Otomatik senkron · Kendi hesabın</div>
+          </button>
+          <button class="btn-ghost" style="width:100%;" onclick="enableCloudSync()">
+            ☁️ JSONBin ile Devam Et
+            <div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px;">Manuel senkron · Şifre ile</div>
+          </button>
+        </div>
+      </div>
 
-      <!-- Bulut açıkken -->
+      <!-- Kapalıyken tek buton -->
+      <button class="btn-ghost" style="width:100%;" id="cloud-enable-btn" onclick="showCloudChoose()">☁️ Bulut Senkronu Aç</button>
+
+      <!-- GitHub aktifken -->
+      <div id="github-sync-actions" style="display:none;">
+        <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;display:flex;align-items:center;gap:8px;">
+          <span>🐙</span>
+          <div><b>GitHub Gist</b> ile bağlı · Otomatik senkron aktif<br><span id="github-sync-user" style="color:var(--muted)"></span></div>
+        </div>
+        <button class="btn-primary" style="width:100%;margin-bottom:8px;" id="github-push-btn" onclick="githubPush()">⬆️ Şimdi Yükle</button>
+        <button class="btn-ghost" style="width:100%;margin-bottom:8px;" onclick="githubPull()">⬇️ Şimdi Çek</button>
+        <div id="github-sync-status" style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;"></div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:10px;">
+          <input type="checkbox" id="github-auto-toggle" onchange="toggleGithubAuto()" style="width:16px;height:16px;accent-color:var(--accent);">
+          <span>Otomatik senkron (30 sn)</span>
+        </label>
+        <button class="btn-ghost" style="width:100%;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="disconnectGithub()">GitHub Bağlantısını Kes</button>
+      </div>
+
+      <!-- JSONBin aktifken -->
       <div id="cloud-sync-actions" style="display:none;">
         <button class="btn-primary" style="width:100%;margin-bottom:8px;" id="cloud-push-btn" onclick="cloudPush()">⬆️ Verileri Buluta Yükle</button>
         <button class="btn-ghost" style="width:100%;margin-bottom:8px;" id="cloud-pull-btn" onclick="cloudPull()">⬇️ Verileri Buluttan Çek</button>
         <div id="cloud-sync-status" style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;"></div>
-        <button class="btn-ghost" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);" id="cloud-sync-disable" onclick="disableCloudSync()">Bulut Senkronu Kapat</button>
+        <button class="btn-ghost" style="width:100%;margin-top:10px;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);" id="cloud-sync-disable" onclick="disableCloudSync()">JSONBin Senkronunu Kapat</button>
       </div>
     </div>
   </div>
@@ -3662,6 +3691,250 @@ function initAuth() {
 const JSONBIN_KEY = '$2a$10$.C9vSXygjEIU5iEbAPcpbevhHCa/UKy0uJCGVXQOK6j1BdCS/AQ3m';
 const JSONBIN_API = 'https://api.jsonbin.io/v3';
 
+// ==================== 🐙 GITHUB GIST SENKRON ====================
+const GITHUB_API = 'https://api.github.com';
+const GITHUB_GIST_FILENAME = 'planner-pro-data.json';
+
+function getGithubToken() { return localStorage.getItem('planner_github_token') || ''; }
+function setGithubToken(t) { localStorage.setItem('planner_github_token', t); }
+function getGithubGistId() { return localStorage.getItem('planner_github_gist_id') || ''; }
+function setGithubGistId(id) { localStorage.setItem('planner_github_gist_id', id); }
+function getGithubUser() { return localStorage.getItem('planner_github_user') || ''; }
+function setGithubUser(u) { localStorage.setItem('planner_github_user', u); }
+function isGithubSyncEnabled() { return localStorage.getItem('planner_github_enabled') === '1'; }
+function setGithubSyncEnabled(v) { localStorage.setItem('planner_github_enabled', v ? '1' : '0'); }
+function isGithubAutoEnabled() { return localStorage.getItem('planner_github_auto') === '1'; }
+function setGithubAutoEnabled(v) { localStorage.setItem('planner_github_auto', v ? '1' : '0'); }
+function getGithubLastSync() { return parseInt(localStorage.getItem('planner_github_lastsync') || '0'); }
+function setGithubLastSync(t) { localStorage.setItem('planner_github_lastsync', String(t)); }
+
+// GitHub API helper
+async function githubFetch(url, options = {}) {
+  const token = getGithubToken();
+  if (!token) throw new Error('GitHub token yok');
+  const res = await fetchWithTimeout(`${GITHUB_API}${url}`, 15000, {
+    ...options,
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  return res;
+}
+
+// Kullanıcı bilgisini al
+async function githubGetUser() {
+  const res = await githubFetch('/user');
+  if (!res.ok) throw new Error('Token geçersiz veya yetki yok');
+  const data = await res.json();
+  return data.login;
+}
+
+// Gist'i bul veya yarat
+async function githubFindOrCreateGist() {
+  let gistId = getGithubGistId();
+  if (gistId) {
+    // Var mı kontrol et
+    const check = await githubFetch(`/gists/${gistId}`);
+    if (check.ok) return gistId;
+    // Yoksa temizle
+    setGithubGistId('');
+  }
+
+  // Mevcut gist'leri tara — planner gist'i var mı?
+  const listRes = await githubFetch('/gists?per_page=100');
+  if (listRes.ok) {
+    const gists = await listRes.json();
+    const found = gists.find(g => g.files && g.files[GITHUB_GIST_FILENAME]);
+    if (found) {
+      setGithubGistId(found.id);
+      return found.id;
+    }
+  }
+
+  // Yeni gist yarat
+  const createRes = await githubFetch('/gists', {
+    method: 'POST',
+    body: JSON.stringify({
+      description: 'Planner Pro Sync Data',
+      public: false,
+      files: { [GITHUB_GIST_FILENAME]: { content: '{}' } }
+    })
+  });
+  if (!createRes.ok) throw new Error('Gist oluşturulamadı');
+  const created = await createRes.json();
+  setGithubGistId(created.id);
+  return created.id;
+}
+
+// Gist'ten veri çek
+async function githubFetchData() {
+  const gistId = await githubFindOrCreateGist();
+  const res = await githubFetch(`/gists/${gistId}`);
+  if (!res.ok) throw new Error('Gist okunamadı');
+  const gist = await res.json();
+  const content = gist.files?.[GITHUB_GIST_FILENAME]?.content;
+  if (!content || content === '{}') return null;
+  try { return JSON.parse(content); } catch(e) { return null; }
+}
+
+// Gist'e veri yaz
+async function githubWriteData(data) {
+  const gistId = await githubFindOrCreateGist();
+  const res = await githubFetch(`/gists/${gistId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      files: { [GITHUB_GIST_FILENAME]: { content: JSON.stringify(data) } }
+    })
+  });
+  if (!res.ok) throw new Error('Gist yazılamadı');
+  setGithubLastSync(Date.now());
+}
+
+// GitHub'a bağlan
+async function startGithubSync() {
+  const token = prompt('GitHub Personal Access Token\'ını gir.\n\nToken oluşturmak için:\ngithub.com → Settings → Developer settings\n→ Personal access tokens → Tokens (classic)\n→ Generate new token (classic)\n→ Sadece "gist" seçeneğini işaretle\n\nToken şuna benzer: ghp_xxxxxxxxxxxx');
+  if (!token || !token.trim()) return;
+  const t = token.trim();
+
+  // Token doğrula
+  setGithubToken(t);
+  try {
+    const btn = document.getElementById('cloud-enable-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Bağlanıyor...'; }
+
+    const username = await githubGetUser();
+    setGithubUser(username);
+    setGithubSyncEnabled(true);
+
+    // Gist bul veya yarat
+    await githubFindOrCreateGist();
+
+    showToast(`🐙 GitHub'a bağlandı: @${username}`);
+    updateCloudBtnText();
+
+    // İlk bağlantıda ne yapacağını sor
+    setTimeout(() => {
+      if (confirm(`GitHub'a başarıyla bağlandın (@${username}).\n\nBu cihazdan verileri buluta yükleyeyim mi?\n\n• Tamam → Mevcut verileri GitHub'a yükle\n• İptal → Önce GitHub'dan çek (başka cihazda veri varsa)`)) {
+        githubPush();
+      } else {
+        githubPull();
+      }
+    }, 300);
+  } catch(e) {
+    setGithubToken('');
+    setGithubSyncEnabled(false);
+    showToast('⚠️ ' + e.message);
+    updateCloudBtnText();
+    if (document.getElementById('cloud-enable-btn')) {
+      document.getElementById('cloud-enable-btn').disabled = false;
+    }
+  }
+}
+
+// GitHub'a yükle (akıllı birleştirme ile)
+async function githubPush() {
+  if (!isGithubSyncEnabled()) return;
+  const btn = document.getElementById('github-push-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Yükleniyor...'; }
+  try {
+    // Önce buluttan çek, birleştir
+    let cloudData = null;
+    try { cloudData = await githubFetchData(); } catch(e) {}
+    const localData = collectLocalData();
+    const merged = cloudData ? smartMergeData(localData, cloudData) : localData;
+    // Birleştirilmiş veriyi yerele uygula
+    if (cloudData) Object.keys(merged).forEach(k => localStorage.setItem(k, merged[k]));
+    // GitHub'a yaz
+    await githubWriteData(merged);
+    clearCloudDirty();
+    showToast('🐙 GitHub\'a yüklendi');
+    updateCloudBtnText();
+    if (currentModule === 'summary') renderSummary();
+  } catch(e) {
+    showToast('⚠️ GitHub yükleme hatası: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '⬆️ Şimdi Yükle'; }
+  }
+}
+
+// GitHub'dan çek (akıllı birleştirme ile)
+async function githubPull() {
+  if (!isGithubSyncEnabled()) return;
+  try {
+    const cloudData = await githubFetchData();
+    if (!cloudData) { showToast('ℹ️ GitHub\'da kayıtlı veri yok'); return; }
+    const localData = collectLocalData();
+    const merged = smartMergeData(localData, cloudData);
+    Object.keys(merged).forEach(k => localStorage.setItem(k, merged[k]));
+    clearCloudDirty();
+    showToast('🐙 GitHub\'dan çekildi');
+    updateCloudBtnText();
+    if (currentModule === 'summary') renderSummary();
+    else switchModule(currentModule, currentContext);
+  } catch(e) {
+    showToast('⚠️ GitHub çekme hatası: ' + e.message);
+  }
+}
+
+// GitHub bağlantısını kes
+function disconnectGithub() {
+  if (!confirm('GitHub bağlantısı kesilsin mi?\nVerilerin cihazda kalır, sadece senkron durur.')) return;
+  setGithubSyncEnabled(false);
+  setGithubAutoEnabled(false);
+  localStorage.removeItem('planner_github_token');
+  localStorage.removeItem('planner_github_gist_id');
+  localStorage.removeItem('planner_github_user');
+  clearInterval(githubAutoInterval);
+  githubAutoInterval = null;
+  showToast('🔌 GitHub bağlantısı kesildi');
+  updateCloudBtnText();
+}
+
+// Otomatik senkron
+let githubAutoInterval = null;
+let githubLastAutoSync = 0;
+
+function toggleGithubAuto() {
+  const cb = document.getElementById('github-auto-toggle');
+  setGithubAutoEnabled(cb.checked);
+  if (cb.checked) {
+    startGithubAutoSync();
+    showToast('⚡ Otomatik senkron açıldı (30 sn)');
+  } else {
+    if (githubAutoInterval) { clearInterval(githubAutoInterval); githubAutoInterval = null; }
+    showToast('⏸️ Otomatik senkron kapatıldı');
+  }
+}
+
+function startGithubAutoSync() {
+  if (githubAutoInterval) clearInterval(githubAutoInterval);
+  githubAutoInterval = setInterval(async () => {
+    if (!isGithubSyncEnabled() || !isGithubAutoEnabled()) return;
+    if (cloudDirtyCount === 0) return; // Değişiklik yoksa yükleme
+    await githubPush();
+  }, 30000); // 30 saniyede bir kontrol
+}
+
+// Sayfa açılınca otomatik çek
+async function githubAutoLoadOnOpen() {
+  if (!isGithubSyncEnabled()) return;
+  try {
+    await githubPull();
+  } catch(e) {
+    console.warn('GitHub otomatik çekme:', e.message);
+  }
+}
+
+function showCloudChoose() {
+  const btn = document.getElementById('cloud-enable-btn');
+  const choose = document.getElementById('cloud-choose');
+  if (btn) btn.style.display = 'none';
+  if (choose) choose.style.display = 'block';
+}
+
 // Kullanıcı kimliği — ilk girişteki token/şifre, hash'lenmiş hali
 function getCloudUserId() {
   return localStorage.getItem('planner_cloud_uid') || null;
@@ -4144,13 +4417,32 @@ function disableCloudSync() {
 
 function updateCloudBtnText() {
   const enableBtn  = document.getElementById('cloud-enable-btn');
+  const chooseDiv  = document.getElementById('cloud-choose');
   const actions    = document.getElementById('cloud-sync-actions');
+  const ghActions  = document.getElementById('github-sync-actions');
   const status     = document.getElementById('cloud-sync-status');
+  const ghStatus   = document.getElementById('github-sync-status');
   const pushBtn    = document.getElementById('cloud-push-btn');
+  const ghAutoTog  = document.getElementById('github-auto-toggle');
   if (!enableBtn) return;
 
-  if (isCloudSyncEnabled()) {
+  if (isGithubSyncEnabled()) {
     enableBtn.style.display = 'none';
+    if (chooseDiv) chooseDiv.style.display = 'none';
+    if (actions) actions.style.display = 'none';
+    if (ghActions) ghActions.style.display = 'block';
+    const userEl = document.getElementById('github-sync-user');
+    const user = getGithubUser();
+    if (userEl) userEl.textContent = user ? `@${user}` : '';
+    if (ghAutoTog) ghAutoTog.checked = isGithubAutoEnabled();
+    if (ghStatus) {
+      const last = getGithubLastSync();
+      ghStatus.textContent = last ? '✓ Son senkron: ' + new Date(last).toLocaleString('tr-TR') : 'Henüz senkronize edilmedi';
+    }
+  } else if (isCloudSyncEnabled()) {
+    enableBtn.style.display = 'none';
+    if (chooseDiv) chooseDiv.style.display = 'none';
+    if (ghActions) ghActions.style.display = 'none';
     if (actions) actions.style.display = 'block';
     if (pushBtn) {
       pushBtn.textContent = cloudDirtyCount > 0
@@ -4165,7 +4457,9 @@ function updateCloudBtnText() {
     }
   } else {
     enableBtn.style.display = 'block';
+    if (chooseDiv) chooseDiv.style.display = 'none';
     if (actions) actions.style.display = 'none';
+    if (ghActions) ghActions.style.display = 'none';
   }
 }
 
@@ -4410,11 +4704,11 @@ function weatherCacheKey(city, prefix) {
 }
 
 // Timeout'lu fetch helper
-async function fetchWithTimeout(url, ms = 10000) {
+async function fetchWithTimeout(url, ms = 10000, options = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), ms);
   try {
-    const res = await fetch(url, { signal: ctrl.signal });
+    const res = await fetch(url, { signal: ctrl.signal, ...options });
     return res;
   } finally {
     clearTimeout(timer);
@@ -4672,6 +4966,12 @@ function init() {
   showCloudSuggestionIfNeeded();   // Katman 1: Bulut öneri
   showBackupReminderIfNeeded();    // Katman 2: 7 gün uyarı
   tryAutoBackup();                  // Katman 3: Otomatik günlük (masaüstü)
+
+  // GitHub otomatik senkron
+  if (isGithubSyncEnabled()) {
+    setTimeout(() => githubAutoLoadOnOpen(), 2000); // Sayfa açılınca çek
+    if (isGithubAutoEnabled()) startGithubAutoSync(); // Otomatik interval
+  }
 }
 init();
 </script>
