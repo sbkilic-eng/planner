@@ -534,6 +534,28 @@
     80%{ transform: translateX(6px); }
   }
 
+  /* ================= SESLİ DİKTE ================= */
+  .voice-btn {
+    background: none; border: 1.5px solid var(--border);
+    border-radius: 50%; width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; flex-shrink: 0;
+    transition: all 0.2s; color: var(--muted);
+  }
+  .voice-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .voice-btn.listening {
+    background: #D84040; border-color: #D84040; color: white;
+    animation: voicePulse 1.2s ease-in-out infinite;
+  }
+  @keyframes voicePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(216,64,64,0.5); }
+    50%       { box-shadow: 0 0 0 8px rgba(216,64,64,0); }
+  }
+  .voice-transcript {
+    font-size: 12px; color: var(--accent); font-style: italic;
+    padding: 4px 8px; min-height: 18px; line-height: 1.4;
+  }
+
   /* ================= YAZDIR ================= */
   #print-area { display: none; }
 
@@ -1379,14 +1401,16 @@
     <button class="btn-icon" onclick="saveAndCloseNoteEditor()" style="font-size:24px;">&#8592;</button>
     <input class="note-editor-title" id="m-note-title" placeholder="Başlık...">
     <button class="btn-primary" onclick="saveNoteManual()" style="padding:8px 16px;font-size:13px;">💾 Kaydet</button>
-    <button class="btn-ghost" onclick="printCurrentNote()" style="padding:8px 12px;font-size:13px;font-weight:700;margin-left:8px;" title="Yazdır / PDF">🖨️</button>
-    <button class="btn-ghost" onclick="deleteNote()" style="color:var(--accent-danger); border-color:var(--accent-danger); padding:8px 16px; font-size:13px; font-weight:700; margin-left:8px;">🗑️ Sil</button>
+    <button class="voice-btn" id="voice-btn-note" onclick="toggleVoice('m-note-body','voice-btn-note','voice-tr-note')" title="Sesli Dikte">🎤</button>
+    <button class="btn-ghost" onclick="printCurrentNote()" style="padding:8px 12px;font-size:13px;font-weight:700;" title="Yazdır / PDF">🖨️</button>
+    <button class="btn-ghost" onclick="deleteNote()" style="color:var(--accent-danger); border-color:var(--accent-danger); padding:8px 16px; font-size:13px; font-weight:700;">🗑️ Sil</button>
   </div>
   <div class="note-tabs">
     <div class="note-tab active" id="tab-write"   onclick="switchNoteTab('write')">✏️ Düzenle</div>
     <div class="note-tab"        id="tab-preview" onclick="switchNoteTab('preview')">👁️ Önizle</div>
     <div class="note-tab"        id="tab-contacts" onclick="switchNoteTab('contacts')">👤 Kişiler</div>
   </div>
+  <div class="voice-transcript" id="voice-tr-note"></div>
   <div class="note-area">
     <textarea class="note-textarea active" id="m-note-body" placeholder="# Markdown Destekli Not&#10;- Madde 1&#10;- **Kalın** veya *Eğik*..."></textarea>
     <div class="note-preview" id="m-note-preview"></div>
@@ -1401,10 +1425,12 @@
   <div class="qnote-editor-header">
     <button class="btn-icon" onclick="closeQNoteEditor()" style="font-size:24px;">&#8592;</button>
     <span style="font-size:16px;font-weight:700;color:var(--text);flex:1;">⚡ Hızlı Not</span>
+    <button class="voice-btn" id="voice-btn-qnote" onclick="toggleVoice('qnote-body','voice-btn-qnote','voice-tr-qnote')" title="Sesli Dikte">🎤</button>
     <button class="btn-primary" onclick="saveQNote()" style="padding:8px 16px;font-size:13px;">💾 Kaydet</button>
-    <button class="btn-ghost" onclick="deleteQNote()" style="color:var(--accent-danger); border-color:var(--accent-danger); padding:8px 16px; font-size:13px; font-weight:700; margin-left:8px;">🗑️ Sil</button>
+    <button class="btn-ghost" onclick="deleteQNote()" style="color:var(--accent-danger); border-color:var(--accent-danger); padding:8px 16px; font-size:13px; font-weight:700;">🗑️ Sil</button>
   </div>
-  <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;background:var(--bg);">
+  <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;background:var(--bg);">
+    <div class="voice-transcript" id="voice-tr-qnote"></div>
     <textarea id="qnote-body" style="flex:1;min-height:200px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:15px;font-family:inherit;color:var(--text);resize:none;line-height:1.7;border-left:4px solid #6E1822;" placeholder="Aklındaki her şeyi buraya yaz..."></textarea>
   </div>
 </div>
@@ -2585,6 +2611,7 @@ async function saveNoteManual() {
 }
 
 async function saveAndCloseNoteEditor() {
+  stopVoiceIfActive();
   await saveNoteData();
   document.getElementById('note-editor').classList.remove('open');
   renderNotes();
@@ -3061,6 +3088,7 @@ function hwToggle(hid, dStr) {
 }
 
 function closeQNoteEditor() {
+  stopVoiceIfActive();
   const b = document.getElementById('qnote-body').value.trim();
   if (b) saveQNote(); else document.getElementById('qnote-editor').classList.remove('open');
 }
@@ -3336,6 +3364,153 @@ function initSwipeDelete(listEl) {
 }
 function initSwipeForList(listId) {
   setTimeout(() => initSwipeDelete(document.getElementById(listId)), 100);
+}
+
+// ==================== 🎤 SESLİ DİKTE ====================
+let voiceRecognition = null;
+let voiceActiveTextareaId = null;
+let voiceActiveBtnId = null;
+let voiceActiveTrId = null;
+let voiceListening = false;
+let voiceFinalText = '';
+
+function isVoiceSupported() {
+  return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+}
+
+function toggleVoice(textareaId, btnId, trId) {
+  if (!isVoiceSupported()) {
+    showToast('⚠️ Tarayıcınız sesli dikte desteklemiyor (Chrome veya Safari kullanın)');
+    return;
+  }
+
+  if (voiceListening) {
+    // Başka bir alan için dinliyorsa önce durdur
+    stopVoice();
+    // Aynı alansa tamamen kapat
+    if (voiceActiveTextareaId === textareaId) return;
+  }
+
+  startVoice(textareaId, btnId, trId);
+}
+
+function startVoice(textareaId, btnId, trId) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SR();
+
+  recognition.lang = 'tr-TR';
+  recognition.continuous = true;          // Sürekli dinle
+  recognition.interimResults = true;      // Anlık sonuçları göster
+  recognition.maxAlternatives = 1;
+
+  voiceRecognition      = recognition;
+  voiceActiveTextareaId = textareaId;
+  voiceActiveBtnId      = btnId;
+  voiceActiveTrId       = trId;
+  voiceListening        = true;
+
+  // Mevcut textarea içeriğini al — sonuna ekleyeceğiz
+  const ta = document.getElementById(textareaId);
+  const existingText = ta ? ta.value : '';
+  voiceFinalText = existingText;
+
+  // Buton animasyonu başlat
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.add('listening');
+
+  // Transcript alanını hazırla
+  const tr = document.getElementById(trId);
+  if (tr) tr.textContent = '🎤 Dinleniyor...';
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    let final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) {
+        final += e.results[i][0].transcript;
+      } else {
+        interim += e.results[i][0].transcript;
+      }
+    }
+
+    // Final sonuçları biriktirelim
+    if (final) {
+      const prefix = voiceFinalText && !voiceFinalText.endsWith('\n') && !voiceFinalText.endsWith(' ') ? ' ' : '';
+      voiceFinalText += prefix + final;
+    }
+
+    // Textarea'yı güncelle (final + geçici)
+    if (ta) {
+      ta.value = voiceFinalText + (interim ? ' ' + interim : '');
+      ta.scrollTop = ta.scrollHeight;
+    }
+
+    // Transcript göster
+    if (tr) {
+      tr.textContent = interim ? `🎤 "${interim}"` : '🎤 Dinleniyor...';
+    }
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'not-allowed') {
+      showToast('⚠️ Mikrofon izni verilmedi — tarayıcı ayarlarından izin ver');
+    } else if (e.error === 'no-speech') {
+      // Sessizlik — otomatik yeniden başlat
+      if (voiceListening) {
+        try { recognition.start(); } catch(err) {}
+      }
+      return;
+    } else if (e.error !== 'aborted') {
+      showToast('⚠️ Ses hatası: ' + e.error);
+    }
+    stopVoice();
+  };
+
+  recognition.onend = () => {
+    // Otomatik durdu ama biz hâlâ dinlemek istiyorsak yeniden başlat
+    if (voiceListening) {
+      try { recognition.start(); } catch(err) { stopVoice(); }
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch(e) {
+    showToast('⚠️ Mikrofon başlatılamadı: ' + e.message);
+    stopVoice();
+  }
+}
+
+function stopVoice() {
+  voiceListening = false;
+  if (voiceRecognition) {
+    try { voiceRecognition.stop(); } catch(e) {}
+    voiceRecognition = null;
+  }
+
+  // Butonu sıfırla
+  const btn = document.getElementById(voiceActiveBtnId);
+  if (btn) btn.classList.remove('listening');
+
+  // Transcript temizle
+  const tr = document.getElementById(voiceActiveTrId);
+  if (tr) tr.textContent = '';
+
+  // Textarea son halini yaz (temiz, final metin)
+  const ta = document.getElementById(voiceActiveTextareaId);
+  if (ta && voiceFinalText !== undefined) {
+    ta.value = voiceFinalText.trim();
+  }
+
+  voiceActiveTextareaId = null;
+  voiceActiveBtnId      = null;
+  voiceActiveTrId       = null;
+  voiceFinalText        = '';
+}
+
+// Editör kapanırken dinlemeyi durdur
+function stopVoiceIfActive() {
+  if (voiceListening) stopVoice();
 }
 
 // ==================== YAZDIR ====================
@@ -4225,7 +4400,10 @@ function smartMergeData(localData, cloudData) {
     if (Array.isArray(localVal) && Array.isArray(cloudVal)) {
       const hasIds = (arr) => arr.length === 0 || arr.some(x => x && x.id);
       if (hasIds(localVal) || hasIds(cloudVal)) {
-        const mergedArr = mergeArrays(localVal, cloudVal, allTombstones, k);
+        // Tombstone key'i DB.set'te 'planner_' prefix olmadan kaydediliyor
+        // Ama localStorage key'i 'planner_' ile başlıyor — normalize et
+        const tombKey = k.startsWith('planner_') ? k.slice('planner_'.length) : k;
+        const mergedArr = mergeArrays(localVal, cloudVal, allTombstones, tombKey);
         merged[k] = JSON.stringify(mergedArr);
         return;
       }
@@ -5067,6 +5245,11 @@ function init() {
   initNotifications();
   registerSW();
   updateCloudBtnText();
+
+  // Sesli dikte desteklenmiyorsa butonları gizle
+  if (!isVoiceSupported()) {
+    document.querySelectorAll('.voice-btn').forEach(b => b.style.display = 'none');
+  }
   
   // Widgetların (Takvim vb.) ekran boyutuna göre yerleşimi
   relocateWidgets();
