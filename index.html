@@ -2016,14 +2016,16 @@ function renderSummary() {
   // RESMİ & DİNİ TATİLLER — ayardan açıksa göster
   if (localStorage.getItem('planner_show_holidays') === '1') {
     const startScan = new Date(tMs);
-    const endScan = new Date(tMs + 366 * 86400000); // 1 yıl ileri tara
+    const endScan = new Date(tMs + 366 * 86400000);
     for (let d = new Date(startScan); d <= endScan; d.setDate(d.getDate()+1)) {
       const ds = d.toISOString().split('T')[0];
       const hol = getHolidayName(ds);
       if (hol) {
+        // Gün başı timestamp — diğer kayıtlarla doğru sıralanır
+        const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
         const ev = {
-          t: d.getTime(),
-          tObj: new Date(d.getFullYear(),d.getMonth(),d.getDate(),23,59,59),
+          t: dayStart.getTime(),
+          tObj: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59),
           rawDate: ds, rawTime: null,
           title: hol.name,
           sub: formatDate(ds),
@@ -2036,7 +2038,16 @@ function renderSummary() {
     }
   }
 
-  near.sort((a,b)=>a.t-b.t); future.sort((a,b)=>a.t-b.t); past.sort((a,b)=>b.t-a.t);
+  // Sırala: önce tarihe göre, aynı günde tatil önce
+  const sortFn = (a, b) => {
+    if (a.t !== b.t) return a.t - b.t;
+    const aHol = a.ctx && a.ctx.startsWith('holiday') ? 0 : 1;
+    const bHol = b.ctx && b.ctx.startsWith('holiday') ? 0 : 1;
+    return aHol - bHol;
+  };
+  near.sort(sortFn);
+  future.sort(sortFn);
+  past.sort((a,b) => b.t - a.t);
 
   const cardHTML = (e, isPast=false) => {
     const cd   = getCountdown(e.rawDate, e.rawTime);
