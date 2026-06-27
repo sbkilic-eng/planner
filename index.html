@@ -436,10 +436,10 @@
 
   /* Mobilde swipe-wrap içindeki X silme butonlarını gizle */
   @media (max-width: 900px) {
-    .swipe-wrap .card-actions .btn-icon:last-child { display: none !important; }
-    .swipe-wrap .todo-item > .btn-icon:last-child   { display: none !important; }
-    .swipe-wrap .card > .btn-icon:last-child        { display: none !important; }
-    .swipe-hide-mobile                              { display: none !important; }
+    .swipe-wrap .card-actions .btn-icon.swipe-hide-mobile { display: none !important; }
+    .swipe-wrap .todo-item > .btn-icon.swipe-hide-mobile   { display: none !important; }
+    .swipe-wrap .card > .btn-icon.swipe-hide-mobile        { display: none !important; }
+    .swipe-hide-mobile                                      { display: none !important; }
   }
 
   /* ================= KİŞİ REHBERİ ================= */
@@ -2224,7 +2224,7 @@ function renderTodos() {
         <button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button>
         ${t.date?`<button class="btn-icon" onclick="downloadICS('${esc(t.title)}','${t.date}','${t.time||''}','${esc(t.note||'')}')" title="Takvime Ekle">&#128197;</button>`:''}
         <button class="btn-icon" onclick="shareRecord('todo','${t.id}')" title="Paylaş">&#128279;</button>
-        <button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button>
+        <button class="btn-icon swipe-hide-mobile" onclick="delTodo('${t.id}')">&#10005;</button>
       </div>
     </div>`;
   };
