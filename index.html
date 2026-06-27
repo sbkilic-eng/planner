@@ -877,6 +877,15 @@
                 <div class="cal-panel" id="cal-panel-mobile"></div>
               </div>
             </div>
+            <!-- Paylaşılan kayıt içe aktar butonu -->
+            <div id="import-paste-bar" style="display:none;background:var(--accent-light);border:1px solid var(--accent);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+              <span style="font-size:20px;">📥</span>
+              <div style="flex:1;font-size:13px;color:var(--text);">
+                <b>Paylaşılan kayıt var mı?</b><br>
+                <span style="color:var(--muted);font-size:12px;">Kodu kopyaladıysan yapıştır ve ekle.</span>
+              </div>
+              <button class="btn-primary" style="padding:8px 14px;font-size:13px;flex-shrink:0;" onclick="openPasteImport()">📋 Yapıştır</button>
+            </div>
             <!-- Kayıt listesi -->
             <div id="summary-list"></div>
           </div>
@@ -998,6 +1007,25 @@
 </div>
 
 <!-- KİŞİSEL NOTLAR KİLİDİ -->
+<!-- YAPISTIR & İÇE AKTAR MODAL -->
+<div class="modal-overlay" id="modal-paste-import">
+  <div class="modal" style="max-width:420px;">
+    <div style="font-size:40px;text-align:center;margin-bottom:8px;">📋</div>
+    <div class="modal-title" style="text-align:center;margin-bottom:6px;">Paylaşılan Kaydı Ekle</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;text-align:center;">
+      Sana gönderilen <b>PLANNERv1:</b> ile başlayan kodu buraya yapıştır.
+    </div>
+    <textarea id="paste-import-input"
+      placeholder="PLANNERv1:eyJhbGciOi..."
+      style="width:100%;min-height:90px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:13px;font-family:monospace;color:var(--text);resize:none;outline:none;margin-bottom:8px;"></textarea>
+    <div id="paste-import-error" style="font-size:12px;color:var(--accent-danger);min-height:16px;margin-bottom:10px;font-weight:600;"></div>
+    <div class="form-row-2">
+      <button class="btn-primary" onclick="processPasteImport()">✅ Ekle</button>
+      <button class="btn-ghost" onclick="closeModal('modal-paste-import')">İptal</button>
+    </div>
+  </div>
+</div>
+
 <!-- PAYLAŞIM MODAL -->
 <div class="modal-overlay" id="modal-share">
   <div class="modal" style="max-width:400px;text-align:center;">
@@ -1008,8 +1036,11 @@
     </div>
     <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:16px;word-break:break-all;font-size:11px;color:var(--muted);text-align:left;max-height:80px;overflow:hidden;" id="share-link-preview"></div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <button class="btn-primary" id="share-btn-native" onclick="shareNative()" style="display:none;">📤 Paylaş (WhatsApp, Telegram...)</button>
-      <button class="btn-ghost" onclick="shareCopyLink()">📋 Linki Kopyala</button>
+      <button class="btn-primary" id="share-btn-native" onclick="shareNative()" style="display:none;">📤 Mesaj Olarak Gönder (WhatsApp, Telegram...)</button>
+      <button class="btn-ghost" onclick="shareCopyLink()">📋 Mesajı Kopyala</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5;text-align:left;background:var(--bg);padding:10px;border-radius:8px;">
+      💡 Mesajı WhatsApp veya iMessage'a yapıştır. Alıcı Planner'ı açıp "📋 Yapıştır" butonuna basınca kaydı ekleyebilir.
     </div>
     <button class="btn-ghost" onclick="closeModal('modal-share')" style="width:100%;margin-top:8px;font-size:13px;color:var(--muted);">İptal</button>
   </div>
@@ -2151,6 +2182,7 @@ function renderSummary() {
   renderCalendar();
   renderListsWidget();
   renderHabitsWidget();
+  updateImportBar();
   requestAnimationFrame(() => {
     restoreCollapsible('sum-future-list','sum-future-inner','sum-future-arrow', futureOpen);
     restoreCollapsible('sum-past-list',  'sum-past-inner',  'sum-past-arrow',   pastOpen);
@@ -3653,8 +3685,201 @@ function stopVoiceIfActive() {
 }
 
 // ==================== 🔗 PAYLAŞIM SİSTEMİ ====================
-let sharePayload = null; // Aktif paylaşım verisi
-let importPayload = null; // Gelen kayıt verisi
+const SHARE_PREFIX = 'PLANNERv1:';
+let sharePayload = null;
+let importPayload = null;
+
+// Kaydı paylaş
+function shareRecord(type, itemId) {
+  const ctxKey = currentContext;
+  let item = null;
+
+  if (type === 'appt')   item = DB.get(ctxKey+'_appts',   []).find(x => x.id === itemId);
+  if (type === 'todo')   item = DB.get(ctxKey+'_todos',   []).find(x => x.id === itemId);
+  if (type === 'travel') item = DB.get(ctxKey+'_travels', []).find(x => x.id === itemId);
+  if (type === 'bday')   item = DB.get('pers_birthdays',  []).find(x => x.id === itemId);
+
+  if (!item) { showToast('⚠️ Kayıt bulunamadı'); return; }
+
+  // Payload — yeni id olmadan (alıcı kendi id'sini alır)
+  const payload = { type, data: { ...item, id: undefined }, v: 1 };
+  const encoded = SHARE_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+
+  const title = getItemTitle(type, item);
+
+  // Paylaşım mesajı
+  const msg = `Planner'da seninle bir kayıt paylaştım:\n"${title}"\n\nPlanner'ı aç → Ana sayfada "📋 Yapıştır" → şu kodu yapıştır:\n\n${encoded}`;
+
+  sharePayload = { code: encoded, msg, title };
+
+  document.getElementById('share-modal-title').textContent = getShareTitle(type);
+  document.getElementById('share-link-preview').textContent = encoded.slice(0, 80) + '...';
+
+  const nativeBtn = document.getElementById('share-btn-native');
+  nativeBtn.style.display = ('share' in navigator) ? 'block' : 'none';
+
+  openModal('modal-share');
+}
+
+function getItemTitle(type, item) {
+  if (type === 'appt')   return item.title + (item.date ? ' (' + formatDate(item.date) + ')' : '');
+  if (type === 'todo')   return item.title + (item.date ? ' (' + formatDate(item.date) + ')' : '');
+  if (type === 'travel') return item.dest  + (item.start ? ' (' + formatDate(item.start) + ')' : '');
+  if (type === 'bday')   return item.name  + ' Doğum Günü';
+  return '';
+}
+
+function getShareTitle(type) {
+  return { appt:'🗓️ Randevuyu Paylaş', todo:'✅ Görevi Paylaş', travel:'✈️ Seyahati Paylaş', bday:'🎂 Doğum Gününü Paylaş' }[type] || 'Kaydı Paylaş';
+}
+
+async function shareNative() {
+  if (!sharePayload) return;
+  try {
+    await navigator.share({ title: 'Planner Pro', text: sharePayload.msg });
+    closeModal('modal-share');
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('⚠️ Paylaşım hatası: ' + e.message);
+  }
+}
+
+function shareCopyLink() {
+  if (!sharePayload) return;
+  const copy = (txt) => {
+    navigator.clipboard.writeText(txt).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+  };
+  copy(sharePayload.msg);
+  showToast('📋 Mesaj kopyalandı! WhatsApp, iMessage veya Telegram\'a yapıştır.');
+  closeModal('modal-share');
+}
+
+// ==================== 📥 YAPISTIR & İÇE AKTAR ====================
+function openPasteImport() {
+  document.getElementById('paste-import-input').value = '';
+  document.getElementById('paste-import-error').textContent = '';
+  openModal('modal-paste-import');
+  setTimeout(() => {
+    const el = document.getElementById('paste-import-input');
+    if (el) el.focus();
+    // Pano içeriğini otomatik yapıştır (izin varsa)
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText().then(txt => {
+        if (txt && txt.includes(SHARE_PREFIX)) el.value = txt.trim();
+      }).catch(() => {});
+    }
+  }, 300);
+}
+
+function processPasteImport() {
+  const raw = (document.getElementById('paste-import-input').value || '').trim();
+  const errEl = document.getElementById('paste-import-error');
+  errEl.textContent = '';
+
+  if (!raw) { errEl.textContent = 'Kod boş — PLANNERv1: ile başlayan kodu yapıştır'; return; }
+
+  const code = raw.includes(SHARE_PREFIX) ? raw.split(SHARE_PREFIX).pop().trim() : raw.trim();
+
+  try {
+    const json = decodeURIComponent(escape(atob(code.replace(/-/g,'+').replace(/_/g,'/').replace(/\./g,'='))));
+    const payload = JSON.parse(json);
+    if (!payload || !payload.type || !payload.data) throw new Error('Geçersiz');
+    importPayload = payload;
+    closeModal('modal-paste-import');
+    showImportModal(payload);
+  } catch(e) {
+    errEl.textContent = 'Geçersiz kod — doğru kopyalandığından emin ol';
+  }
+}
+
+// Ana sayfada "Yapıştır" bar'ını göster/gizle
+function updateImportBar() {
+  const bar = document.getElementById('import-paste-bar');
+  if (!bar) return;
+  // Mobilde her zaman göster — masaüstünde gizle (link sistemi çalışıyor)
+  bar.style.display = isMobileDevice() ? 'flex' : 'none';
+}
+
+// ==================== 📥 GELEN KAYIT ====================
+function checkIncomingShare() {
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get('share');
+  if (!encoded) return;
+  history.replaceState(null, '', window.location.pathname);
+  try {
+    const json = decodeURIComponent(escape(atob(encoded.replace(/-/g,'+').replace(/_/g,'/').replace(/\./g,'='))));
+    const payload = JSON.parse(json);
+    if (!payload || !payload.type || !payload.data) throw new Error('Geçersiz');
+    importPayload = payload;
+    showImportModal(payload);
+  } catch(e) {
+    showToast('⚠️ Geçersiz paylaşım linki');
+  }
+}
+
+function showImportModal(payload) {
+  const { type, data } = payload;
+  const icons = { appt:'🗓️', todo:'✅', travel:'✈️', bday:'🎂' };
+  document.getElementById('import-icon').textContent = icons[type] || '📥';
+
+  let html = '';
+  if (type === 'appt') {
+    html = `<div style="font-weight:700;font-size:16px;margin-bottom:6px;">${esc(data.title)}</div>
+      <div style="font-size:13px;color:var(--muted);">📅 ${formatDate(data.date)}${data.time?' '+data.time:''}</div>
+      ${data.note?`<div style="font-size:13px;margin-top:6px;">${esc(data.note)}</div>`:''}`;
+  } else if (type === 'todo') {
+    html = `<div style="font-weight:700;font-size:16px;margin-bottom:6px;">${esc(data.title)}</div>
+      ${data.date?`<div style="font-size:13px;color:var(--muted);">📅 ${formatDate(data.date)}${data.time?' '+data.time:''}</div>`:''}
+      ${data.note?`<div style="font-size:13px;margin-top:6px;">${esc(data.note)}</div>`:''}`;
+  } else if (type === 'travel') {
+    html = `<div style="font-weight:700;font-size:16px;margin-bottom:6px;">✈️ ${esc(data.dest)}</div>
+      <div style="font-size:13px;color:var(--muted);">📅 ${formatDate(data.start)}${data.end?' — '+formatDate(data.end):''}</div>
+      ${data.note?`<div style="font-size:13px;margin-top:6px;">${esc(data.note)}</div>`:''}`;
+  } else if (type === 'bday') {
+    html = `<div style="font-weight:700;font-size:16px;margin-bottom:6px;">🎂 ${esc(data.name)}</div>
+      <div style="font-size:13px;color:var(--muted);">📅 ${data.day} ${MONTHS_TR[data.month]}</div>`;
+  }
+
+  document.getElementById('import-preview').innerHTML = html;
+  const ctxSel = document.getElementById('import-ctx');
+  ctxSel.disabled = type === 'bday';
+  ctxSel.value = 'pers';
+
+  setTimeout(() => openModal('modal-import-record'), 300);
+}
+
+function confirmImport() {
+  if (!importPayload) return;
+  const { type, data } = importPayload;
+  const ctx = document.getElementById('import-ctx').value;
+  const newItem = { ...data, id: id(), updatedAt: new Date().toISOString() };
+
+  if (type === 'appt') {
+    const k = ctx+'_appts'; const arr = DB.get(k,[]); arr.push(newItem); DB.set(k,arr);
+    closeModal('modal-import-record'); showToast('✅ Randevu eklendi!');
+    switchModule('appointments', ctx);
+  } else if (type === 'todo') {
+    newItem.done = false;
+    const k = ctx+'_todos'; const arr = DB.get(k,[]); arr.push(newItem); DB.set(k,arr);
+    closeModal('modal-import-record'); showToast('✅ Görev eklendi!');
+    switchModule('todos', ctx);
+  } else if (type === 'travel') {
+    newItem.items = newItem.items || [];
+    const k = ctx+'_travels'; const arr = DB.get(k,[]); arr.push(newItem); DB.set(k,arr);
+    closeModal('modal-import-record'); showToast('✅ Seyahat eklendi!');
+    switchModule('travels', ctx);
+  } else if (type === 'bday') {
+    const arr = DB.get('pers_birthdays',[]); arr.push(newItem); DB.set('pers_birthdays',arr);
+    closeModal('modal-import-record'); showToast('✅ Doğum günü eklendi!');
+    switchModule('birthdays', 'pers');
+  }
+  importPayload = null;
+}
 
 // Kaydı paylaş
 function shareRecord(type, itemId) {
