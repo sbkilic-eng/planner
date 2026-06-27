@@ -998,6 +998,44 @@
 </div>
 
 <!-- KİŞİSEL NOTLAR KİLİDİ -->
+<!-- PAYLAŞIM MODAL -->
+<div class="modal-overlay" id="modal-share">
+  <div class="modal" style="max-width:400px;text-align:center;">
+    <div style="font-size:44px;margin-bottom:8px;">🔗</div>
+    <div class="modal-title" style="margin-bottom:6px;" id="share-modal-title">Kaydı Paylaş</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5;" id="share-modal-desc">
+      Link karşı tarafa gönderilir. Planner uygulamasını açıp "Ekle" derlerse kendi listelerine eklenir.
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:16px;word-break:break-all;font-size:11px;color:var(--muted);text-align:left;max-height:80px;overflow:hidden;" id="share-link-preview"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn-primary" id="share-btn-native" onclick="shareNative()" style="display:none;">📤 Paylaş (WhatsApp, Telegram...)</button>
+      <button class="btn-ghost" onclick="shareCopyLink()">📋 Linki Kopyala</button>
+    </div>
+    <button class="btn-ghost" onclick="closeModal('modal-share')" style="width:100%;margin-top:8px;font-size:13px;color:var(--muted);">İptal</button>
+  </div>
+</div>
+
+<!-- İÇE AKTARMA MODAL (Gelen kayıt) -->
+<div class="modal-overlay" id="modal-import-record">
+  <div class="modal" style="max-width:420px;">
+    <div style="font-size:40px;text-align:center;margin-bottom:8px;" id="import-icon">📥</div>
+    <div class="modal-title" style="text-align:center;margin-bottom:6px;">Kayıt Geldi!</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;">Birisi seninle bir kayıt paylaştı. Listene eklemek ister misin?</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;" id="import-preview"></div>
+    <div class="form-row" style="margin-bottom:14px;">
+      <label>Hangi listeye eklensin?</label>
+      <select id="import-ctx" style="width:100%;padding:10px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:inherit;">
+        <option value="work">İş</option>
+        <option value="pers">Kişisel</option>
+      </select>
+    </div>
+    <div class="form-row-2">
+      <button class="btn-primary" onclick="confirmImport()">✅ Ekle</button>
+      <button class="btn-ghost" onclick="closeModal('modal-import-record')">İptal</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-notes-lock">
   <div class="modal" style="max-width:380px;text-align:center;">
     <div style="font-size:48px;margin-bottom:12px;">🔒</div>
@@ -2132,7 +2170,7 @@ function renderAppts() {
       <div class="swipe-del-btn" onclick="delAppt('${a.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
       <div class="card" data-id="${a.id}">
         ${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}
-        <div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="delAppt('${a.id}')">&#10005;</button></div>
+        <div class="card-actions"><button class="btn-icon" onclick="openApptForm('${a.id}')">&#9998;</button><button class="btn-icon" onclick="downloadICS('${a.title}','${a.date}','${a.time}','${a.note}')">&#128197;</button><button class="btn-icon" onclick="shareRecord('appt','${a.id}')" title="Paylaş">&#128279;</button><button class="btn-icon swipe-hide-mobile" onclick="delAppt('${a.id}')">&#10005;</button></div>
         <div class="card-title">${esc(a.title)}</div>
         <div class="card-meta">${formatDate(a.date)} ${a.time||''}</div>
         ${a.note?`<div class="card-note">${esc(a.note)}</div>`:''}
@@ -2185,6 +2223,7 @@ function renderTodos() {
         <div class="card-meta" style="font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;">${rl?`<span style="color:var(--accent-warning)">↻ ${rl}</span>`:''}${cd&&!t.done?`<span style="color:var(--accent-danger)">${cd.t}</span>`:dateLabel}${t.note?`<span>· ${esc(t.note)}</span>`:''}</div></div>
         <button class="btn-icon" onclick="openTodoForm('${t.id}')">&#9998;</button>
         ${t.date?`<button class="btn-icon" onclick="downloadICS('${esc(t.title)}','${t.date}','${t.time||''}','${esc(t.note||'')}')" title="Takvime Ekle">&#128197;</button>`:''}
+        <button class="btn-icon" onclick="shareRecord('todo','${t.id}')" title="Paylaş">&#128279;</button>
         <button class="btn-icon" onclick="delTodo('${t.id}')">&#10005;</button>
       </div>
     </div>`;
@@ -2213,7 +2252,7 @@ function renderTravels() {
       <div class="card" data-id="${a.id}">
         <div class="acc-header" onclick="toggleTravelBody('${a.id}')">
           <div>${cd?`<span class="badge ${cd.c}">${cd.t}</span>`:''}<div class="card-title" style="font-size:22px;margin:0;">${esc(a.dest)}</div><div class="card-meta" style="margin-top:4px;">${dr}</div></div>
-          <div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();openTravelForm('${a.id}')">&#9998;</button><span class="chevron" id="tc-${a.id}">▼</span></div>
+          <div style="display:flex;gap:12px;align-items:center;"><button class="btn-icon" onclick="event.stopPropagation();downloadICS('${a.dest}','${a.start}',null,'${a.note}','${a.end}')">&#128197;</button><button class="btn-icon" onclick="event.stopPropagation();shareRecord('travel','${a.id}')" title="Paylaş">&#128279;</button><button class="btn-icon" onclick="event.stopPropagation();openTravelForm('${a.id}')">&#9998;</button><span class="chevron" id="tc-${a.id}">▼</span></div>
         </div>
         <div class="acc-body" id="tb-${a.id}">
           ${a.note?`<div class="card-note" style="margin-bottom:10px;">${esc(a.note)}</div>`:''}
@@ -2515,6 +2554,7 @@ function renderBdays() {
               <div style="display:flex;gap:12px;align-items:center;">
                   <button class="btn-icon" onclick="event.stopPropagation();openBdayForm('${x.id}')" title="Düzenle">&#9998;</button>
                   <button class="btn-icon" onclick="event.stopPropagation();downloadICS('${x.name} D.Günü','${dStr}',null,'Kutlama')" title="Takvime Ekle">&#128197;</button>
+                  <button class="btn-icon" onclick="event.stopPropagation();shareRecord('bday','${x.id}')" title="Paylaş">&#128279;</button>
                   <button class="btn-icon swipe-hide-mobile" onclick="event.stopPropagation();delBday('${x.id}')" title="Sil">&#10005;</button>
                   <span class="chevron" id="bc-${x.id}">▼</span>
               </div>
@@ -3522,6 +3562,194 @@ function stopVoice() {
 // Editör kapanırken dinlemeyi durdur
 function stopVoiceIfActive() {
   if (voiceListening) stopVoice();
+}
+
+// ==================== 🔗 PAYLAŞIM SİSTEMİ ====================
+let sharePayload = null; // Aktif paylaşım verisi
+let importPayload = null; // Gelen kayıt verisi
+
+// Kaydı paylaş
+function shareRecord(type, itemId) {
+  const ctxKey = currentContext;
+  let item = null;
+
+  if (type === 'appt') {
+    item = DB.get(ctxKey + '_appts', []).find(x => x.id === itemId);
+  } else if (type === 'todo') {
+    item = DB.get(ctxKey + '_todos', []).find(x => x.id === itemId);
+  } else if (type === 'travel') {
+    item = DB.get(ctxKey + '_travels', []).find(x => x.id === itemId);
+  } else if (type === 'bday') {
+    item = DB.get('pers_birthdays', []).find(x => x.id === itemId);
+  }
+
+  if (!item) { showToast('⚠️ Kayıt bulunamadı'); return; }
+
+  // Payload oluştur — yeni id ile (alıcı farklı id alsın)
+  const payload = { type, data: { ...item, id: undefined }, v: 1 };
+
+  // Base64 URL-safe encode
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+
+  // Paylaşım URL'i — mevcut sayfanın URL'ine ekle
+  const base = window.location.href.split('#')[0].split('?')[0];
+  const shareUrl = `${base}?share=${encoded}`;
+
+  sharePayload = { url: shareUrl, title: getItemTitle(type, item) };
+
+  // Modal'ı güncelle
+  document.getElementById('share-modal-title').textContent = getShareTitle(type);
+  document.getElementById('share-link-preview').textContent = shareUrl;
+
+  // Web Share API destekleniyorsa göster
+  const nativeBtn = document.getElementById('share-btn-native');
+  nativeBtn.style.display = 'navigator' in window && 'share' in navigator ? 'block' : 'none';
+
+  openModal('modal-share');
+}
+
+function getItemTitle(type, item) {
+  if (type === 'appt')   return item.title + ' (' + formatDate(item.date) + ')';
+  if (type === 'todo')   return item.title + (item.date ? ' (' + formatDate(item.date) + ')' : '');
+  if (type === 'travel') return item.dest + ' (' + formatDate(item.start) + ')';
+  if (type === 'bday')   return item.name + ' Doğum Günü';
+  return '';
+}
+
+function getShareTitle(type) {
+  const labels = { appt: '🗓️ Randevuyu Paylaş', todo: '✅ Görevi Paylaş', travel: '✈️ Seyahati Paylaş', bday: '🎂 Doğum Gününü Paylaş' };
+  return labels[type] || 'Kaydı Paylaş';
+}
+
+async function shareNative() {
+  if (!sharePayload) return;
+  try {
+    await navigator.share({
+      title: 'Planner Pro — ' + sharePayload.title,
+      text: 'Seninle bir kayıt paylaşıyorum: ' + sharePayload.title,
+      url: sharePayload.url
+    });
+    closeModal('modal-share');
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('⚠️ Paylaşım hatası: ' + e.message);
+  }
+}
+
+function shareCopyLink() {
+  if (!sharePayload) return;
+  navigator.clipboard.writeText(sharePayload.url)
+    .then(() => { showToast('📋 Link kopyalandı!'); closeModal('modal-share'); })
+    .catch(() => {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = sharePayload.url;
+      document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('📋 Link kopyalandı!');
+      closeModal('modal-share');
+    });
+}
+
+// ==================== 📥 GELEN KAYIT ====================
+function checkIncomingShare() {
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get('share');
+  if (!encoded) return;
+
+  // URL'den paylaşım parametresini temizle
+  history.replaceState(null, '', window.location.pathname);
+
+  try {
+    // Base64 decode
+    const json = decodeURIComponent(escape(atob(encoded.replace(/-/g, '+').replace(/_/g, '/').replace(/\./g, '='))));
+    const payload = JSON.parse(json);
+    if (!payload || !payload.type || !payload.data) throw new Error('Geçersiz paylaşım');
+
+    importPayload = payload;
+    showImportModal(payload);
+  } catch(e) {
+    console.warn('Paylaşım ayrıştırılamadı:', e);
+    showToast('⚠️ Geçersiz veya bozuk paylaşım linki');
+  }
+}
+
+function showImportModal(payload) {
+  const { type, data } = payload;
+  const icons = { appt: '🗓️', todo: '✅', travel: '✈️', bday: '🎂' };
+  document.getElementById('import-icon').textContent = icons[type] || '📥';
+
+  // Önizleme oluştur
+  let html = '';
+  if (type === 'appt') {
+    html = `<div style="font-weight:700;font-size:16px;margin-bottom:6px;">${esc(data.title)}</div>
+      <div style="font-size:13px;color:var(--muted);">📅 ${formatDate(data.date)}${data.time ? ' ' + data.time : ''}</div>
+      ${data.note ? `<div style="font-size:13px;margin-top:6px;">${esc(data.note)}</div>` : ''}`;
+  } else if (type === 'todo') {
+    html = `<div style="font-weight:700;font-size:16px;margin-bottom:6px;">${esc(data.title)}</div>
+      ${data.date ? `<div style="font-size:13px;color:var(--muted);">📅 ${formatDate(data.date)}${data.time ? ' ' + data.time : ''}</div>` : ''}
+      ${data.note ? `<div style="font-size:13px;margin-top:6px;">${esc(data.note)}</div>` : ''}
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">Öncelik: ${data.pri || 'Normal'}</div>`;
+  } else if (type === 'travel') {
+    html = `<div style="font-weight:700;font-size:16px;margin-bottom:6px;">✈️ ${esc(data.dest)}</div>
+      <div style="font-size:13px;color:var(--muted);">📅 ${formatDate(data.start)}${data.end ? ' — ' + formatDate(data.end) : ''}</div>
+      ${data.note ? `<div style="font-size:13px;margin-top:6px;">${esc(data.note)}</div>` : ''}`;
+  } else if (type === 'bday') {
+    html = `<div style="font-weight:700;font-size:16px;margin-bottom:6px;">🎂 ${esc(data.name)}</div>
+      <div style="font-size:13px;color:var(--muted);">📅 ${data.day} ${MONTHS_TR[data.month]}</div>`;
+  }
+
+  document.getElementById('import-preview').innerHTML = html;
+
+  // Doğum günleri her zaman kişisel
+  const ctxSel = document.getElementById('import-ctx');
+  if (type === 'bday') {
+    ctxSel.value = 'pers';
+    ctxSel.disabled = true;
+  } else {
+    ctxSel.disabled = false;
+    ctxSel.value = 'pers';
+  }
+
+  // Biraz bekleyip modal aç (uygulama yüklendikten sonra)
+  setTimeout(() => openModal('modal-import-record'), 800);
+}
+
+function confirmImport() {
+  if (!importPayload) return;
+  const { type, data } = importPayload;
+  const ctx = document.getElementById('import-ctx').value;
+  const newItem = { ...data, id: id(), updatedAt: new Date().toISOString() };
+
+  if (type === 'appt') {
+    const k = ctx + '_appts';
+    const arr = DB.get(k, []); arr.push(newItem); DB.set(k, arr);
+    closeModal('modal-import-record');
+    showToast('✅ Randevu eklendi!');
+    switchModule('appointments', ctx);
+  } else if (type === 'todo') {
+    newItem.done = false;
+    const k = ctx + '_todos';
+    const arr = DB.get(k, []); arr.push(newItem); DB.set(k, arr);
+    closeModal('modal-import-record');
+    showToast('✅ Görev eklendi!');
+    switchModule('todos', ctx);
+  } else if (type === 'travel') {
+    newItem.items = newItem.items || [];
+    const k = ctx + '_travels';
+    const arr = DB.get(k, []); arr.push(newItem); DB.set(k, arr);
+    closeModal('modal-import-record');
+    showToast('✅ Seyahat eklendi!');
+    switchModule('travels', ctx);
+  } else if (type === 'bday') {
+    const arr = DB.get('pers_birthdays', []); arr.push(newItem); DB.set('pers_birthdays', arr);
+    closeModal('modal-import-record');
+    showToast('✅ Doğum günü eklendi!');
+    switchModule('birthdays', 'pers');
+  }
+
+  importPayload = null;
 }
 
 // ==================== YAZDIR ====================
@@ -5261,6 +5489,9 @@ function init() {
   if (!isVoiceSupported()) {
     document.querySelectorAll('.voice-btn').forEach(b => b.style.display = 'none');
   }
+
+  // Gelen paylaşım linki var mı kontrol et
+  checkIncomingShare();
   
   // Widgetların (Takvim vb.) ekran boyutuna göre yerleşimi
   relocateWidgets();
