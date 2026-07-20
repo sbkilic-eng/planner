@@ -1916,8 +1916,10 @@ function updateNotifSettingsBtn() {
 function checkAndNotify() {
   if(Notification.permission !== 'granted') return;
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
-  const tomorrowStr = new Date(now.getTime()+86400000).toISOString().split('T')[0];
+  const pad = n => String(n).padStart(2,'0');
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const tom = new Date(now); tom.setDate(now.getDate()+1);
+  const tomorrowStr = `${tom.getFullYear()}-${pad(tom.getMonth()+1)}-${pad(tom.getDate())}`;
   const notified = DB.get('notif_sent', {});
 
   const tryNotify = (key, title, body) => {
@@ -2060,16 +2062,25 @@ function renderSummary() {
     const icon = ctx === 'work' ? '✈️' : '🎒';
     DB.get(key,[]).forEach(tr => {
       if (!tr.start) return;
-      const start = new Date(tr.start+'T00:00');
-      const end = tr.end ? new Date(tr.end+'T00:00') : start;
+      // T12:00 kullan — timezone kaymasını önler (gece yarısı değil öğlen)
+      const start = new Date(tr.start+'T12:00:00');
+      const end   = tr.end ? new Date(tr.end+'T12:00:00') : start;
       const totalDays = Math.max(1, Math.round((end - start)/86400000) + 1);
       for (let d = 0; d < totalDays; d++) {
-        const cur = new Date(start); cur.setDate(start.getDate()+d);
-        const ds = cur.toISOString().split('T')[0];
+        const cur = new Date(start);
+        cur.setDate(start.getDate() + d);
+        // Yerel tarih formatı — toISOString UTC'ye çevirdiği için kayma yaratır
+        const y  = cur.getFullYear();
+        const m  = String(cur.getMonth()+1).padStart(2,'0');
+        const dd = String(cur.getDate()).padStart(2,'0');
+        const ds = `${y}-${m}-${dd}`;
         const dayLabel = totalDays > 1 ? ` (${d+1}/${totalDays}. gün)` : '';
+        // Gün başı ve sonu yerel saatle
+        const dayStart = new Date(y, cur.getMonth(), cur.getDate(), 0, 0, 0);
+        const dayEnd   = new Date(y, cur.getMonth(), cur.getDate(), 23, 59, 59);
         const ev = {
-          t: cur.getTime(),
-          tObj: new Date(cur.getFullYear(),cur.getMonth(),cur.getDate(),23,59,59),
+          t: dayStart.getTime(),
+          tObj: dayEnd,
           rawDate: ds, rawTime: null,
           title: tr.dest + dayLabel,
           sub: formatDate(ds),
@@ -2087,14 +2098,17 @@ function renderSummary() {
     const startScan = new Date(tMs);
     const endScan = new Date(tMs + 366 * 86400000);
     for (let d = new Date(startScan); d <= endScan; d.setDate(d.getDate()+1)) {
-      const ds = d.toISOString().split('T')[0];
+      // Yerel tarih formatı — toISOString UTC kayması yaratır
+      const y  = d.getFullYear();
+      const m  = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      const ds = `${y}-${m}-${dd}`;
       const hol = getHolidayName(ds);
       if (hol) {
-        // Gün başı timestamp — diğer kayıtlarla doğru sıralanır
-        const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+        const dayStart = new Date(y, d.getMonth(), d.getDate(), 0, 0, 0);
         const ev = {
           t: dayStart.getTime(),
-          tObj: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59),
+          tObj: new Date(y, d.getMonth(), d.getDate(), 23, 59, 59),
           rawDate: ds, rawTime: null,
           title: hol.name,
           sub: formatDate(ds),
