@@ -1588,6 +1588,11 @@ const DB = {
 function id() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function formatDate(d) { if(!d) return ''; const p=d.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; }
+// Yerel tarih string — toISOString() UTC'ye çevirdiği için timezone kayması yaratır
+function localDateStr(d) {
+  const dt = d || new Date();
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
 // Türkçe uyumlu küçük harf — RİSK → risk (görünmez nokta yok)
 function trLower(s) { return String(s||'').toLocaleLowerCase('tr-TR'); }
 
@@ -1977,7 +1982,7 @@ function downloadICS(title, dStr, tStr, note, endStr=null) {
   ics+=`END:VEVENT\nEND:VCALENDAR`;
   const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${title.replace(/ /g,'_')}.ics`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
-function exportData() { const d={}; for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i);if(k.startsWith('planner_'))d[k]=localStorage.getItem(k);} const blob=new Blob([JSON.stringify(d,null,2)],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`planner_yedek_${new Date().toISOString().split('T')[0]}.txt`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+function exportData() { const d={}; for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i);if(k.startsWith('planner_'))d[k]=localStorage.getItem(k);} const blob=new Blob([JSON.stringify(d,null,2)],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`planner_yedek_${localDateStr()}.txt`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
 function importData(e) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>{try{const d=JSON.parse(ev.target.result);Object.keys(d).forEach(k=>{if(k.startsWith('planner_'))localStorage.setItem(k,d[k]);});location.reload();}catch(err){alert("Format error");}};r.readAsText(f); }
 
 // ==================== 1. SUMMARY ====================
@@ -2205,7 +2210,7 @@ function renderSummary() {
 
 // ==================== 2. APPOINTMENTS ====================
 function getApptKey() { return currentContext+'_appts'; }
-function openApptForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getApptKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-appt-title').value=d?d.title:''; document.getElementById('m-appt-date').value=d?d.date:new Date().toISOString().split('T')[0]; document.getElementById('m-appt-time').value=d?d.time||'':''; document.getElementById('m-appt-note').value=d?d.note||'':''; openModal('modal-appt'); }
+function openApptForm(eid=null) { currentEditId=eid; const d=eid?DB.get(getApptKey(),[]).find(x=>x.id===eid):null; document.getElementById('m-appt-title').value=d?d.title:''; document.getElementById('m-appt-date').value=d?d.date:localDateStr(); document.getElementById('m-appt-time').value=d?d.time||'':''; document.getElementById('m-appt-note').value=d?d.note||'':''; openModal('modal-appt'); }
 function saveAppt() { const t=document.getElementById('m-appt-title').value.trim(); if(!t)return; const k=getApptKey(); const arr=DB.get(k,[]); const p={id:currentEditId||id(),title:t,date:document.getElementById('m-appt-date').value,time:document.getElementById('m-appt-time').value,note:document.getElementById('m-appt-note').value.trim()}; if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1)arr[i]=p;}else{arr.push(p);} arr.sort((a,b)=>(a.date+(a.time||''))<(b.date+(b.time||''))?-1:1); DB.set(k,arr); closeModal('modal-appt'); renderAppts(); checkAndNotify(); }
 function delAppt(id) { if(!confirm("Silinsin mi?"))return; const k=getApptKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderAppts(); }
 function renderAppts() {
@@ -2276,7 +2281,7 @@ function openTodoForm(eid=null) {
   document.getElementById('m-todo-title').value=d?d.title:'';
   document.getElementById('m-todo-pri').value=d?d.pri||'normal':'normal';
   document.getElementById('m-todo-rec').value=d?d.rec||'':'';
-  document.getElementById('m-todo-date').value=d?d.date||'':new Date().toISOString().split('T')[0];
+  document.getElementById('m-todo-date').value=d?d.date||'':localDateStr();
   document.getElementById('m-todo-time').value=d?d.time||'':'';
   document.getElementById('m-todo-note').value=d?d.note||'':'';
   document.getElementById('m-todo-tag').value=d?d.tag||'':'';
@@ -2291,7 +2296,7 @@ function saveTodo() {
   if(currentEditId){const i=arr.findIndex(x=>x.id===currentEditId);if(i>-1){p.done=arr[i].done;arr[i]=p;}}else{arr.push(p);}
   DB.set(k,arr); closeModal('modal-todo'); renderTodoTagFilter(); renderTodos(); checkAndNotify();
 }
-function toggleTodo(id) { const k=getTodoKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){if(!o.done&&o.rec&&o.date){let d=new Date(o.date);d.setDate(d.getDate()+o.rec);o.date=d.toISOString().split('T')[0];}else{o.done=!o.done;} DB.set(k,arr); renderTodos();} }
+function toggleTodo(id) { const k=getTodoKey(); const arr=DB.get(k,[]); const o=arr.find(x=>x.id===id); if(o){if(!o.done&&o.rec&&o.date){let d=new Date(o.date);d.setDate(d.getDate()+o.rec);o.date=localDateStr(d);}else{o.done=!o.done;} DB.set(k,arr); renderTodos();} }
 function delTodo(id) { if(confirm("Silinsin mi?")){const k=getTodoKey(); DB.set(k,DB.get(k,[]).filter(x=>x.id!==id)); renderTodoTagFilter(); renderTodos();} }
 function renderTodos() {
   let arr=DB.get(getTodoKey(),[]);
@@ -2415,7 +2420,7 @@ function saveHabit() {
     id: id(), n: t,
     tg: parseInt(document.getElementById('m-habit-target').value),
     dur: parseInt(document.getElementById('m-habit-duration').value) || 0,
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: localDateStr(),
     c: {}
   });
   DB.set('pers_habits', arr);
@@ -2449,7 +2454,7 @@ function renderHabits() {
     const l = { tr:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'], en:['Mo','Tu','We','Th','Fr','Sa','Su'] };
     return Array.from({length:7}, (_,i) => {
       const x = new Date(m); x.setDate(m.getDate()+i);
-      return { ds: x.toISOString().split('T')[0], lb: l[currentLang][i], n: x.getDate(), td: x.toDateString()===today.toDateString() };
+      return { ds: localDateStr(x), lb: l[currentLang][i], n: x.getDate(), td: x.toDateString()===today.toDateString() };
     });
   })();
 
@@ -3208,7 +3213,7 @@ function renderHabitsWidget() {
     const l = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
     return Array.from({length:7}, (_,i) => {
       const x = new Date(m); x.setDate(m.getDate()+i);
-      return { ds: x.toISOString().split('T')[0], lb: l[i], n: x.getDate(), td: x.toDateString()===today.toDateString() };
+      return { ds: localDateStr(x), lb: l[i], n: x.getDate(), td: x.toDateString()===today.toDateString() };
     });
   })();
 
@@ -4069,7 +4074,7 @@ function printPage() {
 
   else if (currentModule === 'habits') {
     const arr = DB.get('pers_habits', []);
-    const wDays = (()=>{ const t=new Date();t.setHours(0,0,0,0);const m=new Date(t);m.setDate(t.getDate()-((t.getDay()+6)%7));const d=[];for(let i=0;i<7;i++){const x=new Date(m);x.setDate(m.getDate()+i);d.push({ds:x.toISOString().split('T')[0],lb:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'][i]});}return d;})();
+    const wDays = (()=>{ const t=new Date();t.setHours(0,0,0,0);const m=new Date(t);m.setDate(t.getDate()-((t.getDay()+6)%7));const d=[];for(let i=0;i<7;i++){const x=new Date(m);x.setDate(m.getDate()+i);d.push({ds:localDateStr(x),lb:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'][i]});}return d;})();
     body = `<div class="pr-section-title">Bu Haftanın Rutinleri</div>` +
       `<table class="pr-table"><thead><tr><th>Alışkanlık</th><th>Hedef</th>${wDays.map(d=>`<th style="text-align:center">${d.lb}</th>`).join('')}<th>%</th></tr></thead><tbody>` +
       arr.map(h=>{const ch=h.c||{};const dw=wDays.filter(d=>ch[d.ds]).length;const pct=Math.min(100,Math.round((dw/h.tg)*100));return `<tr><td>${esc(h.n)}</td><td>${h.tg} gün</td>${wDays.map(d=>`<td style="text-align:center">${ch[d.ds]?'✓':'·'}</td>`).join('')}<td>${pct}%</td></tr>`;}).join('') +
@@ -4263,14 +4268,11 @@ function checkLogin() {
 }
 
 function initAuth() {
+  // Giriş şifresi devre dışı — uygulama doğrudan açılır
   const appWrap = document.getElementById('app-shell-wrap');
-  if (checkAccess()) {
-    appWrap.style.display = 'flex';
-  } else {
-    document.getElementById('login-screen').classList.add('visible');
-    appWrap.style.display = 'none';
-    setTimeout(() => document.getElementById('login-pwd').focus(), 400);
-  }
+  if (appWrap) appWrap.style.display = 'flex';
+  const loginScreen = document.getElementById('login-screen');
+  if (loginScreen) loginScreen.style.display = 'none';
 }
 
 // ==================== ☁️ BULUT SENKRON (JSONBin) ====================
