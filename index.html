@@ -4642,24 +4642,34 @@ async function githubGetUser() {
 
 // Gist'i bul veya yarat
 async function githubFindOrCreateGist() {
-  let gistId = getGithubGistId();
-  if (gistId) {
-    // Var mı kontrol et
-    const check = await githubFetch(`/gists/${gistId}`);
-    if (check.ok) return gistId;
-    // Yoksa temizle
-    setGithubGistId('');
-  }
-
-  // Mevcut gist'leri tara — planner gist'i var mı?
+  // ÖNEMLİ: Cache'e körü körüne güvenmiyoruz — her seferinde arayıp
+  // en güncel (son güncellenen) "planner-pro-data.json" gist'ini buluyoruz.
+  // Böylece farklı cihazlarda farklı eski gist ID'leri kalmışsa bile
+  // hepsi aynı, doğru gist'e yönlenir. (JSONBin'de yaşadığımız bin
+  // eşleşmezliği sorununun aynısı burada da olabiliyordu.)
   const listRes = await githubFetch('/gists?per_page=100');
   if (listRes.ok) {
     const gists = await listRes.json();
-    const found = gists.find(g => g.files && g.files[GITHUB_GIST_FILENAME]);
-    if (found) {
-      setGithubGistId(found.id);
-      return found.id;
+    const matches = gists.filter(g => g.files && g.files[GITHUB_GIST_FILENAME]);
+    if (matches.length) {
+      // Birden fazla eşleşme varsa en son güncellenmiş olanı seç
+      matches.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+      const chosen = matches[0];
+      setGithubGistId(chosen.id);
+      return chosen.id;
     }
+  } else if (listRes.status === 401) {
+    throw new Error('Token geçersiz (401)');
+  } else if (listRes.status === 403) {
+    throw new Error('Gist yetkisi yok — token\'da "gist" scope işaretli olmalı');
+  }
+
+  // Hiç gist bulunamadıysa — cache'deki ID hâlâ geçerli olabilir, son çare kontrol et
+  let gistId = getGithubGistId();
+  if (gistId) {
+    const check = await githubFetch(`/gists/${gistId}`);
+    if (check.ok) return gistId;
+    setGithubGistId('');
   }
 
   // Yeni gist yarat
