@@ -152,6 +152,47 @@
   .lw-link:hover { text-decoration:underline; }
   .lw-header { font-size:14px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
 
+  /* Web Ajandam */
+  .wa-tab { flex:1; font-size:13px; font-weight:700; padding:8px 16px; margin:0; flex-shrink:0; cursor:pointer; border-radius:20px; white-space:nowrap; display:flex; align-items:center; gap:6px; }
+  .wa-tab.active { background:var(--accent); color:#fff; border:none; }
+  .wa-tab:not(.active) { background:var(--surface); color:var(--muted); border:1px solid var(--border); }
+  .wa-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:14px; }
+  .wa-site-card {
+    position: relative; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px 12px 14px; text-decoration: none;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    transition: all 0.2s; text-align: center; cursor: pointer;
+    box-shadow: var(--shadow); min-height: 110px; justify-content: center;
+  }
+  .wa-site-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+  .wa-site-icon {
+    width: 52px; height: 52px; border-radius: 14px; object-fit: cover;
+    background: var(--bg); border: 1px solid var(--border);
+  }
+  .wa-site-icon-fallback {
+    width: 52px; height: 52px; border-radius: 14px; background: var(--accent-light);
+    color: var(--accent); display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800; border: 1px solid var(--border);
+  }
+  .wa-site-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; word-break: break-word; }
+  .wa-site-actions { position: absolute; top: 6px; right: 6px; display: flex; gap: 3px; opacity: 0; transition: opacity 0.2s; }
+  .wa-site-card:hover .wa-site-actions { opacity: 1; }
+  .wa-site-actions button {
+    width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--bg); color: var(--muted); font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .wa-site-actions button:hover { background: var(--accent); color: #fff; }
+  @media (max-width: 900px) {
+    .wa-site-actions { opacity: 1; }
+  }
+  .wa-emoji-btn {
+    width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--bg); font-size: 18px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  .wa-emoji-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+
   /* Alışkanlık Takibi Widget */
   .hw-detail { padding:4px 0; }
   .hw-week { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:14px; }
@@ -743,7 +784,7 @@
           <div class="fan-header-icon personal">🌿</div>
           <div class="fan-header-text">
             <div class="fan-header-title" data-i18n="nav_personal">KİŞİSEL YAŞAM</div>
-            <div class="fan-header-sub" id="fan-pers-sub">7 bölüm</div>
+            <div class="fan-header-sub" id="fan-pers-sub">8 bölüm</div>
           </div>
           <span class="fan-arrow">▼</span>
         </button>
@@ -775,6 +816,10 @@
           <button class="fan-item" onclick="switchModule('notes','pers')" id="fani-pers-notes">
             <span class="fan-item-icon">✍️</span>
             <span class="fan-item-label" data-i18n="nav_pers_notes">Kişisel Notlar</span>
+          </button>
+          <button class="fan-item" onclick="switchModule('webajandam','pers')" id="fani-pers-webajandam">
+            <span class="fan-item-icon">🌐</span>
+            <span class="fan-item-label">Web Ajandam</span>
           </button>
         </div>
       </div>
@@ -914,6 +959,11 @@
           <div class="section" id="sec-lists">
             <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px;" id="cat-tabs"></div>
             <div id="list-content"></div>
+          </div>
+
+          <div class="section" id="sec-webajandam">
+            <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px;" id="wa-tabs"></div>
+            <div id="wa-content"></div>
           </div>
 
           <div class="section" id="sec-birthdays">
@@ -1465,6 +1515,32 @@
   </div>
 </div>
 
+<!-- WEB AJANDAM: YENİ GRUP -->
+<div class="modal-overlay" id="modal-wa-newgroup">
+  <div class="modal">
+    <div class="modal-title">Yeni Grup</div>
+    <div class="form-row"><label>Grup Adı</label><input type="text" id="m-wagroup-name" placeholder="Örn: Haber, Spor, Eğitim..."></div>
+    <div class="form-row">
+      <label>Emoji Seç</label>
+      <div id="wa-emoji-picker" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;">
+        ${''}
+      </div>
+      <input type="text" id="m-wagroup-emoji" value="🌐" style="display:none;">
+    </div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveWaGroup()">Oluştur</button><button class="btn-ghost" onclick="closeModal('modal-wa-newgroup')">İptal</button></div>
+  </div>
+</div>
+
+<!-- WEB AJANDAM: YENİ SİTE -->
+<div class="modal-overlay" id="modal-wa-site">
+  <div class="modal">
+    <div class="modal-title" id="wa-site-modal-title">Yeni Site Ekle</div>
+    <div class="form-row"><label>Site Adı</label><input type="text" id="m-wasite-name" placeholder="Örn: Hürriyet"></div>
+    <div class="form-row"><label>Web Adresi</label><input type="url" id="m-wasite-url" placeholder="https://ornek.com" autocomplete="off"></div>
+    <div class="form-row-2"><button class="btn-primary" onclick="saveWaSite()">Kaydet</button><button class="btn-ghost" onclick="closeModal('modal-wa-site')">İptal</button></div>
+  </div>
+</div>
+
 <div class="note-editor" id="note-editor">
   <div class="note-editor-header">
     <button class="btn-icon" onclick="saveAndCloseNoteEditor()" style="font-size:24px;">&#8592;</button>
@@ -1801,6 +1877,7 @@ function switchModule(mod, ctx='') {
   if(mod==='habits') renderHabits();
   if(mod==='birthdays') renderBdays();
   if(mod==='lists') { renderLists(); }
+  if(mod==='webajandam') { renderWebAjandam(); }
   if(mod==='contacts') renderContacts();
   if(mod==='quicknotes') renderQNotes();
 }
@@ -2583,6 +2660,236 @@ function renderListItems(cat) {
   const un=arr.filter(i=>!i.d); const dn=arr.filter(i=>i.d);
   
   el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:16px;"><input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')"><button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button><button class="btn-ghost" style="padding:8px 12px; border-color:var(--accent-danger); color:var(--accent-danger);" onclick="delListCat('${esc(cat)}')">🗑️</button></div>${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
+}
+
+// ==================== 6.5 WEB AJANDAM ====================
+const WA_EMOJIS = ['📰','👤','🛍️','⚡','🎉','🎬','🎵','🍳','💼','🏠','🩺','⚽','🎮','📚','✈️','💻','🎨','🌍','💰','🔧'];
+
+function getWaGroups() { return DB.get('wa_groups', null); }
+function getWaActiveGroup() { return DB.get('wa_activegroup', ''); }
+
+// İlk kurulumda mevcut Web Ajandam verisi yüklensin
+function seedWaDataIfEmpty() {
+  if (getWaGroups() !== null) return; // Zaten kurulmuş
+
+  const groups = [
+    { key: 'Gazeteler', emoji: '📰' },
+    { key: 'Kişisel Siteler', emoji: '👤' },
+    { key: 'Alışveriş Siteleri', emoji: '🛍️' },
+    { key: 'Faydalı Web Siteleri', emoji: '⚡' },
+    { key: 'İlginç Web Siteleri', emoji: '🎉' },
+  ];
+  DB.set('wa_groups', groups);
+  DB.set('wa_activegroup', groups[0].key);
+
+  const seedSites = {
+    'Gazeteler': [
+      ['Birgün','https://www.birgun.net/yazarlar'],
+      ['Cumhuriyet','https://www.cumhuriyet.com.tr/gunun-kose-yazilari'],
+      ['Dünya','https://www.dunya.com/yazarlar'],
+      ['Ekonomim','https://www.ekonomim.com/yazarlar'],
+      ['Gazete Oksijen','https://gazeteoksijen.com/yazarlar'],
+      ['Hürriyet','https://www.hurriyet.com.tr/yazarlar/'],
+      ['Karar','https://www.karar.com/yazarlar'],
+      ['Milliyet','https://www.milliyet.com.tr/yazarlar/'],
+      ['Nefes','https://www.nefes.com.tr/yazarlar'],
+      ['Sabah','https://www.gazeteler.tv/sabah_gazetesi_oku.php'],
+      ['Sözcü','https://www.sozcu.com.tr/yazarlar'],
+      ['Yeni Çağ','https://www.yenicaggazetesi.com/yazarlar'],
+      ['BBC News TR','https://www.bbc.com/turkce'],
+      ['DW TR','https://www.dw.com/tr/gündem/s-10201'],
+      ['Euronews TR','https://tr.euronews.com'],
+    ],
+    'Kişisel Siteler': [
+      ['Fatih ALTAYLI','https://fatihaltayli.com.tr'],
+      ['Mahfi EĞİLMEZ','https://www.mahfiegilmez.com'],
+      ['Murat YETKİN','https://yetkinreport.com'],
+    ],
+    'Alışveriş Siteleri': [
+      ['Akakçe','https://www.akakce.com'],
+      ['Amazon.tr','https://www.amazon.com.tr'],
+      ['Decathlon','https://www.decathlon.com.tr'],
+      ['Hepsi Burada','https://www.hepsiburada.com'],
+      ['Kitapyurdu','https://www.kitapyurdu.com'],
+      ['Pazarama','https://www.pazarama.com'],
+      ['PTT Avm','https://www.pttavm.com'],
+      ['Trendyol','https://trendyol.com'],
+      ['Yeni Mi Yeni','https://www.yenimiyeni.com'],
+    ],
+    'Faydalı Web Siteleri': [
+      ['AloMaliye','https://www.alomaliye.com/kategori/makaleler/'],
+      ['e-Devlet','https://e-devlet.gov.tr'],
+      ['GİB Mevzuat','https://gib.gov.tr/mevzuat'],
+      ['Mevzuat Bilgi Sistemi','https://www.mevzuat.gov.tr'],
+      ['MuhasebeTr','https://www.muhasebetr.com/yazarlarimiz/'],
+      ['Özdoğrular','https://www.ozdogrular.com/v1/'],
+      ['T.C. Resmi Gazete','https://www.resmigazete.gov.tr'],
+      ['TBMM','https://www.tbmm.gov.tr'],
+      ['TÜRMOB Mevzuat','https://www.turmob.org.tr/Sirkuler'],
+      ['UYAP Vatandaş','https://vatandas.uyap.gov.tr/main/vatandas/index.jsp?v=3785'],
+      ['Vergi Raporu','https://www.vergiraporu.com.tr'],
+      ['VETİS Marmara','https://katalog.marmara.edu.tr/vetisbt/'],
+      ['Wikipedia','https://wikipedia.org'],
+    ],
+    'İlginç Web Siteleri': [
+      ['Cobalt','https://cobalt.meowing.de'],
+      ['Ekşi Sözlük','https://eksisozluk.com'],
+      ['Epey','https://www.epey.com'],
+      ['FameLack','https://famelack.com/tv/tr'],
+      ['Google Translate','https://translate.google.com/?sl=en&tl=tr&op=translate'],
+      ['Hattuşa Kitap','https://hattusa.club'],
+      ['Language Guide','https://www.languageguide.org'],
+      ['Reddit','https://www.reddit.com'],
+      ['Similto','https://similto.com'],
+      ['Sinetech Forum','https://forum.sinetech.tr'],
+      ['Transfer Markt','https://www.transfermarkt.com.tr'],
+      ['VidBox','https://vidbox.vc'],
+    ],
+  };
+
+  Object.keys(seedSites).forEach(groupKey => {
+    const sites = seedSites[groupKey].map(([name, url]) => ({ id: id(), name, url }));
+    DB.set('wa_sites_' + groupKey, sites);
+  });
+}
+
+function getWaFavicon(url) {
+  try {
+    const domain = new URL(url.startsWith('http') ? url : 'https://' + url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+  } catch(e) { return null; }
+}
+
+function renderWebAjandam() {
+  seedWaDataIfEmpty();
+  const groups = getWaGroups() || [];
+  let active = getWaActiveGroup();
+  if (!groups.find(g => g.key === active)) active = groups[0]?.key || '';
+  DB.set('wa_activegroup', active);
+
+  const tabsEl = document.getElementById('wa-tabs');
+  const contEl = document.getElementById('wa-content');
+  if (!tabsEl || !contEl) return;
+
+  tabsEl.innerHTML = groups.map(g =>
+    `<button class="wa-tab ${g.key===active?'active':''}" onclick="waSwitchGroup('${esc(g.key).replace(/'/g,"\\'")}')"><span>${g.emoji}</span><span>${esc(g.key)}</span></button>`
+  ).join('') + `<button class="wa-tab" style="background:transparent;border:1px dashed var(--border);color:var(--text);" onclick="openWaNewGroup()">+ Yeni Grup</button>`;
+
+  if (!active) {
+    contEl.innerHTML = `<div class="empty">Henüz grup yok. "+ Yeni Grup" ile başla.</div>`;
+    return;
+  }
+
+  const sites = DB.get('wa_sites_' + active, []);
+
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <button class="btn-add" style="margin:0;" onclick="openWaSiteForm()">+ Site Ekle</button>
+    <button class="btn-ghost" style="padding:8px 12px;font-size:12px;color:var(--accent-danger);border-color:var(--accent-danger);" onclick="delWaGroup('${esc(active).replace(/'/g,"\\'")}')">🗑️ Grubu Sil</button>
+  </div>`;
+
+  if (!sites.length) {
+    html += `<div class="empty">Bu grupta henüz site yok.</div>`;
+  } else {
+    html += `<div class="wa-grid">` + sites.map(s => {
+      const favicon = getWaFavicon(s.url);
+      const initial = (s.name[0] || '?').toUpperCase();
+      const safeUrl = s.url.startsWith('http') ? s.url : 'https://' + s.url;
+      return `<a href="${esc(safeUrl)}" target="_blank" rel="noopener" class="wa-site-card">
+        <div class="wa-site-actions">
+          <button onclick="event.preventDefault();event.stopPropagation();openWaSiteForm('${s.id}')" title="Düzenle">✎</button>
+          <button onclick="event.preventDefault();event.stopPropagation();delWaSite('${s.id}')" title="Sil">✕</button>
+        </div>
+        ${favicon
+          ? `<img class="wa-site-icon" src="${favicon}" alt="" onerror="this.outerHTML='<div class=&quot;wa-site-icon-fallback&quot;>${initial}</div>'">`
+          : `<div class="wa-site-icon-fallback">${initial}</div>`}
+        <div class="wa-site-name">${esc(s.name)}</div>
+      </a>`;
+    }).join('') + `</div>`;
+  }
+
+  contEl.innerHTML = html;
+}
+
+function waSwitchGroup(key) {
+  DB.set('wa_activegroup', key);
+  renderWebAjandam();
+}
+
+function openWaNewGroup() {
+  document.getElementById('m-wagroup-name').value = '';
+  document.getElementById('m-wagroup-emoji').value = '🌐';
+  const picker = document.getElementById('wa-emoji-picker');
+  picker.innerHTML = WA_EMOJIS.map(e =>
+    `<button type="button" class="wa-emoji-btn ${e==='🌐'?'selected':''}" onclick="waPickEmoji('${e}')">${e}</button>`
+  ).join('');
+  openModal('modal-wa-newgroup');
+}
+
+function waPickEmoji(e) {
+  document.getElementById('m-wagroup-emoji').value = e;
+  document.querySelectorAll('.wa-emoji-btn').forEach(b => b.classList.toggle('selected', b.textContent === e));
+}
+
+function saveWaGroup() {
+  const name = document.getElementById('m-wagroup-name').value.trim();
+  const emoji = document.getElementById('m-wagroup-emoji').value || '🌐';
+  if (!name) { showToast('⚠️ Grup adı gerekli'); return; }
+  const groups = getWaGroups() || [];
+  if (groups.find(g => g.key === name)) { showToast('⚠️ Bu grup zaten var'); return; }
+  groups.push({ key: name, emoji });
+  DB.set('wa_groups', groups);
+  DB.set('wa_activegroup', name);
+  DB.set('wa_sites_' + name, []);
+  closeModal('modal-wa-newgroup');
+  renderWebAjandam();
+}
+
+function delWaGroup(key) {
+  if (!confirm(`"${key}" grubunu ve içindeki tüm siteleri silmek istediğine emin misin?`)) return;
+  const groups = (getWaGroups() || []).filter(g => g.key !== key);
+  DB.set('wa_groups', groups);
+  localStorage.removeItem('planner_wa_sites_' + key);
+  DB.set('wa_activegroup', groups[0]?.key || '');
+  renderWebAjandam();
+}
+
+let waEditSiteId = null;
+function openWaSiteForm(siteId = null) {
+  waEditSiteId = siteId;
+  const active = getWaActiveGroup();
+  const sites = DB.get('wa_sites_' + active, []);
+  const s = siteId ? sites.find(x => x.id === siteId) : null;
+  document.getElementById('wa-site-modal-title').textContent = s ? 'Siteyi Düzenle' : 'Yeni Site Ekle';
+  document.getElementById('m-wasite-name').value = s ? s.name : '';
+  document.getElementById('m-wasite-url').value = s ? s.url : '';
+  openModal('modal-wa-site');
+}
+
+function saveWaSite() {
+  const name = document.getElementById('m-wasite-name').value.trim();
+  let url = document.getElementById('m-wasite-url').value.trim();
+  if (!name || !url) { showToast('⚠️ Site adı ve adresi gerekli'); return; }
+  if (!url.startsWith('http')) url = 'https://' + url;
+
+  const active = getWaActiveGroup();
+  const sites = DB.get('wa_sites_' + active, []);
+  if (waEditSiteId) {
+    const idx = sites.findIndex(x => x.id === waEditSiteId);
+    if (idx > -1) sites[idx] = { ...sites[idx], name, url };
+  } else {
+    sites.push({ id: id(), name, url });
+  }
+  DB.set('wa_sites_' + active, sites);
+  closeModal('modal-wa-site');
+  renderWebAjandam();
+}
+
+function delWaSite(siteId) {
+  if (!confirm('Bu site silinsin mi?')) return;
+  const active = getWaActiveGroup();
+  const sites = DB.get('wa_sites_' + active, []).filter(x => x.id !== siteId);
+  DB.set('wa_sites_' + active, sites);
+  renderWebAjandam();
 }
 
 // ==================== 7. BIRTHDAYS ====================
