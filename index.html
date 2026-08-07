@@ -234,6 +234,15 @@
   }
   .wa-emoji-btn.selected { border-color: var(--accent); background: var(--accent-light); }
 
+  /* Sürükle-Bırak Sıralama */
+  .sortable-item { touch-action: pan-y; }
+  .sortable-dragging {
+    opacity: 0.9 !important; transform: scale(1.05) !important;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.3) !important; z-index: 60 !important;
+    cursor: grabbing !important; touch-action: none !important;
+  }
+  body.sortable-noscroll { overflow: hidden !important; touch-action: none !important; }
+
   /* Alışkanlık Takibi Widget */
   .hw-detail { padding:4px 0; }
   .hw-week { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:14px; }
@@ -2829,7 +2838,7 @@ function renderWebAjandam() {
   if (!tabsEl || !contEl) return;
 
   tabsEl.innerHTML = groups.map(g =>
-    `<button class="wa-tab ${g.key===active?'active':''}" onclick="waSwitchGroup('${esc(g.key).replace(/'/g,"\\'")}')"><span>${g.emoji}</span><span>${esc(g.key)}</span></button>`
+    `<button class="wa-tab ${g.key===active?'active':''}" data-sort-id="${esc(g.key)}" onclick="waSwitchGroup('${esc(g.key).replace(/'/g,"\\'")}')"><span>${g.emoji}</span><span>${esc(g.key)}</span></button>`
   ).join('') + `<button class="wa-tab" style="background:transparent;border:1px dashed var(--border);color:var(--text);" onclick="openWaNewGroup()">+ Yeni Grup</button>`;
 
   if (!active) {
@@ -2847,11 +2856,11 @@ function renderWebAjandam() {
   if (!sites.length) {
     html += `<div class="empty">Bu grupta henüz site yok.</div>`;
   } else {
-    html += `<div class="wa-grid">` + sites.map(s => {
+    html += `<div class="wa-grid" id="wa-site-grid">` + sites.map(s => {
       const favicon = getWaFavicon(s.url);
       const initial = (s.name[0] || '?').toUpperCase();
       const safeUrl = s.url.startsWith('http') ? s.url : 'https://' + s.url;
-      return `<a href="${esc(safeUrl)}" target="_blank" rel="noopener" class="wa-site-card">
+      return `<a href="${esc(safeUrl)}" target="_blank" rel="noopener" class="wa-site-card" data-sort-id="${s.id}">
         <div class="wa-site-actions">
           <button onclick="event.preventDefault();event.stopPropagation();openWaSiteForm('${s.id}')" title="Düzenle">✎</button>
           <button onclick="event.preventDefault();event.stopPropagation();delWaSite('${s.id}')" title="Sil">✕</button>
@@ -2865,6 +2874,30 @@ function renderWebAjandam() {
   }
 
   contEl.innerHTML = html;
+
+  // Sürükle-bırak sıralamayı etkinleştir
+  initSortable('wa-tabs', '.wa-tab[data-sort-id]', waGroupsReorder);
+  if (sites.length) initSortable('wa-site-grid', '.wa-site-card[data-sort-id]', waSitesReorder);
+}
+
+function waGroupsReorder(newOrderKeys) {
+  const groups = getWaGroups() || [];
+  const byKey = {};
+  groups.forEach(g => byKey[g.key] = g);
+  const reordered = newOrderKeys.map(k => byKey[k]).filter(Boolean);
+  // Eksik kalanlar varsa (güvenlik) sona ekle
+  groups.forEach(g => { if (!reordered.includes(g)) reordered.push(g); });
+  DB.set('wa_groups', reordered);
+}
+
+function waSitesReorder(newOrderIds) {
+  const active = getWaActiveGroup();
+  const sites = DB.get('wa_sites_' + active, []);
+  const byId = {};
+  sites.forEach(s => byId[s.id] = s);
+  const reordered = newOrderIds.map(id => byId[id]).filter(Boolean);
+  sites.forEach(s => { if (!reordered.includes(s)) reordered.push(s); });
+  DB.set('wa_sites_' + active, reordered);
 }
 
 function waSwitchGroup(key) {
@@ -3994,6 +4027,114 @@ function initSwipeDelete(listEl) {
 }
 function initSwipeForList(listId) {
   setTimeout(() => initSwipeDelete(document.getElementById(listId)), 100);
+}
+
+// ==================== 🔀 SÜRÜKLE-BIRAK SIRALAMA (Genel Motor) ====================
+// Mouse: basılı tutup ~6px hareket edince sürükleme başlar
+// Touch: ~500ms basılı tutunca (uzun basış) sürükleme başlar — sayfa kaydırmasıyla çakışmaz
+let sortableCtx = null;
+
+function initSortable(containerId, itemSelector, onReorder) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  function getItems() {
+    return Array.from(container.querySelectorAll(itemSelector));
+  }
+
+  function findClosest(x, y, excludeEl) {
+    let closest = null, closestDist = Infinity;
+    getItems().forEach(el => {
+      if (el === excludeEl) return;
+      const box = el.getBoundingClientRect();
+      const cx = box.left + box.width / 2;
+      const cy = box.top + box.height / 2;
+      const dist = Math.hypot(x - cx, y - cy);
+      if (dist < closestDist) { closestDist = dist; closest = { el, cx, cy }; }
+    });
+    return closest;
+  }
+
+  function beginDrag() {
+    sortableCtx.dragging = true;
+    sortableCtx.item.classList.add('sortable-dragging');
+    document.body.classList.add('sortable-noscroll');
+    if (navigator.vibrate) navigator.vibrate(12);
+  }
+
+  function onPointerMove(e) {
+    if (!sortableCtx || sortableCtx.container !== container) return;
+    if (!sortableCtx.dragging) {
+      if (sortableCtx.pointerType === 'mouse') {
+        const dx = e.clientX - sortableCtx.startX, dy = e.clientY - sortableCtx.startY;
+        if (Math.hypot(dx, dy) > 6) beginDrag();
+      }
+      return;
+    }
+    e.preventDefault();
+    const target = findClosest(e.clientX, e.clientY, sortableCtx.item);
+    if (target) {
+      const insertAfter = e.clientX > target.cx;
+      if (insertAfter) {
+        if (target.el.nextElementSibling !== sortableCtx.item) target.el.after(sortableCtx.item);
+      } else {
+        if (target.el.previousElementSibling !== sortableCtx.item) target.el.before(sortableCtx.item);
+      }
+    }
+  }
+
+  function onPointerUp() {
+    if (!sortableCtx || sortableCtx.container !== container) return;
+    clearTimeout(sortableCtx.longPressTimer);
+    if (sortableCtx.moveCancelCheck) document.removeEventListener('pointermove', sortableCtx.moveCancelCheck);
+    const wasDragging = sortableCtx.dragging;
+    const item = sortableCtx.item;
+    if (wasDragging) {
+      item.classList.remove('sortable-dragging');
+      document.body.classList.remove('sortable-noscroll');
+      const newOrder = getItems().map(el => el.dataset.sortId);
+      onReorder(newOrder);
+      // Sürükleme sonrası link/tıklama tetiklenmesin
+      const blockClick = (ce) => { ce.preventDefault(); ce.stopPropagation(); };
+      item.addEventListener('click', blockClick, true);
+      setTimeout(() => item.removeEventListener('click', blockClick, true), 300);
+    }
+    document.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('pointerup', onPointerUp);
+    document.removeEventListener('pointercancel', onPointerUp);
+    sortableCtx = null;
+  }
+
+  getItems().forEach(item => {
+    item.classList.add('sortable-item');
+    item.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (e.target.closest('button, input, textarea, a.wa-site-actions-link')) return;
+
+      sortableCtx = {
+        container, item, startX: e.clientX, startY: e.clientY,
+        dragging: false, pointerType: e.pointerType, longPressTimer: null, moveCancelCheck: null
+      };
+
+      document.addEventListener('pointermove', onPointerMove, { passive: false });
+      document.addEventListener('pointerup', onPointerUp);
+      document.addEventListener('pointercancel', onPointerUp);
+
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+        sortableCtx.longPressTimer = setTimeout(() => {
+          if (sortableCtx) beginDrag();
+        }, 500);
+        const cancelCheck = (me) => {
+          if (!sortableCtx || sortableCtx.dragging) return;
+          if (Math.hypot(me.clientX - sortableCtx.startX, me.clientY - sortableCtx.startY) > 10) {
+            clearTimeout(sortableCtx.longPressTimer);
+          }
+        };
+        sortableCtx.moveCancelCheck = cancelCheck;
+        document.addEventListener('pointermove', cancelCheck);
+      }
+    });
+  });
 }
 
 // ==================== 🎤 SESLİ DİKTE ====================
