@@ -121,7 +121,7 @@
       max-height: calc(100vh - 100px); overflow-y: auto; padding-bottom: 20px; 
   }
   .widget-column::-webkit-scrollbar { display: none; }
-  .widget-grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .widget-grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-width: 0; }
   
   @media (min-width: 901px) { 
       .widget-column { display: flex; } 
@@ -129,8 +129,8 @@
 
   /* Takvim ve Diğer SİMETRİK Blokların Ortak Şablonu */
   .widget-panel { 
-      width: 100%; background: var(--surface); border: 1px solid var(--border); 
-      border-radius: 20px; padding: 20px; box-shadow: var(--shadow); 
+      width: 100%; min-width: 0; background: var(--surface); border: 1px solid var(--border); 
+      border-radius: 20px; padding: 20px; box-shadow: var(--shadow); overflow: hidden;
   }
   
   /* Daha Sonra Renklendirebilmen İçin Özel Class'lar */
@@ -151,6 +151,47 @@
   .lw-link { background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; font-weight:700; font-family:inherit; padding:4px 8px; }
   .lw-link:hover { text-decoration:underline; }
   .lw-header { font-size:14px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+
+  /* Listelerim/Web Ajandam Widget Mod Değiştirici */
+  .lw-mode-switch { display:flex; gap:6px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .lw-mode-btn {
+    flex:1; font-size:12px; font-weight:700; padding:8px 6px; border-radius:8px;
+    border:1px solid var(--border); background:var(--bg); color:var(--muted);
+    cursor:pointer; transition:all 0.15s; font-family:inherit; text-align:center;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .lw-mode-btn:hover { color:var(--text); }
+  .lw-mode-btn.active { background:var(--accent-light); border-color:var(--accent); color:var(--accent); }
+
+  /* Web Ajandam Widget — yatay kaydırmalı grup sekmeleri (sadece ilk gruplar görünür, kaydırarak diğerlerine ulaşılır) */
+  .wa-widget-tabs {
+    display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    padding-bottom:10px; margin-bottom:12px; scrollbar-width:thin;
+    flex-wrap: nowrap; min-width: 0; max-width: 100%;
+  }
+  .wa-widget-tabs::-webkit-scrollbar { height:4px; }
+  .wa-widget-tabs::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  .wa-widget-tabs .lw-tab { flex: 0 0 auto; white-space:nowrap; padding: 8px 14px; }
+  /* iOS app ikonu tarzı — sadece ikon, isim yok (hover'da title gösterir) */
+  .wa-widget-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(44px, 1fr)); gap:10px;
+    min-height:auto; max-width:100%;
+  }
+  .wa-widget-site {
+    display:flex; align-items:center; justify-content:center;
+    text-decoration:none; transition:transform 0.15s;
+    width:44px; height:44px; margin:0 auto;
+  }
+  .wa-widget-site:hover { transform:scale(1.08); }
+  .wa-widget-icon {
+    width:44px; height:44px; border-radius:11px; object-fit:cover;
+    background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow);
+  }
+  .wa-widget-icon-fallback {
+    width:44px; height:44px; border-radius:11px; background:var(--accent-light); color:var(--accent);
+    display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800;
+    border:1px solid var(--border); box-shadow:var(--shadow);
+  }
 
   /* Web Ajandam */
   .wa-tab { flex:1; font-size:13px; font-weight:700; padding:8px 16px; margin:0; flex-shrink:0; cursor:pointer; border-radius:20px; white-space:nowrap; display:flex; align-items:center; gap:6px; }
@@ -999,11 +1040,27 @@
           <div class="widget-grid-row" id="widget-row-1">
             <div class="widget-panel widget-color-1 cal-panel" id="cal-panel"></div>
             <div class="widget-panel widget-color-3" id="widget-3">
-              <div class="lw-header"><span>📋</span><span>Listelerim</span></div>
-              <div class="lw-tabs" id="lw-tabs"></div>
-              <div class="lw-list" id="lw-list"></div>
-              <div class="lw-footer">
-                <button class="lw-link" onclick="switchModule('lists','pers')">Tüm listeyi gör →</button>
+              <div class="lw-mode-switch" id="lw-mode-switch">
+                <button class="lw-mode-btn active" id="lw-mode-lists" onclick="lwSetMode('lists')">📋 Listelerim</button>
+                <button class="lw-mode-btn" id="lw-mode-wa" onclick="lwSetMode('wa')">🌐 Web Ajandam</button>
+              </div>
+
+              <!-- LİSTELERİM İÇERİĞİ -->
+              <div id="lw-mode-content-lists">
+                <div class="lw-tabs" id="lw-tabs"></div>
+                <div class="lw-list" id="lw-list"></div>
+                <div class="lw-footer">
+                  <button class="lw-link" onclick="switchModule('lists','pers')">Tüm listeyi gör →</button>
+                </div>
+              </div>
+
+              <!-- WEB AJANDAM İÇERİĞİ -->
+              <div id="lw-mode-content-wa" style="display:none;flex-direction:column;min-height:230px;">
+                <div class="lw-tabs wa-widget-tabs" id="wa-widget-tabs"></div>
+                <div class="wa-widget-grid" id="wa-widget-grid" style="flex:1;align-content:flex-start;"></div>
+                <div class="lw-footer" style="margin-top:auto;">
+                  <button class="lw-link" onclick="switchModule('webajandam','pers')">Tümünü gör →</button>
+                </div>
               </div>
             </div>
           </div>
@@ -2276,7 +2333,7 @@ function renderSummary() {
 
   el.innerHTML = html;
   renderCalendar();
-  renderListsWidget();
+  initLwModeSwitch();
   renderHabitsWidget();
   updateImportBar();
   requestAnimationFrame(() => {
@@ -3479,6 +3536,82 @@ function renderListsWidget() {
 function lwSwitchCat(cat) {
   lwActiveCat = cat;
   renderListsWidget();
+}
+
+// ==================== WIDGET MOD DEĞİŞTİRİCİ (Listelerim / Web Ajandam) ====================
+function lwSetMode(mode) {
+  localStorage.setItem('planner_lw_widget_mode', mode);
+  const listsBtn = document.getElementById('lw-mode-lists');
+  const waBtn = document.getElementById('lw-mode-wa');
+  const listsContent = document.getElementById('lw-mode-content-lists');
+  const waContent = document.getElementById('lw-mode-content-wa');
+  if (!listsBtn || !waBtn) return;
+
+  if (mode === 'wa') {
+    listsBtn.classList.remove('active');
+    waBtn.classList.add('active');
+    listsContent.style.display = 'none';
+    waContent.style.display = 'flex';
+    renderWaWidget();
+  } else {
+    waBtn.classList.remove('active');
+    listsBtn.classList.add('active');
+    waContent.style.display = 'none';
+    listsContent.style.display = 'block';
+    renderListsWidget();
+  }
+}
+
+function initLwModeSwitch() {
+  const saved = localStorage.getItem('planner_lw_widget_mode') || 'lists';
+  lwSetMode(saved);
+}
+
+// ==================== WEB AJANDAM WIDGET (hızlı erişim) ====================
+let waWidgetActiveGroup = null;
+
+function renderWaWidget() {
+  seedWaDataIfEmpty();
+  const groups = getWaGroups() || [];
+  const tabsEl = document.getElementById('wa-widget-tabs');
+  const gridEl = document.getElementById('wa-widget-grid');
+  if (!tabsEl || !gridEl) return;
+
+  if (!groups.length) {
+    tabsEl.innerHTML = '';
+    gridEl.innerHTML = '<div class="lw-empty">Henüz grup yok.</div>';
+    return;
+  }
+
+  if (!waWidgetActiveGroup || !groups.find(g => g.key === waWidgetActiveGroup)) {
+    waWidgetActiveGroup = groups[0].key;
+  }
+
+  tabsEl.innerHTML = groups.map(g =>
+    `<button class="lw-tab ${g.key===waWidgetActiveGroup?'active':''}" onclick="waWidgetSwitchGroup('${esc(g.key).replace(/'/g,"\\'")}')">${g.emoji} ${esc(g.key)}</button>`
+  ).join('');
+
+  const sites = DB.get('wa_sites_' + waWidgetActiveGroup, []).slice(0, 15);
+  if (!sites.length) {
+    gridEl.innerHTML = `<div class="lw-empty">"${esc(waWidgetActiveGroup)}" grubunda site yok.</div>`;
+    return;
+  }
+
+  gridEl.innerHTML = sites.map(s => {
+    const favicon = getWaFavicon(s.url);
+    const initial = (s.name[0] || '?').toUpperCase();
+    const safeUrl = s.url.startsWith('http') ? s.url : 'https://' + s.url;
+    return `<a href="${esc(safeUrl)}" target="_blank" rel="noopener" class="wa-widget-site" title="${esc(s.name)}">
+      ${favicon
+        ? `<img class="wa-widget-icon" src="${favicon}" alt="" onerror="this.outerHTML='<div class=&quot;wa-widget-icon-fallback&quot;>${initial}</div>'">`
+        : `<div class="wa-widget-icon-fallback">${initial}</div>`}
+    </a>`;
+  }).join('');
+}
+
+function waWidgetSwitchGroup(key) {
+  waWidgetActiveGroup = key;
+  renderWaWidget();
 }
 
 // ==================== ALIŞKANLIK TAKİBİ WIDGET ====================
@@ -5958,7 +6091,7 @@ function init() {
   
   // Widgetların (Takvim vb.) ekran boyutuna göre yerleşimi
   relocateWidgets();
-  renderListsWidget();
+  initLwModeSwitch();
   renderHabitsWidget();
   loadWeather();
   setInterval(() => { if(currentModule==='summary') renderSummary(); }, 60000);
