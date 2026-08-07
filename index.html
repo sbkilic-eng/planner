@@ -237,6 +237,26 @@
   /* Sürükle-Bırak Sıralama */
   .sortable-item { touch-action: pan-y; -webkit-user-drag: none; user-drag: none; user-select: none; -webkit-user-select: none; }
   .sortable-item img, .sortable-item a { -webkit-user-drag: none; user-drag: none; }
+  .sortable-handle {
+    cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 13px; line-height: 1; flex-shrink: 0;
+    border-radius: 5px; transition: background 0.15s, color 0.15s;
+  }
+  .sortable-handle:hover { background: var(--bg); color: var(--text); }
+  .sortable-item.sortable-dragging { cursor: grabbing; }
+  .sortable-item.sortable-dragging .sortable-handle { cursor: grabbing; }
+  .wa-tab .sortable-handle { width: 16px; height: 20px; margin-right: 2px; font-size: 12px; }
+  .wa-site-card { position: relative; }
+  .wa-site-card .sortable-handle {
+    position: absolute; top: 6px; left: 6px; width: 22px; height: 22px;
+    background: var(--bg); border: 1px solid var(--border); z-index: 2;
+  }
+  @media (max-width: 900px) { .wa-site-card .sortable-handle { opacity: 1; } }
+  @media (min-width: 901px) {
+    .wa-site-card .sortable-handle { opacity: 0; transition: opacity 0.15s; }
+    .wa-site-card:hover .sortable-handle { opacity: 1; }
+  }
   .sortable-dragging {
     opacity: 0.9 !important; transform: scale(1.05) !important;
     box-shadow: 0 12px 28px rgba(0,0,0,0.3) !important; z-index: 60 !important;
@@ -2635,15 +2655,18 @@ function renderHabits() {
       </div>`
     ).join('');
 
-    return `<div class="swipe-wrap">
+    return `<div class="swipe-wrap" data-sort-id="${h.id}">
       <div class="swipe-del-btn" onclick="delHabit('${h.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
       <div class="card" style="margin-bottom:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div class="card-title" style="margin:0;">${esc(h.n)}</div>
-            <div class="card-meta" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:2px;">
-              ${dw}/${h.tg} ${currentLang==='tr'?'bu hafta':'this week'}
-              ${h.dur > 0 ? `· ${h.dur} günlük program` : ''}
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="sortable-handle" title="Sürükleyerek sırala">⠿</span>
+            <div>
+              <div class="card-title" style="margin:0;">${esc(h.n)}</div>
+              <div class="card-meta" style="color:var(--accent);font-weight:700;font-size:12px;margin-top:2px;">
+                ${dw}/${h.tg} ${currentLang==='tr'?'bu hafta':'this week'}
+                ${h.dur > 0 ? `· ${h.dur} günlük program` : ''}
+              </div>
             </div>
           </div>
           <button class="btn-icon" onclick="delHabit('${h.id}')">&#10005;</button>
@@ -2658,14 +2681,31 @@ function renderHabits() {
     </div>`;
   }).join('');
   initSwipeForList('habit-list');
+  initSortable('habit-list', '.swipe-wrap[data-sort-id]', habitsReorder, 'y');
   renderHabitsWidget();
+}
+
+function habitsReorder(newOrderIds) {
+  const arr = DB.get('pers_habits', []);
+  const byId = {};
+  arr.forEach(h => byId[h.id] = h);
+  const reordered = newOrderIds.map(id => byId[id]).filter(Boolean);
+  arr.forEach(h => { if (!reordered.includes(h)) reordered.push(h); });
+  DB.set('pers_habits', reordered);
+  setOrderTimestamp('pers_habits');
 }
 
 // ==================== 6. LISTS ====================
 function getCatKeys() { return DB.get('pers_listcats',['Alışveriş','İzlenecekler','Kitaplar']); }
 function getActiveCat() { return DB.get('pers_activecat',getCatKeys()[0]); }
 function safe(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
-function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()">${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); renderListsWidget(); }
+function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" data-sort-id="${esc(c)}" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;display:flex;align-items:center;gap:6px;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()"><span class="sortable-handle" title="Sürükleyerek sırala">⠿</span>${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); renderListsWidget(); initSortable('cat-tabs', '.badge[data-sort-id]', listCatsReorder); }
+function listCatsReorder(newOrderKeys) {
+  const cats = getCatKeys();
+  const reordered = newOrderKeys.filter(k => cats.includes(k));
+  cats.forEach(c => { if (!reordered.includes(c)) reordered.push(c); });
+  DB.set('pers_listcats', reordered);
+}
 function saveNewListCat(){ const n=document.getElementById('m-newlist-name').value.trim(); if(!n)return; const c=getCatKeys(); if(!c.includes(n))c.push(n); DB.set('pers_listcats',c); DB.set('pers_activecat',n); closeModal('modal-newlist'); renderLists(); }
 function addLItem(cat){ 
   const inputId = 'li-' + safe(cat);
@@ -2699,12 +2739,14 @@ function renderListItems(cat) {
   const el=document.getElementById('list-content'); 
   if(!cat) { el.innerHTML=''; return; }
   const arr=DB.get('pers_list_'+cat,[]);
-  const r=(i)=>{
+  const r=(i,sortable)=>{
     const domain = getLinkDomain(i.p);
     const linkUrl = i.p ? (i.p.startsWith('http') ? i.p : 'https://'+i.p) : null;
     const linkBadge = domain && !i.d ? `<a href="${linkUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;background:var(--accent-light);padding:3px 8px;border-radius:6px;border:1px solid var(--accent);color:var(--accent);text-decoration:none;margin-right:8px;flex-shrink:0;" title="${esc(i.p)}">\u{1F517} ${esc(domain)}</a>` : '';
-    return `<div class="card" style="padding:12px 16px;margin-bottom:8px;${i.d?'opacity:0.5;box-shadow:none;':''}">
+    const handle = sortable ? `<span class="sortable-handle" title="Sürükleyerek sırala" style="margin-right:4px;">⠿</span>` : '';
+    return `<div class="card" ${sortable?`data-sort-id="${i.id}"`:''} style="padding:12px 16px;margin-bottom:8px;${i.d?'opacity:0.5;box-shadow:none;':''}">
       <div class="acc-header" onclick="togLBody('${i.id}')">
+        ${handle}
         <div class="list-check ${i.d?'checked':''}" style="width:20px;height:20px;" onclick="event.stopPropagation();togLItem('${esc(cat)}','${i.id}')">${i.d?'✓':''}</div>
         <div style="flex:1;font-weight:600;font-size:15px;margin-left:12px;${i.d?'text-decoration:line-through':''}">${esc(i.t)}</div>
         ${linkBadge}
@@ -2726,7 +2768,18 @@ function renderListItems(cat) {
   };
   const un=arr.filter(i=>!i.d); const dn=arr.filter(i=>i.d);
   
-  el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:16px;"><input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')"><button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button><button class="btn-ghost" style="padding:8px 12px; border-color:var(--accent-danger); color:var(--accent-danger);" onclick="delListCat('${esc(cat)}')">🗑️</button></div>${un.length?un.map(r).join(''):'<div class="empty">Liste boş.</div>'}${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(r).join('')}`:''}`;
+  el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:16px;"><input type="text" id="li-${safe(cat)}" placeholder="${esc(cat)}..." onkeydown="if(event.key==='Enter')addLItem('${esc(cat)}')"><button class="btn-primary" onclick="addLItem('${esc(cat)}')">+</button><button class="btn-ghost" style="padding:8px 12px; border-color:var(--accent-danger); color:var(--accent-danger);" onclick="delListCat('${esc(cat)}')">🗑️</button></div><div id="list-active-items">${un.length?un.map(i=>r(i,true)).join(''):'<div class="empty">Liste boş.</div>'}</div>${dn.length?`<div class="divider"></div><div class="section-label">Tamamlananlar</div>${dn.map(i=>r(i,false)).join('')}`:''}`;
+  initSortable('list-active-items', '.card[data-sort-id]', (newOrderIds) => listItemsReorder(cat, newOrderIds), 'y');
+}
+
+function listItemsReorder(cat, newOrderIds) {
+  const arr = DB.get('pers_list_'+cat, []);
+  const byId = {};
+  arr.forEach(i => byId[i.id] = i);
+  const reordered = newOrderIds.map(id => byId[id]).filter(Boolean);
+  arr.forEach(i => { if (!reordered.includes(i)) reordered.push(i); });
+  DB.set('pers_list_'+cat, reordered);
+  setOrderTimestamp('pers_list_'+cat);
 }
 
 // ==================== 6.5 WEB AJANDAM ====================
@@ -2839,7 +2892,7 @@ function renderWebAjandam() {
   if (!tabsEl || !contEl) return;
 
   tabsEl.innerHTML = groups.map(g =>
-    `<button class="wa-tab ${g.key===active?'active':''}" data-sort-id="${esc(g.key)}" onclick="waSwitchGroup('${esc(g.key).replace(/'/g,"\\'")}')"><span>${g.emoji}</span><span>${esc(g.key)}</span></button>`
+    `<button class="wa-tab ${g.key===active?'active':''}" data-sort-id="${esc(g.key)}" onclick="waSwitchGroup('${esc(g.key).replace(/'/g,"\\'")}')"><span class="sortable-handle" title="Sürükleyerek sırala">⠿</span><span>${g.emoji}</span><span>${esc(g.key)}</span></button>`
   ).join('') + `<button class="wa-tab" style="background:transparent;border:1px dashed var(--border);color:var(--text);" onclick="openWaNewGroup()">+ Yeni Grup</button>`;
 
   if (!active) {
@@ -2862,6 +2915,7 @@ function renderWebAjandam() {
       const initial = (s.name[0] || '?').toUpperCase();
       const safeUrl = s.url.startsWith('http') ? s.url : 'https://' + s.url;
       return `<a href="${esc(safeUrl)}" target="_blank" rel="noopener" class="wa-site-card" data-sort-id="${s.id}" draggable="false">
+        <span class="sortable-handle" title="Sürükleyerek sırala">⠿</span>
         <div class="wa-site-actions">
           <button onclick="event.preventDefault();event.stopPropagation();openWaSiteForm('${s.id}')" title="Düzenle">✎</button>
           <button onclick="event.preventDefault();event.stopPropagation();delWaSite('${s.id}')" title="Sil">✕</button>
@@ -2899,6 +2953,7 @@ function waSitesReorder(newOrderIds) {
   const reordered = newOrderIds.map(id => byId[id]).filter(Boolean);
   sites.forEach(s => { if (!reordered.includes(s)) reordered.push(s); });
   DB.set('wa_sites_' + active, reordered);
+  setOrderTimestamp('wa_sites_' + active);
 }
 
 function waSwitchGroup(key) {
@@ -3229,10 +3284,11 @@ async function renderNotes() {
   el.innerHTML = arr.map(n => {
     const d = new Date(n.d);
     const cCount = (n.contacts||[]).length;
-    return `<div class="swipe-wrap">
+    return `<div class="swipe-wrap" data-sort-id="${n.id}">
       <div class="swipe-del-btn" onclick="deleteNoteById('${n.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
       <div class="card" style="cursor:pointer;margin-bottom:0;" data-id="${n.id}" onclick="openNoteEditor('${n.id}')">
         <div class="card-actions">
+          <span class="sortable-handle" title="Sürükleyerek sırala" onclick="event.stopPropagation()">⠿</span>
           <button class="btn-icon swipe-hide-mobile" onclick="event.stopPropagation();deleteNoteById('${n.id}')">&#10005;</button>
         </div>
         <div class="card-title">${esc(n.title)}</div>
@@ -3245,6 +3301,18 @@ async function renderNotes() {
     </div>`;
   }).join('');
   initSwipeForList('notes-list');
+  initSortable('notes-list', '.swipe-wrap[data-sort-id]', notesReorder, 'y');
+}
+
+function notesReorder(newOrderIds) {
+  const k = getNoteKey();
+  const arr = DB.get(k, []);
+  const byId = {};
+  arr.forEach(n => byId[n.id] = n);
+  const reordered = newOrderIds.map(id => byId[id]).filter(Boolean);
+  arr.forEach(n => { if (!reordered.includes(n)) reordered.push(n); });
+  DB.set(k, reordered);
+  setOrderTimestamp(k);
 }
 
 async function deleteNoteById(nid) {
@@ -4005,6 +4073,8 @@ function initSwipeDelete(listEl) {
     let startX=0, startY=0, curX=0, dragging=false, opened=false;
     const THRESHOLD = 60;
     inner.addEventListener('touchstart', e => {
+      // Sürükle-bırak tutamacından başlayan dokunuşları swipe olarak algılama
+      if (e.target.closest && e.target.closest('.sortable-handle')) return;
       startX=e.touches[0].clientX; startY=e.touches[0].clientY; curX=0; dragging=true;
       inner.style.transition='none';
     }, {passive:true});
@@ -4035,7 +4105,8 @@ function initSwipeForList(listId) {
 // Touch: ~500ms basılı tutunca (uzun basış) sürükleme başlar — sayfa kaydırmasıyla çakışmaz
 let sortableCtx = null;
 
-function initSortable(containerId, itemSelector, onReorder) {
+function initSortable(containerId, itemSelector, onReorder, axis) {
+  axis = axis || 'x'; // 'x' = yatay sekmeler/grid, 'y' = dikey liste
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -4063,31 +4134,46 @@ function initSortable(containerId, itemSelector, onReorder) {
     if (navigator.vibrate) navigator.vibrate(12);
   }
 
+  // Titremeyi önlemek için: pozisyon hesaplamasını her pointermove'da değil,
+  // ekran yenileme hızında (requestAnimationFrame) VE sadece pointer belirgin
+  // mesafe kat ettiğinde yap (histerezis payı)
+  function scheduleReposition(x, y) {
+    sortableCtx.pendingX = x;
+    sortableCtx.pendingY = y;
+    if (sortableCtx.rafId) return;
+    sortableCtx.rafId = requestAnimationFrame(() => {
+      sortableCtx.rafId = null;
+      if (!sortableCtx || !sortableCtx.dragging) return;
+      const px = sortableCtx.pendingX, py = sortableCtx.pendingY;
+      // Histerezis: son yeniden konumlandırmadan bu yana yeterince hareket
+      // etmediyse (ör. iki öğe arasında salınım yapıyorsa) hiçbir şey yapma
+      const lastX = sortableCtx.lastReposX, lastY = sortableCtx.lastReposY;
+      if (lastX !== null && Math.hypot(px - lastX, py - lastY) < 10) return;
+
+      const target = findClosest(px, py, sortableCtx.item);
+      if (!target) return;
+      const insertAfter = axis === 'y' ? (py > target.cy) : (px > target.cx);
+      let moved = false;
+      if (insertAfter) {
+        if (target.el.nextElementSibling !== sortableCtx.item) { target.el.after(sortableCtx.item); moved = true; }
+      } else {
+        if (target.el.previousElementSibling !== sortableCtx.item) { target.el.before(sortableCtx.item); moved = true; }
+      }
+      if (moved) { sortableCtx.lastReposX = px; sortableCtx.lastReposY = py; }
+    });
+  }
+
   function onPointerMove(e) {
     if (!sortableCtx || sortableCtx.container !== container) return;
-    if (!sortableCtx.dragging) {
-      if (sortableCtx.pointerType === 'mouse') {
-        const dx = e.clientX - sortableCtx.startX, dy = e.clientY - sortableCtx.startY;
-        if (Math.hypot(dx, dy) > 6) beginDrag();
-      }
-      return;
-    }
+    if (!sortableCtx.dragging) return; // Tutamaçtan başlıyor, eşik gerekmiyor
     e.preventDefault();
-    const target = findClosest(e.clientX, e.clientY, sortableCtx.item);
-    if (target) {
-      const insertAfter = e.clientX > target.cx;
-      if (insertAfter) {
-        if (target.el.nextElementSibling !== sortableCtx.item) target.el.after(sortableCtx.item);
-      } else {
-        if (target.el.previousElementSibling !== sortableCtx.item) target.el.before(sortableCtx.item);
-      }
-    }
+    scheduleReposition(e.clientX, e.clientY);
   }
 
   function onPointerUp() {
     if (!sortableCtx || sortableCtx.container !== container) return;
     clearTimeout(sortableCtx.longPressTimer);
-    if (sortableCtx.moveCancelCheck) document.removeEventListener('pointermove', sortableCtx.moveCancelCheck);
+    if (sortableCtx.rafId) { cancelAnimationFrame(sortableCtx.rafId); sortableCtx.rafId = null; }
     const wasDragging = sortableCtx.dragging;
     const item = sortableCtx.item;
     if (wasDragging) {
@@ -4095,10 +4181,6 @@ function initSortable(containerId, itemSelector, onReorder) {
       document.body.classList.remove('sortable-noscroll');
       const newOrder = getItems().map(el => el.dataset.sortId);
       onReorder(newOrder);
-      // Sürükleme sonrası link/tıklama tetiklenmesin
-      const blockClick = (ce) => { ce.preventDefault(); ce.stopPropagation(); };
-      item.addEventListener('click', blockClick, true);
-      setTimeout(() => item.removeEventListener('click', blockClick, true), 300);
     }
     document.removeEventListener('pointermove', onPointerMove);
     document.removeEventListener('pointerup', onPointerUp);
@@ -4108,38 +4190,32 @@ function initSortable(containerId, itemSelector, onReorder) {
 
   getItems().forEach(item => {
     item.classList.add('sortable-item');
-    item.addEventListener('pointerdown', (e) => {
+    const handle = item.querySelector('.sortable-handle');
+    if (!handle) return;
+
+    handle.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      // Sadece İÇ İÇE (nested) buton/input'lara tıklanırsa engelle — item'ın kendisi
-      // buton/link olsa bile (wa-tab, wa-site-card gibi) ya da içindeki span'lara
-      // tıklansa bile sürüklemeyi engelleme; sadece GERÇEKTEN farklı, iç içe bir
-      // interaktif elemana (örn. site kartındaki düzenle/sil butonları) tıklanırsa engelle
-      const closestInteractive = e.target.closest('button, input, textarea');
-      if (closestInteractive && closestInteractive !== item) return;
+      e.preventDefault();
+      e.stopPropagation();
 
       sortableCtx = {
         container, item, startX: e.clientX, startY: e.clientY,
-        dragging: false, pointerType: e.pointerType, longPressTimer: null, moveCancelCheck: null
+        dragging: false, pointerType: e.pointerType,
+        rafId: null, pendingX: e.clientX, pendingY: e.clientY,
+        lastReposX: null, lastReposY: null
       };
 
       document.addEventListener('pointermove', onPointerMove, { passive: false });
       document.addEventListener('pointerup', onPointerUp);
       document.addEventListener('pointercancel', onPointerUp);
 
-      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
-        sortableCtx.longPressTimer = setTimeout(() => {
-          if (sortableCtx) beginDrag();
-        }, 500);
-        const cancelCheck = (me) => {
-          if (!sortableCtx || sortableCtx.dragging) return;
-          if (Math.hypot(me.clientX - sortableCtx.startX, me.clientY - sortableCtx.startY) > 10) {
-            clearTimeout(sortableCtx.longPressTimer);
-          }
-        };
-        sortableCtx.moveCancelCheck = cancelCheck;
-        document.addEventListener('pointermove', cancelCheck);
-      }
+      // Tutamaç zaten net bir tetikleyici olduğu için hem mouse hem touch'ta
+      // gecikmesiz, anında sürüklemeye başla
+      beginDrag();
     });
+
+    // Tutamaç tıklanınca kartın kendi linkinin/butonunun tetiklenmesini engelle
+    handle.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
   });
 }
 
@@ -5286,36 +5362,48 @@ function getItemTime(item) {
 }
 
 // İki array'i id bazlı akıllıca birleştir
-function mergeArrays(localArr, cloudArr, tombstones, key) {
+function getOrderTimestamp(dbKey) {
+  return parseInt(localStorage.getItem('planner_orderts_' + dbKey) || '0');
+}
+function setOrderTimestamp(dbKey) {
+  localStorage.setItem('planner_orderts_' + dbKey, String(Date.now()));
+}
+
+function mergeArrays(localArr, cloudArr, tombstones, key, localOrderTs, cloudOrderTs) {
   const tombstonedIds = new Set(
     tombstones.filter(t => t.key === key).map(t => t.id)
   );
 
-  const merged = new Map();
-
-  // Bulutu önce ekle
+  // 1. İÇERİK birleştirme — hangi öğeler var, en güncel hali hangisi
+  const contentMap = new Map();
   (cloudArr || []).forEach(item => {
     if (!item || !item.id) return;
-    if (tombstonedIds.has(item.id)) return;  // Silinmiş kayıt, atla
-    merged.set(item.id, item);
+    if (tombstonedIds.has(item.id)) return;
+    contentMap.set(item.id, item);
   });
-
-  // Sonra yereli karşılaştır - daha yenisi kazanır
   (localArr || []).forEach(item => {
     if (!item || !item.id) return;
     if (tombstonedIds.has(item.id)) return;
-    const existing = merged.get(item.id);
+    const existing = contentMap.get(item.id);
     if (!existing) {
-      merged.set(item.id, item);
+      contentMap.set(item.id, item);
     } else {
-      // Daha yeni olanı seç
       const lt = getItemTime(item);
       const et = getItemTime(existing);
-      merged.set(item.id, lt >= et ? item : existing);
+      contentMap.set(item.id, lt >= et ? item : existing);
     }
   });
 
-  return Array.from(merged.values());
+  // 2. SIRA — hangi taraf daha yakın zamanda elle sıralanmışsa onun sırası kullanılır
+  //    (ikisi de sıralanmamışsa/eşitse yerel sıra tercih edilir)
+  const useLocalOrder = (localOrderTs || 0) >= (cloudOrderTs || 0);
+  const orderSource = useLocalOrder ? localArr : cloudArr;
+  const orderIds = (orderSource || []).map(x => x && x.id).filter(id => id && contentMap.has(id));
+  const seen = new Set(orderIds);
+  const result = orderIds.map(id => contentMap.get(id));
+  // Sıra kaynağında olmayan (diğer taraftan gelen yeni) öğeleri sona ekle
+  contentMap.forEach((item, id) => { if (!seen.has(id)) result.push(item); });
+  return result;
 }
 
 // Tombstone'ları birleştir (her ikisi de korunur)
@@ -5354,6 +5442,9 @@ function smartMergeData(localData, cloudData) {
 
   allKeys.forEach(k => {
     if (k === TOMBSTONE_KEY) return;
+    // Sıra zaman damgaları (orderts) ayrı işlenir — kendi array anahtarının
+    // birleştirme adımı sırasında hallediliyor, burada atlanır
+    if (k.indexOf('planner_orderts_') === 0) return;
 
     // Hassas/cihaza özel anahtarlar — en başta kontrol et, asla cloud'dan gelmesin
     if (SYNC_EXCLUDE_KEYS.has(k) ||
@@ -5385,8 +5476,15 @@ function smartMergeData(localData, cloudData) {
         // Tombstone key'i DB.set'te 'planner_' prefix olmadan kaydediliyor
         // Ama localStorage key'i 'planner_' ile başlıyor — normalize et
         const tombKey = k.startsWith('planner_') ? k.slice('planner_'.length) : k;
-        const mergedArr = mergeArrays(localVal, cloudVal, allTombstones, tombKey);
+        const orderTsKey = 'planner_orderts_' + tombKey;
+        const localOrderTs = parseInt(localData[orderTsKey] || '0');
+        const cloudOrderTs = parseInt(cloudData[orderTsKey] || '0');
+        const mergedArr = mergeArrays(localVal, cloudVal, allTombstones, tombKey, localOrderTs, cloudOrderTs);
         merged[k] = JSON.stringify(mergedArr);
+        // En güncel sıra zaman damgasını da birleştirme sonucuna dahil et
+        if (localOrderTs || cloudOrderTs) {
+          merged[orderTsKey] = String(Math.max(localOrderTs, cloudOrderTs));
+        }
         return;
       }
     }
