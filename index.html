@@ -235,7 +235,8 @@
   .wa-emoji-btn.selected { border-color: var(--accent); background: var(--accent-light); }
 
   /* Sürükle-Bırak Sıralama */
-  .sortable-item { touch-action: pan-y; }
+  .sortable-item { touch-action: pan-y; -webkit-user-drag: none; user-drag: none; user-select: none; -webkit-user-select: none; }
+  .sortable-item img, .sortable-item a { -webkit-user-drag: none; user-drag: none; }
   .sortable-dragging {
     opacity: 0.9 !important; transform: scale(1.05) !important;
     box-shadow: 0 12px 28px rgba(0,0,0,0.3) !important; z-index: 60 !important;
@@ -2860,13 +2861,13 @@ function renderWebAjandam() {
       const favicon = getWaFavicon(s.url);
       const initial = (s.name[0] || '?').toUpperCase();
       const safeUrl = s.url.startsWith('http') ? s.url : 'https://' + s.url;
-      return `<a href="${esc(safeUrl)}" target="_blank" rel="noopener" class="wa-site-card" data-sort-id="${s.id}">
+      return `<a href="${esc(safeUrl)}" target="_blank" rel="noopener" class="wa-site-card" data-sort-id="${s.id}" draggable="false">
         <div class="wa-site-actions">
           <button onclick="event.preventDefault();event.stopPropagation();openWaSiteForm('${s.id}')" title="Düzenle">✎</button>
           <button onclick="event.preventDefault();event.stopPropagation();delWaSite('${s.id}')" title="Sil">✕</button>
         </div>
         ${favicon
-          ? `<img class="wa-site-icon" src="${favicon}" alt="" onerror="this.outerHTML='<div class=&quot;wa-site-icon-fallback&quot;>${initial}</div>'">`
+          ? `<img class="wa-site-icon" src="${favicon}" alt="" draggable="false" onerror="this.outerHTML='<div class=&quot;wa-site-icon-fallback&quot;>${initial}</div>'">`
           : `<div class="wa-site-icon-fallback">${initial}</div>`}
         <div class="wa-site-name">${esc(s.name)}</div>
       </a>`;
@@ -4109,7 +4110,12 @@ function initSortable(containerId, itemSelector, onReorder) {
     item.classList.add('sortable-item');
     item.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      if (e.target.closest('button, input, textarea, a.wa-site-actions-link')) return;
+      // Sadece İÇ İÇE (nested) buton/input'lara tıklanırsa engelle — item'ın kendisi
+      // buton/link olsa bile (wa-tab, wa-site-card gibi) ya da içindeki span'lara
+      // tıklansa bile sürüklemeyi engelleme; sadece GERÇEKTEN farklı, iç içe bir
+      // interaktif elemana (örn. site kartındaki düzenle/sil butonları) tıklanırsa engelle
+      const closestInteractive = e.target.closest('button, input, textarea');
+      if (closestInteractive && closestInteractive !== item) return;
 
       sortableCtx = {
         container, item, startX: e.clientX, startY: e.clientY,
