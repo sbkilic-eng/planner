@@ -2595,7 +2595,13 @@ function saveHabit() {
 function togHabit(hid, dStr) {
   const arr = DB.get('pers_habits',[]);
   const o = arr.find(x => x.id === hid);
-  if (o) { o.c[dStr] = !o.c[dStr]; DB.set('pers_habits', arr); renderHabits(); renderHabitsWidget(); }
+  if (o) {
+    o.c[dStr] = !o.c[dStr];
+    o.updatedAt = new Date().toISOString();
+    DB.set('pers_habits', arr);
+    renderHabits();
+    renderHabitsWidget();
+  }
 }
 
 function delHabit(hid) {
@@ -2606,23 +2612,56 @@ function delHabit(hid) {
   }
 }
 
+let habitWeekOffset = 0; // 0 = bu hafta, -1 = geçen hafta, +1 = gelecek hafta
+
+function habitWeekNav(delta) {
+  habitWeekOffset += delta;
+  renderHabits();
+}
+function habitWeekReset() {
+  habitWeekOffset = 0;
+  renderHabits();
+}
+
 function renderHabits() {
   const arr = DB.get('pers_habits',[]);
   const el  = document.getElementById('habit-list');
   if (!arr.length) { el.innerHTML=`<div class="empty">${translations[currentLang].empty}</div>`; return; }
 
   const today = new Date(); today.setHours(0,0,0,0);
-  const wDays = (() => {
+  const weekStart = (() => {
     const m = new Date(today);
-    m.setDate(today.getDate() - ((today.getDay()+6)%7));
+    m.setDate(today.getDate() - ((today.getDay()+6)%7) + (habitWeekOffset*7));
+    return m;
+  })();
+  const wDays = (() => {
     const l = { tr:['Pt','Sa','Ça','Pe','Cu','Ct','Pz'], en:['Mo','Tu','We','Th','Fr','Sa','Su'] };
     return Array.from({length:7}, (_,i) => {
-      const x = new Date(m); x.setDate(m.getDate()+i);
+      const x = new Date(weekStart); x.setDate(weekStart.getDate()+i);
       return { ds: localDateStr(x), lb: l[currentLang][i], n: x.getDate(), td: x.toDateString()===today.toDateString() };
     });
   })();
 
-  el.innerHTML = arr.map(h => {
+  // Hafta etiketi — örn. "4 - 10 Ağustos" veya ay değişiyorsa "28 Tem - 3 Ağu"
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6);
+  const monthsShort = currentLang==='tr'
+    ? ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara']
+    : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const weekLabel = weekStart.getMonth() === weekEnd.getMonth()
+    ? `${weekStart.getDate()} - ${weekEnd.getDate()} ${monthsShort[weekStart.getMonth()]}`
+    : `${weekStart.getDate()} ${monthsShort[weekStart.getMonth()]} - ${weekEnd.getDate()} ${monthsShort[weekEnd.getMonth()]}`;
+
+  const weekNavHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;">
+      <button class="btn-icon" onclick="habitWeekNav(-1)" title="Önceki Hafta">&#8592;</button>
+      <div style="text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${weekLabel}</div>
+        ${habitWeekOffset !== 0 ? `<button onclick="habitWeekReset()" style="background:none;border:none;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;padding:2px 0;">Bugüne Dön</button>` : `<div style="font-size:11px;color:var(--muted);">Bu Hafta</div>`}
+      </div>
+      <button class="btn-icon" onclick="habitWeekNav(1)" title="Sonraki Hafta">&#8594;</button>
+    </div>`;
+
+  const cardsHTML = arr.map(h => {
     const ch  = h.c || {};
     const dw  = wDays.filter(d => ch[d.ds]).length;
     const pct = Math.min(100, Math.round((dw / h.tg) * 100));
@@ -2680,6 +2719,7 @@ function renderHabits() {
       </div>
     </div>`;
   }).join('');
+  el.innerHTML = weekNavHTML + cardsHTML;
   initSwipeForList('habit-list');
   initSortable('habit-list', '.swipe-wrap[data-sort-id]', habitsReorder, 'y');
   renderHabitsWidget();
@@ -3813,6 +3853,7 @@ function hwToggle(hid, dStr) {
   if (!h) return;
   h.c = h.c || {};
   h.c[dStr] = !h.c[dStr];
+  h.updatedAt = new Date().toISOString();
   DB.set('pers_habits', arr);
   renderHabitsWidget();
   // Eğer habits modülündeyse onu da güncelle
@@ -5390,7 +5431,18 @@ function mergeArrays(localArr, cloudArr, tombstones, key, localOrderTs, cloudOrd
     } else {
       const lt = getItemTime(item);
       const et = getItemTime(existing);
-      contentMap.set(item.id, lt >= et ? item : existing);
+      // Alışkanlık gibi işaretleme haritası (.c) taşıyan öğelerde:
+      // tek versiyonu seçmek yerine iki tarafın işaretlemelerini BİRLEŞTİR
+      // (bir cihazdaki işaretlemeler diğerinin üzerine yazılıp kaybolmasın)
+      if (item.c && typeof item.c === 'object' && existing.c && typeof existing.c === 'object') {
+        const mergedC = {};
+        const allDates = new Set([...Object.keys(existing.c), ...Object.keys(item.c)]);
+        allDates.forEach(d => { mergedC[d] = !!(existing.c[d] || item.c[d]); });
+        const winner = lt >= et ? item : existing;
+        contentMap.set(item.id, { ...winner, c: mergedC });
+      } else {
+        contentMap.set(item.id, lt >= et ? item : existing);
+      }
     }
   });
 
