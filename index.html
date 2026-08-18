@@ -492,7 +492,7 @@
   .qnote-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:10px; cursor:pointer; transition:transform 0.15s; box-shadow:var(--shadow); border-left:4px solid #6E1822; }
   .qnote-card:hover { transform:translateX(5px); }
   .swipe-wrap .qnote-card:hover { transform:none; }
-  .qnote-text { font-size:14px; color:var(--text); line-height:1.6; white-space:pre-wrap; }
+  .qnote-text { font-size:14px; color:var(--text); line-height:1.6; }
   .qnote-date { font-size:11px; color:var(--muted); font-weight:700; margin-top:8px; }
   .qnote-editor { display:none; position:fixed; inset:0; background:var(--bg); z-index:300; flex-direction:column; max-width:820px; margin:0 auto; }
   .qnote-editor.open { display:flex; animation:fadeIn 0.2s; }
@@ -539,6 +539,53 @@
   .note-textarea.active, .note-preview.active { display:block; }
   .note-preview h1, .note-preview h2, .note-preview h3 { margin:15px 0 10px; font-weight:700; color:var(--text); }
   .note-preview ul { margin-left:20px; margin-bottom:10px; }
+
+  /* ================= ZENGİN METİN ARAÇ ÇUBUĞU (RTE) ================= */
+  .rte-toolbar { display:flex; gap:6px; align-items:center; padding:8px 10px; background:var(--surface); border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .rte-btn {
+    min-width:34px; height:34px; padding:0 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg); color:var(--text); font-family:inherit; font-size:14px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:4px; transition:all 0.15s;
+  }
+  .rte-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .rte-btn:active, .rte-btn.rte-active { background:var(--accent-light); border-color:var(--accent); color:var(--accent); }
+  .rte-dropdown { position:relative; }
+  .rte-menu {
+    display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:50;
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    box-shadow:var(--shadow); padding:6px; min-width:120px;
+  }
+  .rte-menu.open { display:flex; flex-direction:column; gap:2px; }
+  .rte-menu button {
+    background:none; border:none; color:var(--text); font-family:inherit; font-size:13px;
+    text-align:left; padding:8px 10px; border-radius:6px; cursor:pointer;
+  }
+  .rte-menu button:hover { background:var(--bg); }
+  .rte-menu.rte-color-menu { flex-direction:row; flex-wrap:wrap; min-width:150px; }
+  .rte-swatch {
+    width:26px; height:26px; border-radius:50%; border:2px solid var(--border); cursor:pointer;
+    padding:0; flex-shrink:0;
+  }
+  .rte-swatch:hover { transform:scale(1.12); border-color:var(--text); }
+  .rte-swatch-reset { background:var(--bg) !important; display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--muted); }
+
+  .rte-editable {
+    width:100%; flex:1; min-height:280px; background:var(--surface); border:1.5px solid var(--border);
+    border-top:none; border-radius:0 0 12px 12px; color:var(--text); line-height:1.7; padding:16px;
+    font-size:15px; font-family:inherit; outline:none; overflow-y:auto; transition:border-color 0.2s;
+    box-shadow:inset 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .rte-editable:focus { border-color:var(--accent); }
+  .rte-editable:empty:before { content: attr(data-placeholder); color:var(--muted); pointer-events:none; }
+  .rte-editable b, .rte-editable strong { font-weight:700; }
+  .rte-editable i, .rte-editable em { font-style:italic; }
+  /* Yazı boyutu — execCommand('fontSize') tarayıcı-standart <font size> etiketleri üretir, biz kendi ölçeğimize eşliyoruz */
+  .rte-editable font[size="2"] { font-size:13px; }
+  .rte-editable font[size="3"] { font-size:15px; }
+  .rte-editable font[size="5"] { font-size:20px; }
+  .rte-editable font[size="6"] { font-size:26px; font-weight:700; line-height:1.4; }
+  .rte-wrap { flex:1; display:flex; flex-direction:column; min-height:0; }
+  .voice-interim-span { font-style:italic; }
 
   /* ================= MODALS ================= */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
@@ -1028,12 +1075,12 @@
           </div>
 
           <div class="section" id="sec-lists">
-            <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px;" id="cat-tabs"></div>
+            <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px; -webkit-overflow-scrolling:touch;" id="cat-tabs"></div>
             <div id="list-content"></div>
           </div>
 
           <div class="section" id="sec-webajandam">
-            <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px;" id="wa-tabs"></div>
+            <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:5px; -webkit-overflow-scrolling:touch;" id="wa-tabs"></div>
             <div id="wa-content"></div>
           </div>
 
@@ -1638,14 +1685,38 @@
     <button class="btn-ghost" onclick="deleteNote()" style="color:var(--accent-danger); border-color:var(--accent-danger); padding:8px 16px; font-size:13px; font-weight:700;">🗑️ Sil</button>
   </div>
   <div class="note-tabs">
-    <div class="note-tab active" id="tab-write"   onclick="switchNoteTab('write')">✏️ Düzenle</div>
-    <div class="note-tab"        id="tab-preview" onclick="switchNoteTab('preview')">👁️ Önizle</div>
+    <div class="note-tab active" id="tab-write"    onclick="switchNoteTab('write')">✏️ Yaz</div>
     <div class="note-tab"        id="tab-contacts" onclick="switchNoteTab('contacts')">👤 Kişiler</div>
   </div>
   <div class="voice-transcript" id="voice-tr-note"></div>
   <div class="note-area">
-    <textarea class="note-textarea active" id="m-note-body" placeholder="# Markdown Destekli Not&#10;- Madde 1&#10;- **Kalın** veya *Eğik*..."></textarea>
-    <div class="note-preview" id="m-note-preview"></div>
+    <div class="rte-wrap active" id="rte-wrap-note">
+      <div class="rte-toolbar">
+        <button type="button" class="rte-btn" onmousedown="event.preventDefault();rteBold();" title="Kalın"><b>B</b></button>
+        <button type="button" class="rte-btn" onmousedown="event.preventDefault();rteItalic();" title="İtalik"><i>i</i></button>
+        <div class="rte-dropdown">
+          <button type="button" class="rte-btn" onmousedown="event.preventDefault();toggleRteMenu('rte-size-menu-note');" title="Yazı Boyutu">Boyut ▾</button>
+          <div class="rte-menu" id="rte-size-menu-note">
+            <button type="button" onmousedown="event.preventDefault();rteFontSize(2);closeRteMenus();">Küçük</button>
+            <button type="button" onmousedown="event.preventDefault();rteFontSize(3);closeRteMenus();">Normal</button>
+            <button type="button" onmousedown="event.preventDefault();rteFontSize(5);closeRteMenus();">Büyük</button>
+            <button type="button" onmousedown="event.preventDefault();rteFontSize(6);closeRteMenus();">Başlık</button>
+          </div>
+        </div>
+        <div class="rte-dropdown">
+          <button type="button" class="rte-btn" onmousedown="event.preventDefault();toggleRteMenu('rte-color-menu-note');" title="Yazı Rengi">🎨</button>
+          <div class="rte-menu rte-color-menu" id="rte-color-menu-note">
+            <button type="button" class="rte-swatch" style="background:#E03131" onmousedown="event.preventDefault();rteColor('#E03131');closeRteMenus();" title="Kırmızı"></button>
+            <button type="button" class="rte-swatch" style="background:#1971C2" onmousedown="event.preventDefault();rteColor('#1971C2');closeRteMenus();" title="Mavi"></button>
+            <button type="button" class="rte-swatch" style="background:#2F9E44" onmousedown="event.preventDefault();rteColor('#2F9E44');closeRteMenus();" title="Yeşil"></button>
+            <button type="button" class="rte-swatch" style="background:#E8590C" onmousedown="event.preventDefault();rteColor('#E8590C');closeRteMenus();" title="Turuncu"></button>
+            <button type="button" class="rte-swatch" style="background:#9C36B5" onmousedown="event.preventDefault();rteColor('#9C36B5');closeRteMenus();" title="Mor"></button>
+            <button type="button" class="rte-swatch rte-swatch-reset" onmousedown="event.preventDefault();rteResetColor();closeRteMenus();" title="Sıfırla">↺</button>
+          </div>
+        </div>
+      </div>
+      <div class="rte-editable" id="m-note-body" contenteditable="true" data-placeholder="Aklındaki her şeyi buraya yaz..."></div>
+    </div>
     <div class="note-contacts" id="m-note-contacts" style="display:none;padding:4px 0;">
       <div id="note-contacts-list" class="contact-list"></div>
       <button class="btn-add" style="margin-top:12px;" onclick="addContactRow()">+ Kişi Ekle</button>
@@ -1663,7 +1734,33 @@
   </div>
   <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;background:var(--bg);">
     <div class="voice-transcript" id="voice-tr-qnote"></div>
-    <textarea id="qnote-body" style="flex:1;min-height:200px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:15px;font-family:inherit;color:var(--text);resize:none;line-height:1.7;border-left:4px solid #6E1822;" placeholder="Aklındaki her şeyi buraya yaz..."></textarea>
+    <div class="rte-wrap active" id="rte-wrap-qnote" style="border-radius:14px;overflow:hidden;border-left:4px solid #6E1822;">
+      <div class="rte-toolbar">
+        <button type="button" class="rte-btn" onmousedown="event.preventDefault();rteBold();" title="Kalın"><b>B</b></button>
+        <button type="button" class="rte-btn" onmousedown="event.preventDefault();rteItalic();" title="İtalik"><i>i</i></button>
+        <div class="rte-dropdown">
+          <button type="button" class="rte-btn" onmousedown="event.preventDefault();toggleRteMenu('rte-size-menu-qnote');" title="Yazı Boyutu">Boyut ▾</button>
+          <div class="rte-menu" id="rte-size-menu-qnote">
+            <button type="button" onmousedown="event.preventDefault();rteFontSize(2);closeRteMenus();">Küçük</button>
+            <button type="button" onmousedown="event.preventDefault();rteFontSize(3);closeRteMenus();">Normal</button>
+            <button type="button" onmousedown="event.preventDefault();rteFontSize(5);closeRteMenus();">Büyük</button>
+            <button type="button" onmousedown="event.preventDefault();rteFontSize(6);closeRteMenus();">Başlık</button>
+          </div>
+        </div>
+        <div class="rte-dropdown">
+          <button type="button" class="rte-btn" onmousedown="event.preventDefault();toggleRteMenu('rte-color-menu-qnote');" title="Yazı Rengi">🎨</button>
+          <div class="rte-menu rte-color-menu" id="rte-color-menu-qnote">
+            <button type="button" class="rte-swatch" style="background:#E03131" onmousedown="event.preventDefault();rteColor('#E03131');closeRteMenus();" title="Kırmızı"></button>
+            <button type="button" class="rte-swatch" style="background:#1971C2" onmousedown="event.preventDefault();rteColor('#1971C2');closeRteMenus();" title="Mavi"></button>
+            <button type="button" class="rte-swatch" style="background:#2F9E44" onmousedown="event.preventDefault();rteColor('#2F9E44');closeRteMenus();" title="Yeşil"></button>
+            <button type="button" class="rte-swatch" style="background:#E8590C" onmousedown="event.preventDefault();rteColor('#E8590C');closeRteMenus();" title="Turuncu"></button>
+            <button type="button" class="rte-swatch" style="background:#9C36B5" onmousedown="event.preventDefault();rteColor('#9C36B5');closeRteMenus();" title="Mor"></button>
+            <button type="button" class="rte-swatch rte-swatch-reset" onmousedown="event.preventDefault();rteResetColor();closeRteMenus();" title="Sıfırla">↺</button>
+          </div>
+        </div>
+      </div>
+      <div class="rte-editable" id="qnote-body" contenteditable="true" data-placeholder="Aklındaki her şeyi buraya yaz..." style="border-radius:0;border:1px solid var(--border);border-top:none;"></div>
+    </div>
   </div>
 </div>
 
@@ -2029,8 +2126,8 @@ function performSearch() {
     (DB.get(key,[])||[]).forEach(n => {
       // Şifrelenmiş notlar atlanır (içeriği okunamaz, başlığı yok)
       if (n.encrypted) return;
-      if(trLower((n.title||'')+' '+(n.body||'')).includes(q))
-        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:(n.body||'').slice(0,60)});
+      if(trLower((n.title||'')+' '+htmlToPlainText(n.body||'')).includes(q))
+        results.push({icon:'✍️', ctx, mod:'notes', title:n.title, sub:htmlToPlainText(n.body||'').slice(0,60)});
     });
   });
 
@@ -2739,7 +2836,7 @@ function habitsReorder(newOrderIds) {
 function getCatKeys() { return DB.get('pers_listcats',['Alışveriş','İzlenecekler','Kitaplar']); }
 function getActiveCat() { return DB.get('pers_activecat',getCatKeys()[0]); }
 function safe(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
-function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" data-sort-id="${esc(c)}" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;display:flex;align-items:center;gap:6px;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()"><span class="sortable-handle" title="Sürükleyerek sırala">⠿</span>${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); renderListsWidget(); initSortable('cat-tabs', '.badge[data-sort-id]', listCatsReorder); }
+function renderLists() { const cats=getCatKeys(); const ac=getActiveCat(); document.getElementById('cat-tabs').innerHTML=cats.map(c=>`<button class="badge" data-sort-id="${esc(c)}" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;flex-shrink:0;display:flex;align-items:center;gap:6px;${c===ac?'background:var(--accent);color:#fff;':'background:var(--surface);color:var(--muted);border:1px solid var(--border)'}" onclick="DB.set('pers_activecat','${esc(c)}');renderLists()"><span class="sortable-handle" title="Sürükleyerek sırala">⠿</span>${esc(c)}</button>`).join('')+`<button class="badge" style="cursor:pointer;font-size:13px;padding:8px 16px;margin:0;background:transparent;border:1px dashed var(--border);color:var(--text);flex-shrink:0;" onclick="openModal('modal-newlist')">+ Yeni</button>`; renderListItems(ac); renderListsWidget(); initSortable('cat-tabs', '.badge[data-sort-id]', listCatsReorder, 'x', true); }
 function listCatsReorder(newOrderKeys) {
   const cats = getCatKeys();
   const reordered = newOrderKeys.filter(k => cats.includes(k));
@@ -2971,8 +3068,8 @@ function renderWebAjandam() {
   contEl.innerHTML = html;
 
   // Sürükle-bırak sıralamayı etkinleştir
-  initSortable('wa-tabs', '.wa-tab[data-sort-id]', waGroupsReorder);
-  if (sites.length) initSortable('wa-site-grid', '.wa-site-card[data-sort-id]', waSitesReorder);
+  initSortable('wa-tabs', '.wa-tab[data-sort-id]', waGroupsReorder, 'x', true);
+  if (sites.length) initSortable('wa-site-grid', '.wa-site-card[data-sort-id]', waSitesReorder, 'x', false);
 }
 
 function waGroupsReorder(newOrderKeys) {
@@ -3209,6 +3306,56 @@ function renderBdays() {
 function getNoteKey() { return currentContext+'_notes'; }
 function parseMD(t) { return esc(t).replace(/^### (.*$)/gim,'<h3>$1</h3>').replace(/^## (.*$)/gim,'<h2>$1</h2>').replace(/^# (.*$)/gim,'<h1>$1</h1>').replace(/\*\*(.*?)\*\*/gim,'<strong>$1</strong>').replace(/\*(.*?)\*/gim,'<em>$1</em>').replace(/^\- (.*$)/gim,'<ul><li>$1</li></ul>').replace(/<\/ul>\n<ul>/gim,'').replace(/\n/gim,'<br>'); }
 
+// ==================== 📝 ZENGİN METİN — YARDIMCI FONKSİYONLAR ====================
+// Bir string zaten HTML mi (yeni format) yoksa eski düz metin/markdown mi?
+function looksLikeHtml(s) { return /<[a-z][\s\S]*>/i.test(s || ''); }
+
+// Not editörü: eski markdown-benzeri düz metni HTML'e çevirir (geriye dönük uyumluluk)
+function migrateNoteBodyToHtml(raw) {
+  if (!raw) return '';
+  if (looksLikeHtml(raw)) return raw;
+  return parseMD(raw);
+}
+
+// Hızlı not: eski düz metni (sadece satır sonlarıyla) HTML'e çevirir
+function migrateQNoteBodyToHtml(raw) {
+  if (!raw) return '';
+  if (looksLikeHtml(raw)) return raw;
+  return esc(raw).replace(/\n/g, '<br>');
+}
+
+// HTML içeriğinden düz metin çıkarır (arama/önizleme/yazdırma için)
+function htmlToPlainText(html) {
+  if (!html) return '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
+}
+
+// ==================== 🎨 ZENGİN METİN ARAÇ ÇUBUĞU (RTE) ====================
+function rteBold()   { document.execCommand('bold', false, null); }
+function rteItalic() { document.execCommand('italic', false, null); }
+function rteFontSize(legacySize) { document.execCommand('fontSize', false, String(legacySize)); }
+function rteColor(hex) { document.execCommand('foreColor', false, hex); }
+function rteResetColor() {
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#000000';
+  document.execCommand('foreColor', false, textColor);
+}
+
+function toggleRteMenu(menuId) {
+  const menu = document.getElementById(menuId);
+  const wasOpen = menu.classList.contains('open');
+  closeRteMenus();
+  if (!wasOpen) menu.classList.add('open');
+}
+function closeRteMenus() {
+  document.querySelectorAll('.rte-menu.open').forEach(m => m.classList.remove('open'));
+}
+// Menü dışına tıklanınca kapat
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.rte-dropdown')) closeRteMenus();
+});
+
 function showToast(msg) {
   const t = document.getElementById('save-toast');
   t.textContent = msg || '✓ Kaydedildi';
@@ -3228,7 +3375,7 @@ async function openNoteEditor(eid=null) {
     }
   }
   document.getElementById('m-note-title').value = n ? n.title : '';
-  document.getElementById('m-note-body').value  = n ? n.body  : '';
+  document.getElementById('m-note-body').innerHTML = n ? migrateNoteBodyToHtml(n.body) : '';
   switchNoteTab('write');
   renderNoteContacts(n ? (n.contacts||[]) : []);
   document.getElementById('note-editor').classList.add('open');
@@ -3236,35 +3383,12 @@ async function openNoteEditor(eid=null) {
 }
 
 function switchNoteTab(m) {
-  ['tab-write','tab-preview','tab-contacts'].forEach(t => document.getElementById(t).classList.remove('active'));
-  document.getElementById('m-note-body').classList.remove('active');
-  document.getElementById('m-note-preview').classList.remove('active');
+  ['tab-write','tab-contacts'].forEach(t => document.getElementById(t).classList.remove('active'));
+  document.getElementById('rte-wrap-note').classList.remove('active');
   document.getElementById('m-note-contacts').style.display = 'none';
   if (m === 'write') {
     document.getElementById('tab-write').classList.add('active');
-    document.getElementById('m-note-body').classList.add('active');
-  } else if (m === 'preview') {
-    document.getElementById('tab-preview').classList.add('active');
-    const md = document.getElementById('m-note-body').value;
-    let html = md ? parseMD(md) : '<div style="color:var(--muted);font-style:italic">Boş...</div>';
-
-    // Kişiler bölümü — varsa önizlemeye ekle
-    const contacts = collectContacts();
-    if (contacts.length) {
-      html += '<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">';
-      html += '<div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">👤 Kişiler (' + contacts.length + ')</div>';
-      html += contacts.map(c => {
-        const parts = [];
-        if (c.name)  parts.push(`<div style="font-weight:700;font-size:14px;color:var(--text);">${esc(c.name)}</div>`);
-        if (c.phone) parts.push(`<div style="font-size:13px;"><span style="color:var(--muted);">📱</span> <a href="tel:${esc(c.phone)}" style="color:var(--accent);text-decoration:none;">${esc(c.phone)}</a></div>`);
-        if (c.email) parts.push(`<div style="font-size:13px;"><span style="color:var(--muted);">📧</span> <a href="mailto:${esc(c.email)}" style="color:var(--accent);text-decoration:none;">${esc(c.email)}</a></div>`);
-        return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;">${parts.join('')}</div>`;
-      }).join('');
-      html += '</div>';
-    }
-
-    document.getElementById('m-note-preview').innerHTML = html;
-    document.getElementById('m-note-preview').classList.add('active');
+    document.getElementById('rte-wrap-note').classList.add('active');
   } else if (m === 'contacts') {
     document.getElementById('tab-contacts').classList.add('active');
     document.getElementById('m-note-contacts').style.display = 'block';
@@ -3273,9 +3397,11 @@ function switchNoteTab(m) {
 
 async function saveNoteData() {
   const t = document.getElementById('m-note-title').value.trim();
-  const b = document.getElementById('m-note-body').value.trim();
+  const bodyEl = document.getElementById('m-note-body');
+  const b = bodyEl.innerHTML.trim();
+  const plainCheck = bodyEl.textContent.trim();
   const contacts = collectContacts();
-  if (!t && !b) return false;
+  if (!t && !plainCheck) return false;
   const note = { id: currentEditId, title: t||'İsimsiz', body: b, contacts, d: new Date().toISOString() };
   // Kişisel notlar şifreli, iş notları normal
   if (currentContext === 'pers' && isNotesUnlocked()) {
@@ -3332,7 +3458,7 @@ async function renderNotes() {
           <button class="btn-icon swipe-hide-mobile" onclick="event.stopPropagation();deleteNoteById('${n.id}')">&#10005;</button>
         </div>
         <div class="card-title">${esc(n.title)}</div>
-        <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(n.body)}</div>
+        <div style="font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;">${esc(htmlToPlainText(n.body))}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;display:flex;gap:10px;align-items:center;">
           <span>${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}</span>
           ${cCount ? `<span style="color:var(--accent)">👤 ${cCount} kişi</span>` : ''}
@@ -3412,15 +3538,17 @@ let currentQNoteId = null;
 function openQNoteEditor(eid=null) {
   currentQNoteId = eid;
   const n = eid ? DB.get('quick_notes',[]).find(x=>x.id===eid) : null;
-  document.getElementById('qnote-body').value = n ? n.body : '';
+  document.getElementById('qnote-body').innerHTML = n ? migrateQNoteBodyToHtml(n.body) : '';
   document.getElementById('qnote-editor').classList.add('open');
   if (!eid) currentQNoteId = id();
   setTimeout(() => document.getElementById('qnote-body').focus(), 200);
 }
 
 function saveQNote() {
-  const b = document.getElementById('qnote-body').value.trim();
-  if (!b) return;
+  const bodyEl = document.getElementById('qnote-body');
+  const b = bodyEl.innerHTML.trim();
+  const plainCheck = bodyEl.textContent.trim();
+  if (!plainCheck) return;
   const arr = DB.get('quick_notes',[]);
   const idx = arr.findIndex(x => x.id === currentQNoteId);
   const e = { id: currentQNoteId, body: b, d: new Date().toISOString() };
@@ -3884,7 +4012,7 @@ function renderQNotes() {
       <div class="swipe-del-btn" onclick="deleteQNoteById('${n.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
       <div class="qnote-card" style="margin-bottom:0;position:relative;" data-id="${n.id}" onclick="openQNoteEditor('${n.id}')">
         <button class="btn-icon swipe-hide-mobile" style="position:absolute;top:10px;right:10px;font-size:14px;" onclick="event.stopPropagation();deleteQNoteById('${n.id}')">&#10005;</button>
-        <div class="qnote-text" style="padding-right:28px;">${esc(n.body)}</div>
+        <div class="qnote-text" style="padding-right:28px;">${migrateQNoteBodyToHtml(n.body)}</div>
         <div class="qnote-date">⚡ ${dateStr}</div>
       </div>
     </div>`;
@@ -4146,7 +4274,7 @@ function initSwipeForList(listId) {
 // Touch: ~500ms basılı tutunca (uzun basış) sürükleme başlar — sayfa kaydırmasıyla çakışmaz
 let sortableCtx = null;
 
-function initSortable(containerId, itemSelector, onReorder, axis) {
+function initSortable(containerId, itemSelector, onReorder, axis, horizontalScroll) {
   axis = axis || 'x'; // 'x' = yatay sekmeler/grid, 'y' = dikey liste
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -4231,6 +4359,9 @@ function initSortable(containerId, itemSelector, onReorder, axis) {
 
   getItems().forEach(item => {
     item.classList.add('sortable-item');
+    // Yatay kaydırmalı konteynerlerde (sekme çubukları) parmakla sağa-sola
+    // kaydırmaya izin ver; dikey listelerde sayfanın yukarı-aşağı kaymasına izin ver
+    item.style.touchAction = horizontalScroll ? 'pan-x' : 'pan-y';
     const handle = item.querySelector('.sortable-handle');
     if (!handle) return;
 
@@ -4266,7 +4397,7 @@ let voiceActiveTextareaId = null;
 let voiceActiveBtnId = null;
 let voiceActiveTrId = null;
 let voiceListening = false;
-let voiceFinalText = '';
+let voiceInterimSpanEl = null; // Dinleme sırasında geçici metnin tutulduğu span
 
 function isVoiceSupported() {
   return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
@@ -4288,7 +4419,7 @@ function toggleVoice(textareaId, btnId, trId) {
   startVoice(textareaId, btnId, trId);
 }
 
-function startVoice(textareaId, btnId, trId) {
+function startVoice(containerId, btnId, trId) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SR();
 
@@ -4298,15 +4429,36 @@ function startVoice(textareaId, btnId, trId) {
   recognition.maxAlternatives = 1;
 
   voiceRecognition      = recognition;
-  voiceActiveTextareaId = textareaId;
+  voiceActiveTextareaId = containerId;
   voiceActiveBtnId      = btnId;
   voiceActiveTrId       = trId;
   voiceListening        = true;
 
-  // Mevcut textarea içeriğini al — sonuna ekleyeceğiz
-  const ta = document.getElementById(textareaId);
-  const existingText = ta ? ta.value : '';
-  voiceFinalText = existingText;
+  // Not editörü artık zengin metin (contenteditable) alanı — mevcut biçimlendirmeyi
+  // bozmadan, imleç konumuna (veya yoksa sonuna) geçici bir "interim" span yerleştiriyoruz.
+  // Sadece kesinleşen (final) metin gerçek metin düğümü olarak kalıcı hale geliyor.
+  const el = document.getElementById(containerId);
+  if (el) {
+    el.focus();
+    const interimSpan = document.createElement('span');
+    interimSpan.className = 'voice-interim-span';
+    const sel = window.getSelection();
+    let range;
+    if (sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
+      range = sel.getRangeAt(0);
+      range.deleteContents();
+    } else {
+      range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false); // içerik varsa sonuna, yoksa başa
+    }
+    range.insertNode(interimSpan);
+    range.setStartAfter(interimSpan);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    voiceInterimSpanEl = interimSpan;
+  }
 
   // Buton animasyonu başlat
   const btn = document.getElementById(btnId);
@@ -4327,16 +4479,22 @@ function startVoice(textareaId, btnId, trId) {
       }
     }
 
-    // Final sonuçları biriktirelim
-    if (final) {
-      const prefix = voiceFinalText && !voiceFinalText.endsWith('\n') && !voiceFinalText.endsWith(' ') ? ' ' : '';
-      voiceFinalText += prefix + final;
-    }
+    if (voiceInterimSpanEl && voiceInterimSpanEl.parentNode) {
+      // Kesinleşen metni sade bir metin düğümü olarak span'ın hemen öncesine ekle
+      // (mevcut kalın/italik/renkli biçimlendirmeye dokunmadan)
+      if (final) {
+        const prev = voiceInterimSpanEl.previousSibling;
+        const prevText = prev ? (prev.textContent || '') : '';
+        const needsSpace = prevText && !/\s$/.test(prevText);
+        const textNode = document.createTextNode((needsSpace ? ' ' : '') + final + ' ');
+        voiceInterimSpanEl.parentNode.insertBefore(textNode, voiceInterimSpanEl);
+      }
+      // Geçici (henüz kesinleşmemiş) metni span içinde göster
+      voiceInterimSpanEl.textContent = interim;
 
-    // Textarea'yı güncelle (final + geçici)
-    if (ta) {
-      ta.value = voiceFinalText + (interim ? ' ' + interim : '');
-      ta.scrollTop = ta.scrollHeight;
+      // Editör kaydırılabilir bir alan ise görünür alanda kalması için aşağı kaydır
+      const editEl = document.getElementById(containerId);
+      if (editEl) editEl.scrollTop = editEl.scrollHeight;
     }
 
     // Transcript göster
@@ -4390,16 +4548,20 @@ function stopVoice() {
   const tr = document.getElementById(voiceActiveTrId);
   if (tr) tr.textContent = '';
 
-  // Textarea son halini yaz (temiz, final metin)
-  const ta = document.getElementById(voiceActiveTextareaId);
-  if (ta && voiceFinalText !== undefined) {
-    ta.value = voiceFinalText.trim();
+  // Kalan geçici (interim) span'ı temizle — içinde metin varsa kalıcı hale getir
+  if (voiceInterimSpanEl && voiceInterimSpanEl.parentNode) {
+    const leftover = voiceInterimSpanEl.textContent;
+    if (leftover && leftover.trim()) {
+      const textNode = document.createTextNode(leftover);
+      voiceInterimSpanEl.parentNode.insertBefore(textNode, voiceInterimSpanEl);
+    }
+    voiceInterimSpanEl.remove();
   }
+  voiceInterimSpanEl = null;
 
   voiceActiveTextareaId = null;
   voiceActiveBtnId      = null;
   voiceActiveTrId       = null;
-  voiceFinalText        = '';
 }
 
 // Editör kapanırken dinlemeyi durdur
@@ -4609,12 +4771,11 @@ function confirmImport() {
 // ==================== TEK NOT YAZDIR ====================
 async function printCurrentNote() {
   const title = document.getElementById('m-note-title').value.trim() || 'İsimsiz Not';
-  const body  = document.getElementById('m-note-body').value.trim();
+  const body  = document.getElementById('m-note-body').innerHTML.trim();
   const contacts = collectContacts();
   const dateStr = new Date().toLocaleDateString('tr-TR', { year:'numeric', month:'long', day:'numeric' });
 
-  // Markdown → HTML çevir
-  const bodyHtml = body ? parseMD(body) : '<p style="color:#888;font-style:italic;">Boş not</p>';
+  const bodyHtml = body ? body : '<p style="color:#888;font-style:italic;">Boş not</p>';
 
   // Kişiler bölümü
   let contactsHtml = '';
@@ -4645,7 +4806,7 @@ function printAllQNotes() {
     const dStr = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     return `<div class="qnote-print">
       <div class="qnote-print-date">${dStr}</div>
-      <div class="qnote-print-text">${esc(n.body).replace(/\n/g,'<br>')}</div>
+      <div class="qnote-print-text">${migrateQNoteBodyToHtml(n.body)}</div>
     </div>`;
   }).join('');
 
@@ -4798,7 +4959,7 @@ function printPage() {
     body = arr.length ? arr.map(n=>`
       <div class="pr-note-card">
         <div class="pr-note-title">${esc(n.title)}</div>
-        <div class="pr-note-body">${parseMD(n.body)}</div>
+        <div class="pr-note-body">${migrateNoteBodyToHtml(n.body)}</div>
       </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0;">Not yok.</p>';
   }
 
