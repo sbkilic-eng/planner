@@ -2012,6 +2012,13 @@ window.addEventListener('resize', relocateWidgets);
 
 // ==================== CORE NAVIGATION ====================
 function switchModule(mod, ctx='') {
+  // Güvenlik önlemi: yarım kalmış bir sürükleme veya açık kalmış bir menü varsa
+  // her modül değişiminde temizle — bazı Android cihazlarda pointerup/pointercancel
+  // olayı güvenilir şekilde tetiklenmeyebiliyor, bu da tıklamaların "takılı" bir
+  // sürükleme durumu yüzünden görmezden gelinmesine yol açabiliyor.
+  forceClearSortableState();
+  closeRteMenus();
+
   currentModule=mod; currentContext=ctx;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+mod).classList.add('active');
@@ -4274,6 +4281,20 @@ function initSwipeForList(listId) {
 // Touch: ~500ms basılı tutunca (uzun basış) sürükleme başlar — sayfa kaydırmasıyla çakışmaz
 let sortableCtx = null;
 
+// Güvenlik önlemi: yarım kalmış bir sürükleme durumunu zorla temizler.
+// Gerçek Android cihazlarda bazen pointerup/pointercancel olayı beklenmedik
+// şekilde tetiklenmeyebiliyor; bu fonksiyon her modül geçişinde çağrılarak
+// olası "takılı" durumların sonraki tıklamaları engellemesini önler.
+function forceClearSortableState() {
+  if (sortableCtx) {
+    if (sortableCtx.item) sortableCtx.item.classList.remove('sortable-dragging');
+    if (sortableCtx.rafId) cancelAnimationFrame(sortableCtx.rafId);
+    clearTimeout(sortableCtx.longPressTimer);
+    sortableCtx = null;
+  }
+  document.body.classList.remove('sortable-noscroll');
+}
+
 function initSortable(containerId, itemSelector, onReorder, axis, horizontalScroll) {
   axis = axis || 'x'; // 'x' = yatay sekmeler/grid, 'y' = dikey liste
   const container = document.getElementById(containerId);
@@ -4354,6 +4375,8 @@ function initSortable(containerId, itemSelector, onReorder, axis, horizontalScro
     document.removeEventListener('pointermove', onPointerMove);
     document.removeEventListener('pointerup', onPointerUp);
     document.removeEventListener('pointercancel', onPointerUp);
+    document.removeEventListener('touchend', onPointerUp);
+    document.removeEventListener('touchcancel', onPointerUp);
     sortableCtx = null;
   }
 
@@ -4380,6 +4403,11 @@ function initSortable(containerId, itemSelector, onReorder, axis, horizontalScro
       document.addEventListener('pointermove', onPointerMove, { passive: false });
       document.addEventListener('pointerup', onPointerUp);
       document.addEventListener('pointercancel', onPointerUp);
+      // Güvenlik ağı: bazı Android tarayıcılarında pointerup/pointercancel
+      // güvenilir şekilde tetiklenmeyebiliyor — touchend/touchcancel de dinleyip
+      // aynı temizleme mantığını çalıştırıyoruz ki sürükleme asla "takılı" kalmasın
+      document.addEventListener('touchend', onPointerUp);
+      document.addEventListener('touchcancel', onPointerUp);
 
       // Tutamaç zaten net bir tetikleyici olduğu için hem mouse hem touch'ta
       // gecikmesiz, anında sürüklemeye başla
