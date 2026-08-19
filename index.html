@@ -3997,8 +3997,9 @@ function hwToggle(hid, dStr) {
 
 function closeQNoteEditor() {
   stopVoiceIfActive();
-  const b = document.getElementById('qnote-body').value.trim();
-  if (b) saveQNote(); else document.getElementById('qnote-editor').classList.remove('open');
+  const bodyEl = document.getElementById('qnote-body');
+  const hasContent = bodyEl.textContent.trim().length > 0;
+  if (hasContent) saveQNote(); else document.getElementById('qnote-editor').classList.remove('open');
 }
 
 function deleteQNote() {
@@ -6481,15 +6482,26 @@ function silentBackupDownload() {
 }
 
 // Katman 1: Bulut öneri popup
+// Kullanıcı şu an bir editör veya modal ile meşgul mü? (tam ekran kaplayan
+// bildirimlerin üstlerine binip tıklamaları engellemesini önlemek için)
+function isUserBusy() {
+  const noteEditorOpen  = document.getElementById('note-editor')?.classList.contains('open');
+  const qnoteEditorOpen = document.getElementById('qnote-editor')?.classList.contains('open');
+  const anyModalOpen    = !!document.querySelector('.modal-overlay.open');
+  return !!(noteEditorOpen || qnoteEditorOpen || anyModalOpen);
+}
+
 function showCloudSuggestionIfNeeded() {
   if (isCloudSyncEnabled()) return;
   if (wasCloudSyncSuggested()) return;
-  setTimeout(() => {
+  function tryShow() {
     const wrap = document.getElementById('app-shell-wrap');
     if (!wrap || wrap.style.display === 'none') return;
+    if (isUserBusy()) { setTimeout(tryShow, 5000); return; } // Meşgulse rahatsız etme, sonra tekrar dene
     openModal('modal-cloud-suggest');
     markCloudSyncSuggested();
-  }, 5000);
+  }
+  setTimeout(tryShow, 5000);
 }
 function dismissCloudSuggestion(action) {
   closeModal('modal-cloud-suggest');
@@ -6503,13 +6515,15 @@ function showBackupReminderIfNeeded() {
   if (days < 7) return;
   if (sessionStorage.getItem('planner_backup_reminded') === '1') return;
   sessionStorage.setItem('planner_backup_reminded', '1');
-  setTimeout(() => {
+  function tryShow() {
+    if (isUserBusy()) { setTimeout(tryShow, 5000); return; } // Meşgulse rahatsız etme, sonra tekrar dene
     const banner = document.getElementById('backup-reminder');
     if (banner) {
       document.getElementById('backup-reminder-days').textContent = days === 999 ? 'Hiç' : days + ' gün';
       banner.style.display = 'flex';
     }
-  }, 8000);
+  }
+  setTimeout(tryShow, 8000);
 }
 function dismissBackupReminder() {
   document.getElementById('backup-reminder').style.display = 'none';
