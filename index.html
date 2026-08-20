@@ -234,7 +234,29 @@
   }
   .wa-emoji-btn.selected { border-color: var(--accent); background: var(--accent-light); }
 
-  /* Sürükle-Bırak Sıralama */
+  /* Ana Sayfa kayıt çubukları + Hızlı Notlar — not önizleme/genişletme */
+  .sum-note-preview {
+    font-size:12px; color:var(--muted); margin-top:4px; line-height:1.4;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .sum-note-preview.expanded {
+    white-space:pre-wrap; overflow:visible; text-overflow:clip;
+  }
+  .sum-note-toggle {
+    background:none; border:none; color:var(--accent); font-size:11px; font-weight:700;
+    cursor:pointer; padding:3px 0 0; font-family:inherit; display:block;
+  }
+  .qnote-text-preview {
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+  .qnote-text-preview.expanded {
+    display:block; -webkit-line-clamp:unset; overflow:visible;
+  }
+  .qnote-toggle {
+    background:none; border:none; color:var(--accent); font-size:11px; font-weight:700;
+    cursor:pointer; padding:6px 0 0; font-family:inherit; display:block;
+  }
   .sortable-item { touch-action: pan-y; -webkit-user-drag: none; user-drag: none; user-select: none; -webkit-user-select: none; }
   .sortable-item img, .sortable-item a { -webkit-user-drag: none; user-drag: none; }
   .sortable-handle {
@@ -2293,6 +2315,14 @@ function restoreCollapsible(listId, innerId, arrowId, isOpen) {
   requestAnimationFrame(()=>{ list.style.transition=''; });
 }
 
+function toggleSumNote(uid) {
+  const el = document.getElementById('sumnote-'+uid);
+  const btn = document.getElementById('sumnote-btn-'+uid);
+  if (!el || !btn) return;
+  const isExpanded = el.classList.toggle('expanded');
+  btn.textContent = isExpanded ? '▲ Daralt' : '▼ Devamı';
+}
+
 function renderSummary() {
   const el   = document.getElementById('summary-list');
   const now  = new Date();
@@ -2316,10 +2346,10 @@ function renderSummary() {
     });
   };
 
-  pushEv('work_appts',  '🗓️', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
-  pushEv('pers_appts',  '📍', i => i.date ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
-  pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time||null, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
-  pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time||null, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('work_appts',  '🗓️', i => i.date ? { id:i.id, note:i.note||'', t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('pers_appts',  '📍', i => i.date ? { id:i.id, note:i.note||'', t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('work_todos',  '💼', i => (i.date&&!i.done) ? { id:i.id, note:i.note||'', t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time||null, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
+  pushEv('pers_todos',  '✅', i => (i.date&&!i.done) ? { id:i.id, note:i.note||'', t:new Date(i.date+'T00:00').getTime(), tObj:new Date(i.date+(i.time?'T'+i.time:'T23:59:59')), rawDate:i.date, rawTime:i.time||null, title:i.title, sub:formatDate(i.date)+(i.time?' '+i.time:'') } : null);
 
   const ty = new Date().getFullYear();
   DB.get('pers_birthdays',[]).forEach(b => {
@@ -2352,6 +2382,7 @@ function renderSummary() {
         const dayStart = new Date(y, cur.getMonth(), cur.getDate(), 0, 0, 0);
         const dayEnd   = new Date(y, cur.getMonth(), cur.getDate(), 23, 59, 59);
         const ev = {
+          id: tr.id, note: tr.note||'',
           t: dayStart.getTime(),
           tObj: dayEnd,
           rawDate: ds, rawTime: null,
@@ -2411,11 +2442,20 @@ function renderSummary() {
     const ctxC = isPast ? 'ctx-past' : `ctx-${e.ctx}`;
     const icnC = isPast ? '' : `ctx-${e.ctx}`;
     const clickAction = isHoliday ? `switchModule('summary')` : `switchModule('${e.mod}','${e.ctx}')`;
+    // Not önizlemesi — sadece kaydın bir notu varsa gösterilir
+    let noteHTML = '';
+    if (e.note && e.note.trim()) {
+      const uid = `${e.mod}-${e.id||''}-${e.rawDate}`.replace(/[^a-zA-Z0-9-]/g,'');
+      noteHTML = `
+        <div class="sum-note-preview" id="sumnote-${uid}">${esc(e.note)}</div>
+        <button type="button" class="sum-note-toggle" id="sumnote-btn-${uid}" onclick="event.stopPropagation();toggleSumNote('${uid}')">▼ Devamı</button>`;
+    }
     return `<div class="summary-item ${ctxC}" onclick="${clickAction}">
       <div class="sum-icon ${icnC}">${e.icon}</div>
       <div style="flex:1;min-width:0;">
         <div class="card-title" style="font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.title)}</div>
         <div style="font-size:12px;font-weight:700;color:var(--text);opacity:0.75;margin-top:3px;">${e.sub}</div>
+        ${noteHTML}
       </div>
       ${cd ? `<span class="badge ${cd.c}" style="margin:0;flex-shrink:0;">${cd.t}</span>` : ''}
     </div>`;
@@ -4016,16 +4056,28 @@ function renderQNotes() {
   el.innerHTML = arr.map(n => {
     const d = new Date(n.d);
     const dateStr = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const bodyHtml = migrateQNoteBodyToHtml(n.body);
+    const plainLen = htmlToPlainText(bodyHtml).length;
+    const needsTruncate = plainLen > 140; // Kısa notlarda "Devamı" butonu gereksiz
     return `<div class="swipe-wrap">
       <div class="swipe-del-btn" onclick="deleteQNoteById('${n.id}')"><span class="swipe-del-btn-icon">🗑️</span>Sil</div>
       <div class="qnote-card" style="margin-bottom:0;position:relative;" data-id="${n.id}" onclick="openQNoteEditor('${n.id}')">
         <button class="btn-icon swipe-hide-mobile" style="position:absolute;top:10px;right:10px;font-size:14px;" onclick="event.stopPropagation();deleteQNoteById('${n.id}')">&#10005;</button>
-        <div class="qnote-text" style="padding-right:28px;">${migrateQNoteBodyToHtml(n.body)}</div>
+        <div class="qnote-text ${needsTruncate?'qnote-text-preview':''}" id="qnotetext-${n.id}" style="padding-right:28px;">${bodyHtml}</div>
+        ${needsTruncate ? `<button type="button" class="qnote-toggle" id="qnotetoggle-${n.id}" onclick="event.stopPropagation();toggleQNoteText('${n.id}')">▼ Devamı</button>` : ''}
         <div class="qnote-date">⚡ ${dateStr}</div>
       </div>
     </div>`;
   }).join('');
   initSwipeForList('qnotes-list');
+}
+
+function toggleQNoteText(nid) {
+  const el = document.getElementById('qnotetext-'+nid);
+  const btn = document.getElementById('qnotetoggle-'+nid);
+  if (!el || !btn) return;
+  const isExpanded = el.classList.toggle('expanded');
+  btn.textContent = isExpanded ? '▲ Daralt' : '▼ Devamı';
 }
 
 function deleteQNoteById(nid) {
